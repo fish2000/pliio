@@ -64,9 +64,9 @@ USE_FFMPEG = os.environ.get('USE_FFMPEG', '0') # won't even work
 USE_LAPACK = os.environ.get('USE_LAPACK', '0') # HOW U MAEK LINKED
 
 undef_macros = []
+auxilliary_macros = []
 define_macros = []
-define_macros.append(
-     ('PY_ARRAY_UNIQUE_SYMBOL', 'PyImgC_PyArray_API_Symbol'))
+define_macros.append(('PY_ARRAY_UNIQUE_SYMBOL', 'PyImgC_PyArray_API_Symbol'))
 
 if DEBUG:
     undef_macros = ['NDEBUG']
@@ -74,6 +74,10 @@ if DEBUG:
         define_macros.append(
             ('IMGC_DEBUG', DEBUG))
         define_macros.append(
+            ('_GLIBCXX_DEBUG', '1'))
+        auxilliary_macros.append(
+            ('IMGC_DEBUG', DEBUG))
+        auxilliary_macros.append(
             ('_GLIBCXX_DEBUG', '1'))
 
 print(""" ********************* DEBUG: %s ********************* """ % DEBUG)
@@ -99,9 +103,10 @@ for pth in (
         library_dirs.append(pth)
 
 extensions = {
-    'pliio._PyImgC': ["pliio/ext/PyImgC/pyimgc.cpp"],
-    'pliio._structcode': ["pliio/ext/PyImgC/structcode.cpp"],
+    '_PyImgC': ["pliio/ext/PyImgC/pyimgc.cpp"],
+    '_structcode': ["pliio/ext/PyImgC/structcode.cpp"],
 }
+#extensions = { '_PyImgC': ["pliio/ext/PyImgC/pyimgc.cpp", "pliio/ext/PyImgC/structcode.cpp"], }
 
 # the basics
 libraries = ['png', 'jpeg', 'z', 'm', 'pthread', 'c++']
@@ -208,7 +213,7 @@ if int(USE_OPENCV):
         ('cimg_use_opencv', '1'))
 
 ext_modules = [
-    setuptools.Extension(key,
+    setuptools.Extension("pliio.%s" % key,
         libraries=map(
             lambda lib: lib.endswith('.dylib') and lib.split('.')[0] or lib,
                 libraries),

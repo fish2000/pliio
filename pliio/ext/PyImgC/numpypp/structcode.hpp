@@ -1,11 +1,31 @@
 #ifndef PyImgC_STRUCTCODE_H
 #define PyImgC_STRUCTCODE_H
 
+#include <Python.h>
+#include <structmember.h>
+#include <iostream>
+#include <string>
+
+#ifndef NPY_NO_DEPRECATED_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#endif
+
+#include <numpy/arrayobject.h>
+#include <numpy/ndarraytypes.h>
+
+#include "../PyImgC_Constants.h"
+
 #ifndef IMGC_DEBUG
 #define IMGC_DEBUG 0
 #endif
 
-#include "../pyimgc.h"
+#if IMGC_DEBUG > 0
+    #define IMGC_COUT(x) cout << x << "\n"
+    #define IMGC_CERR(x) cerr << x << "\n"
+#else
+    #define IMGC_COUT(x)
+    #define IMGC_CERR(x)
+#endif
 
 #include <cstdio>
 #include <iostream>

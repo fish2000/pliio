@@ -1,5 +1,4 @@
 
-#include "pyimgc.h"
 #include "numpypp/structcode.hpp"
 #include <iostream>
 #include <vector>
