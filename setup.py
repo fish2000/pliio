@@ -39,8 +39,8 @@ except ImportError:
 
 # VERSION & METADATA
 __version__ = "<undefined>"
-exec(compile(open('PyImgC_Version.py').read(),
-             'PyImgC_Version.py', 'exec'))
+exec(compile(open('pliio-version.py').read(),
+             'pliio-version.py', 'exec'))
 
 long_description = open('README.md').read()
 
@@ -98,8 +98,8 @@ for pth in (
         library_dirs.append(pth)
 
 extensions = {
-    '_PyImgC': ["PyImgC/pyimgc.cpp"],
-    '_structcode': ["PyImgC/structcode.cpp"],
+    '_PyImgC': ["pliio/ext/PyImgC/pyimgc.cpp"],
+    '_structcode': ["pliio/ext/PyImgC/structcode.cpp"],
 }
 
 # the basics
@@ -229,8 +229,8 @@ ext_modules = [
         ]) for key, sources in extensions.items()]
 
 packages = setuptools.find_packages()
-#package_dir = { 'imread.tests': 'imread/tests' }
-#package_data = { 'imread.tests': ['data/*.*', 'data/pvrsamples/*'] }
+package_dir = { 'pliio.tools': 'pliio/tools' }
+#package_data = { 'pliio/tools': ['pliio/tools/*.*', 'data/pvrsamples/*'] }
 package_dir = dict()
 package_data = dict()
 
