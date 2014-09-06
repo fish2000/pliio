@@ -57,11 +57,7 @@ CImg<T> cimage_from_pybuffer(Py_buffer *pybuffer, bool is_shared=true) {
 }
 
 template <typename T>
-CImg<T> cimage_from_pyarray(PyObject *pyobj, bool is_shared=true) {
-    if (!PyArray_Check(pyobj)) {
-        return CImg<T>();
-    }
-    PyArrayObject *pyarray = (PyArrayObject *)pyobj;
+CImg<T> cimage_from_pyarray(PyArrayObject *pyarray, bool is_shared=true) {
     int sW = 0;
     int sH = 0;
     int channels = 0;
@@ -94,6 +90,15 @@ CImg<T> cimage_from_pyarray(PyObject *pyobj, bool is_shared=true) {
 }
 
 template <typename T>
+CImg<T> cimage_from_pyarray(PyObject *pyobj, bool is_shared=true) {
+    if (!PyArray_Check(pyobj)) {
+        return CImg<T>();
+    }
+    PyArrayObject *pyarray = (PyArrayObject *)pyobj;
+    return cimage_from_pyarray<T>(pyarray, is_shared);
+}
+
+template <typename T>
 CImg<T> cimage_from_pyobject(PyObject *datasource, int sW, int sH,
                     int channels, bool is_shared=true) {
     CImg<T> view(sW, sH, 1, channels, is_shared);
@@ -109,7 +114,7 @@ CImg<T> cimage_from_pyobject(PyObject *datasource, bool is_shared=true) {
 #define NILCODE '~'
 
 struct CImage_SubBase {
-    virtual ~CImage_SubBase();
+    virtual ~CImage_SubBase() {};
 };
 
 template <typename dT>
@@ -130,11 +135,11 @@ struct CImage_Base : public CImage_SubBase {
     }
 
     CImg<value_type> from_pyarray(PyArrayObject *pyarray, bool is_shared=true) {
-        return cimage_from_pyarray<value_type>((PyObject *)pyarray, is_shared);
+        return cimage_from_pyarray<value_type>(pyarray, is_shared);
     }
 
     CImg<value_type> from_pyarray(PyObject *pyarray, bool is_shared=true) {
-        return cimage_from_pyarray<value_type>(pyarray, is_shared);
+        return cimage_from_pyarray<value_type>((PyArrayObject *)pyarray, is_shared);
     }
 
     CImg<value_type> from_datasource(PyObject *datasource, bool is_shared=true) {
@@ -182,11 +187,11 @@ struct CImage_Type : public CImage_Base<CImage_Type<T>> {
     }
 
     CImg<value_type> from_pyobject(bool is_shared=true) {
-        return cimage_from_pyarray<value_type>((PyObject *)this->datasource, is_shared);
+        return cimage_from_pyobject<value_type>((PyObject *)this->datasource, is_shared);
     }
 
     CImg<value_type> from_pyarray(bool is_shared=true) {
-        return cimage_from_pyarray<value_type>((PyArrayObject *)this->datasource, is_shared);
+        return cimage_from_pyarray<value_type>(this->datasource, is_shared);
     }
 
     CImg<value_type> from_datasource(bool is_shared=true) {

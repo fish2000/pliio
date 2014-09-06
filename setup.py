@@ -81,7 +81,8 @@ print(""" ********************* DEBUG: %s ********************* """ % DEBUG)
 include_dirs = [
     numpy.get_include(),
     get_python_inc(plat_specific=1),
-    os.getcwd()]
+    os.path.join(os.getcwd(), 'pliio', 'ext'),
+    os.path.join(os.getcwd(), 'pliio', 'ext', 'PyImgC')]
 
 library_dirs = []
 
@@ -98,8 +99,8 @@ for pth in (
         library_dirs.append(pth)
 
 extensions = {
-    '_PyImgC': ["pliio/ext/PyImgC/pyimgc.cpp"],
-    '_structcode': ["pliio/ext/PyImgC/structcode.cpp"],
+    'pliio._PyImgC': ["pliio/ext/PyImgC/pyimgc.cpp"],
+    'pliio._structcode': ["pliio/ext/PyImgC/structcode.cpp"],
 }
 
 # the basics
@@ -229,9 +230,11 @@ ext_modules = [
         ]) for key, sources in extensions.items()]
 
 packages = setuptools.find_packages()
-package_dir = { 'pliio.tools': 'pliio/tools' }
+package_dir = { 
+    'pliio.tools': 'pliio/tools',
+    'pliio.ext': 'pliio/ext',
+}
 #package_data = { 'pliio/tools': ['pliio/tools/*.*', 'data/pvrsamples/*'] }
-package_dir = dict()
 package_data = dict()
 
 classifiers = [
