@@ -5,8 +5,8 @@
 #define IMGC_DEBUG 0
 #endif
 
-#include "../pyimgc.h"
-#include <numpy/ndarraytypes.h>
+#include <Python.h>
+#include <structmember.h>
 
 #include <cstdio>
 #include <iostream>
@@ -15,6 +15,16 @@
 #include <utility>
 #include <vector>
 #include <map>
+
+#ifndef NPY_NO_DEPRECATED_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#endif
+
+#include <numpy/arrayobject.h>
+#include <numpy/ndarraytypes.h>
+
+#include "../PyImgC_Constants.h"
+
 using namespace std;
 
 typedef integral_constant<NPY_TYPES, NPY_BOOL> ENUM_NPY_BOOL;

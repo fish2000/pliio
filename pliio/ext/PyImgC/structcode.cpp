@@ -134,14 +134,14 @@ PyMODINIT_FUNC init_structcode(void) {
     PyObject *api_ptr;
 
     module = Py_InitModule3(
-        "_structcode",
+        "pliio._structcode",
         _structcode_methods,
         "PyImgC structcode decoder");
     if (module == None) { return; }
     
     /// set up PyCapsule API
     PyImgC_API[PyImgC_NPYCodeFromStructAtom_NUM] = (void *)PyImgC_NPYCodeFromStructAtom;
-    api_ptr = PyCapsule_New((void *)PyImgC_API, "_structcode._C_API", NULL);
+    api_ptr = PyCapsule_New((void *)PyImgC_API, "pliio._structcode._C_API", NULL);
     if (api_ptr != NULL) {
         PyModule_AddObject(module, "_C_API", api_ptr);
     }

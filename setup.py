@@ -1,6 +1,9 @@
 
 from __future__ import division, print_function
+
 import sys, os
+from pprint import pformat
+from clint.textui.colored import red, cyan, white
 
 # SETUPTOOLS
 try:
@@ -80,7 +83,7 @@ if DEBUG:
         auxilliary_macros.append(
             ('_GLIBCXX_DEBUG', '1'))
 
-print(""" ********************* DEBUG: %s ********************* """ % DEBUG)
+print(red(""" %(s)s DEBUG: %(lv)s %(s)s """ % dict(s='*' * 65, lv=DEBUG)))
 
 include_dirs = [
     numpy.get_include(),
@@ -141,6 +144,7 @@ def parse_config_flags(config, config_flags=None):
 
 # if we're using it, ask it how to fucking work it
 if int(USE_TIFF):
+    print(white(""" CImg: TIFF support enabled """))
     parse_config_flags(
         which('pkg-config'),
         ('libtiff-4 --libs', 'libtiff-4 --cflags'))
@@ -148,6 +152,7 @@ if int(USE_TIFF):
         ('cimg_use_tiff', '1'))
 
 if int(USE_PNG):
+    print(white(""" CImg: PNG support enabled """))
     libpng_pkg = 'libpng'
     if USE_PNG.strip().endswith('6'):
         libpng_pkg += '16' # use 1.6
@@ -161,6 +166,7 @@ if int(USE_PNG):
         ('cimg_use_png', '1'))
 
 if int(USE_MAGICKPP):
+    print(white(""" CImg: Magick++ support enabled """))
     # Linking to ImageMagick++ calls for a bunch of libraries and paths,
     # all with crazy names that change depending on compile options
     parse_config_flags(
@@ -170,6 +176,7 @@ if int(USE_MAGICKPP):
         ('cimg_use_magick', '1'))
 
 if int(USE_MINC2):
+    print(white(""" CImg: MINC2 support enabled """))
     # I have no idea what this library does (off by default)
     parse_config_flags(
         which('pkg-config'),
@@ -178,6 +185,7 @@ if int(USE_MINC2):
         ('cimg_use_minc2', '1'))
 
 if int(USE_FFTW3):
+    print(white(""" CImg: FFTW3 support enabled """))
     # FFTW3 has been config'd for three pkgs:
     # fftw3 orig, fftwl (long? like long integers?),
     # and fftw3f (floats? fuckery? fiber-rich?) --
@@ -191,6 +199,7 @@ if int(USE_FFTW3):
         ('cimg_use_fftw3', '1'))
 
 if int(USE_OPENEXR):
+    print(white(""" CImg: OpenEXR support enabled """))
     # Linking OpenEXR pulls in ilmBase, which includes its own
     # math and threading libraries... WATCH OUT!!
     parse_config_flags(
@@ -200,6 +209,7 @@ if int(USE_OPENEXR):
         ('cimg_use_openexr', '1'))
 
 if int(USE_OPENCV):
+    print(white(""" CImg: OpenCV support enabled """))
     # Linking OpenCV gets you lots more including TBB and IPL,
     # and also maybe ffmpeg, I think somehow
     parse_config_flags(
@@ -211,6 +221,15 @@ if int(USE_OPENCV):
         include_dirs.append(os.path.join(out.strip(), 'include'))
     define_macros.append(
         ('cimg_use_opencv', '1'))
+
+
+print(red(""" %(s)s CONFIGURATION: %(s)s """ % dict(s='*' * 65)))
+print(cyan(" EXTENSION MODULES:"))
+print(cyan(pformat(extensions)))
+print(cyan(" DEFINED MACROS:"))
+print(cyan(pformat(define_macros)))
+print(cyan(" LINKED LIBRARIES:"))
+print(cyan(" " + ", ".join(libraries)))
 
 ext_modules = [
     setuptools.Extension("pliio.%s" % key,

@@ -1,5 +1,5 @@
 
-#include "pyimgc.h"
+#include "PyImgC_Constants.h"
 #include "PyImgC_CImage.h"
 using namespace cimg_library;
 

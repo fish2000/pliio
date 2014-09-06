@@ -38,7 +38,7 @@ static void **PyImgC_API;
  */
 static int
 PyImgC_import_structcode(void) {
-    PyImgC_API = (void **)PyCapsule_Import("_structcode._C_API", 0);
+    PyImgC_API = (void **)PyCapsule_Import("pliio._structcode._C_API", 0);
     return (PyImgC_API != NULL) ? 0 : -1;
 }
 

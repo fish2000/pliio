@@ -446,7 +446,7 @@ PyMODINIT_FUNC init_PyImgC(void) {
     CImage_Register();
 
     module = Py_InitModule3(
-        "_PyImgC",
+        "pliio._PyImgC",
         _PyImgC_methods,
         "PyImgC buffer interface module");
     if (module == None) { return; }
