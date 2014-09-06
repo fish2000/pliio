@@ -41,7 +41,7 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
 
     if (PyArray_Check(buffer)) {
         auto converter = CImage_NumpyConverter<uint8>(type->type_num);
-        CImg<uint8> cimage = converter->from_pyarray(buffer);
+        CImg<uint8> cimage = converter->from_pyarray((PyObject *)buffer);
         return Py_BuildValue("iiiii", type->type_num, converter->typecode(),
                                     cimage.width(), cimage.height(), cimage.spectrum());
     }
