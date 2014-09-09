@@ -30,13 +30,19 @@ checkext:
 	py 'print(clint.textui.colored.red("%(s)s TESTS: %(s)s" % dict(s="*"*65)))'
 	
 	# Checking _PyImgC
-	#py 'pliio._PyImgC.cimage_test(imread.imread(${IMG}))'
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
 		from pliio import _PyImgC; \
 		print _PyImgC.cimage_test(imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
 	
-	# Checking _structcode
+	# Checking buffer_info
+	bpython -c "$(shell echo "'';\
+		from imread import imread; \
+		from pliio import _PyImgC; \
+		from pprint import pformat; \
+		print pformat(_PyImgC.buffer_info(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
+	
+	# Checking structcode parser
 	py 'pliio._PyImgC.structcode_parse(">BBBB")'
 
 upload:

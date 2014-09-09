@@ -51,21 +51,56 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
     return Py_BuildValue("");
 }
 
-static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args) {
-    PyObject *buffer_dict = PyDict_New();
-    PyObject *buffer = self;
+static PyObject *structcode_parse(const char *code) {
+    vector<pair<string, string>> pairvec = structcode::parse(string(code));
+    string byteorder = "";
 
-    IMGC_TRACE("+ About to parse arg tuple in PyImgC_CImageTest()");
-
-    if (!PyArg_ParseTuple(args, "|O", &buffer)) {
-        PyErr_SetString(PyExc_ValueError,
-            "cannot get Py_buffer (bad argument)");
+    if (!pairvec.size()) {
+        PyErr_Format(PyExc_ValueError,
+            "Struct typecode string %.200s parsed to zero-length pair vector",
+            code);
         return NULL;
+    }
+
+    /// get special values
+    for (size_t idx = 0; idx < pairvec.size(); idx++) {
+        if (pairvec[idx].first == "__byteorder__") {
+            byteorder = string(pairvec[idx].second);
+            pairvec.erase(pairvec.begin()+idx);
+        }
+    }
+
+    /// Make python list of tuples
+    PyObject *list = PyList_New((Py_ssize_t)0);
+    for (size_t idx = 0; idx < pairvec.size(); idx++) {
+        PyList_Append(list,
+            PyTuple_Pack((Py_ssize_t)2,
+                PyString_InternFromString(string(pairvec[idx].first).c_str()),
+                PyString_InternFromString(string(byteorder + pairvec[idx].second).c_str())));
+    }
+    
+    return list;
+}
+
+static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *kwargs) {
+    PyObject *buffer_dict = PyDict_New();
+    PyObject *buffer = self, *parse_format_arg = PyInt_FromLong((long)1);
+    int parse_format = True;
+    static char *keywords[] = { "buffer", "parse_format", None };
+
+    if (!PyArg_ParseTupleAndKeywords(
+        args, kwargs, "|OO",
+        keywords,
+        &buffer, &parse_format_arg)) {
+            PyErr_SetString(PyExc_ValueError,
+                "cannot get Py_buffer (bad argument)");
+            return NULL;
     }
 
     if (PyObject_CheckBuffer(buffer)) {
         /// buffer3000
         Py_buffer buf;
+        parse_format = PyObject_IsTrue(parse_format_arg);
         if (PyObject_GetBuffer(buffer, &buf, PyBUF_FORMAT) == -1) {
             if (PyObject_GetBuffer(buffer, &buf, PyBUF_SIMPLE) == -1) {
                 PyErr_Format(PyExc_ValueError,
@@ -89,7 +124,11 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args) {
         }
 
         if (buf.format) {
-            PyDict_SetItemString(buffer_dict, "format", PyString_InternFromString(buf.format));
+            if (parse_format) {
+                PyDict_SetItemString(buffer_dict, "format", structcode_parse(buf.format));
+            } else {
+                PyDict_SetItemString(buffer_dict, "format", PyString_InternFromString(buf.format));
+            }
         } else {
             PyDict_SetItemString(buffer_dict, "format", PyGetNone);
         }
@@ -157,62 +196,34 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args) {
     return NULL;
 }
 
-
 static PyObject *PyImgC_ParseStructCode(PyObject *self, PyObject *args) {
-    char *structcode = None;
+    const char *code;
 
-    if (!PyArg_ParseTuple(args, "s", &structcode)) {
+    if (!PyArg_ParseTuple(args, "s", &code)) {
         PyErr_SetString(PyExc_ValueError,
             "cannot get structcode string (bad argument)");
         return NULL;
     }
 
-    vector<pair<string, string>> pairvec = structcode::parse(string(structcode));
-    string byteorder = "";
-
-    if (!pairvec.size()) {
-        PyErr_Format(PyExc_ValueError,
-            "Struct typecode string %.200s parsed to zero-length pair vector",
-            structcode);
-        return NULL;
-    }
-
-    /// get special values
-    for (size_t idx = 0; idx < pairvec.size(); idx++) {
-        if (pairvec[idx].first == "__byteorder__") {
-            byteorder = string(pairvec[idx].second);
-            pairvec.erase(pairvec.begin()+idx);
-        }
-    }
-
-    /// Make python list of tuples
-    PyObject *list = PyList_New((Py_ssize_t)0);
-    for (size_t idx = 0; idx < pairvec.size(); idx++) {
-        PyList_Append(list,
-            PyTuple_Pack((Py_ssize_t)2,
-                PyString_InternFromString(string(pairvec[idx].first).c_str()),
-                PyString_InternFromString(string(byteorder + pairvec[idx].second).c_str())));
-    }
-
-    return Py_BuildValue("O", list);
+    return Py_BuildValue("O", structcode_parse(code));
 }
 
 static PyObject *PyImgC_ParseSingleStructAtom(PyObject *self, PyObject *args) {
-    char *structcode = None;
+    char *code = None;
 
-    if (!PyArg_ParseTuple(args, "s", &structcode)) {
+    if (!PyArg_ParseTuple(args, "s", &code)) {
         PyErr_SetString(PyExc_ValueError,
             "cannot get structcode string (bad argument)");
         return NULL;
     }
 
-    vector<pair<string, string>> pairvec = structcode::parse(string(structcode));
+    vector<pair<string, string>> pairvec = structcode::parse(string(code));
     string byteorder = "=";
 
     if (!pairvec.size()) {
         PyErr_Format(PyExc_ValueError,
             "Structcode string %.200s parsed to zero-length pair vector",
-            structcode);
+            code);
         return NULL;
     }
 
@@ -531,7 +542,7 @@ static PyMethodDef _PyImgC_methods[] = {
     {
         "buffer_info",
             (PyCFunction)PyImgC_PyBufferDict,
-            METH_VARARGS,
+            METH_VARARGS | METH_KEYWORDS,
             "Get Py_buffer info dict for an object"},
     {
         "cimage_test",
