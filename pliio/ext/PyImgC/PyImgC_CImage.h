@@ -160,7 +160,7 @@ struct CImage_Base : public CImage_SubBase {
         return false;
     }
 
-    inline bool operator[](const npy_intp tc) {
+    inline bool operator[](const unsigned int tc) {
         dT self = static_cast<dT*>(this);
         return tc == self->typecode();
     }
@@ -169,49 +169,54 @@ struct CImage_Base : public CImage_SubBase {
 template <typename T>
 struct CImage_Type : public CImage_Base<CImage_Type<T>> {
     typedef typename CImage_Traits<CImage_Type<T>>::value_type value_type;
-    Py_buffer *buffer;
+    const unsigned int value_typecode = CImage_Traits<CImage_Type<T>>::value_typecode();
+    Py_buffer *pybuffer;
     PyObject *datasource;
     CImage_Type() {}
-    CImage_Type(Py_buffer *pybuffer) : buffer(pybuffer) {}
+    CImage_Type(Py_buffer *pb) : pybuffer(pb) {}
     CImage_Type(PyArrayObject *pyarray) : datasource((PyObject *)pyarray) {}
-    CImage_Type(PyObject *datasource) : datasource(datasource) {}
+    CImage_Type(PyObject *ds) : datasource(ds) {}
 
     CImg<value_type> from_pybuffer(bool is_shared=true) {
-        return cimage_from_pybuffer<value_type>(this->pybuffer, is_shared);
+        return cimage_from_pybuffer<value_type>(pybuffer, is_shared);
     }
 
     CImg<value_type> from_pybuffer_with_dims(
         int sW, int sH, int channels=3,
         bool is_shared=true) {
-        return cimage_from_pybuffer<value_type>(this->pybuffer, sW, sH, channels, is_shared);
+        return cimage_from_pybuffer<value_type>(pybuffer, sW, sH, channels, is_shared);
     }
 
     CImg<value_type> from_pyobject(bool is_shared=true) {
-        return cimage_from_pyobject<value_type>((PyObject *)this->datasource, is_shared);
+        return cimage_from_pyobject<value_type>((PyObject *)datasource, is_shared);
     }
 
     CImg<value_type> from_pyarray(bool is_shared=true) {
-        return cimage_from_pyarray<value_type>(this->datasource, is_shared);
+        return cimage_from_pyarray<value_type>(datasource, is_shared);
     }
 
     CImg<value_type> from_datasource(bool is_shared=true) {
-        return cimage_from_pyobject<value_type>(this->datasource, is_shared);
+        return cimage_from_pyobject<value_type>(datasource, is_shared);
     }
 
     CImg<value_type> from_datasource_with_dims(
         int sW, int sH, int channels=3,
         bool is_shared=true) {
-        return cimage_from_pyobject<value_type>(this->datasource, sW, sH, channels, is_shared);
+        return cimage_from_pyobject<value_type>(datasource, sW, sH, channels, is_shared);
     }
     
-    int typecode() {
-        return static_cast<int>(numpy::dtype_code<value_type>());
+    inline const unsigned int typecode() const {
+        return value_typecode;
     }
 };
 
 template <typename T>
 struct CImage_Traits<CImage_Type<T>> {
     typedef T value_type;
+    static const unsigned int value_typecode() {
+        return static_cast<unsigned int>(
+            numpy::dtype_code<T>());
+    }
 };
 
 template <typename T, typename dT>
@@ -219,7 +224,7 @@ CImage_SubBase *create() {
     return new T();
 }
 
-typedef std::map<int, CImage_SubBase*(*)()> CImage_TypeMap;
+typedef std::map<unsigned int, CImage_SubBase*(*)()> CImage_TypeMap;
 static CImage_TypeMap *tmap;
 
 struct CImage_FunctorType {
@@ -230,12 +235,19 @@ struct CImage_FunctorType {
 };
 
 template <typename dT>
-static inline CImage_Type<dT> *CImage_NumpyConverter(int key) {
+static inline CImage_Type<dT> *CImage_NumpyConverter(unsigned int key) {
     CImage_TypeMap::iterator it = CImage_FunctorType::get_map()->find(key);
     if (it == CImage_FunctorType::get_map()->end()) {
         return new CImage_Type<dT>();
     }
     return dynamic_cast<CImage_Type<dT>*>(it->second());
+}
+
+template <typename dT>
+static inline CImage_Type<dT> *CImage_NumpyConverter(PyObject *pyarray) {
+    //unsigned int key = numpy::dtype_struct<dT>()->type_num;
+    //unsigned int key = static_cast<unsigned int>(PyArray_DESCR((PyArrayObject *)pyarray)->type_num);
+    return new CImage_Type<dT>(pyarray);
 }
 
 template <NPY_TYPES, typename T>
@@ -410,126 +422,126 @@ struct CImage_NPY_LONGDOUBLE : public CImage_Type<std::complex<long double>> {
 
 template <>
 struct CImage_Functor<NPY_BOOL, bool> : public CImage_FunctorType {
-    CImage_Functor<NPY_BOOL, bool>(int const& key) {
+    CImage_Functor<NPY_BOOL, bool>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_BOOL, bool>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_BYTE, char> : public CImage_FunctorType {
-    CImage_Functor<NPY_BYTE, char>(int const& key) {
+    CImage_Functor<NPY_BYTE, char>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_BYTE, char>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_HALF, npy_half> : public CImage_FunctorType {
-    CImage_Functor<NPY_HALF, npy_half>(int const& key) {
+    CImage_Functor<NPY_HALF, npy_half>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_HALF, npy_half>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_SHORT, short> : public CImage_FunctorType {
-    CImage_Functor<NPY_SHORT, short>(int const& key) {
+    CImage_Functor<NPY_SHORT, short>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_SHORT, short>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_INT, int> : public CImage_FunctorType {
-    CImage_Functor<NPY_INT, int>(int const& key) {
+    CImage_Functor<NPY_INT, int>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_INT, int>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_LONG, long> : public CImage_FunctorType {
-    CImage_Functor<NPY_LONG, long>(int const& key) {
+    CImage_Functor<NPY_LONG, long>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_LONG, long>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_LONGLONG, long long> : public CImage_FunctorType {
-    CImage_Functor<NPY_LONGLONG, long long>(int const& key) {
+    CImage_Functor<NPY_LONGLONG, long long>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_LONGLONG, long long>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_UBYTE, unsigned char> : public CImage_FunctorType {
-    CImage_Functor<NPY_UBYTE, unsigned char>(int const& key) {
+    CImage_Functor<NPY_UBYTE, unsigned char>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_UBYTE, unsigned char>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_USHORT, unsigned short> : public CImage_FunctorType {
-    CImage_Functor<NPY_USHORT, unsigned short>(int const& key) {
+    CImage_Functor<NPY_USHORT, unsigned short>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_USHORT, unsigned short>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_UINT, unsigned int> : public CImage_FunctorType {
-    CImage_Functor<NPY_UINT, unsigned int>(int const& key) {
+    CImage_Functor<NPY_UINT, unsigned int>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_UINT, unsigned int>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_ULONG, unsigned long> : public CImage_FunctorType {
-    CImage_Functor<NPY_ULONG, unsigned long>(int const& key) {
+    CImage_Functor<NPY_ULONG, unsigned long>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_ULONG, unsigned long>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_ULONGLONG, unsigned long long> : public CImage_FunctorType {
-    CImage_Functor<NPY_ULONGLONG, unsigned long long>(int const& key) {
+    CImage_Functor<NPY_ULONGLONG, unsigned long long>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_ULONGLONG, unsigned long long>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_CFLOAT, std::complex<float>> : public CImage_FunctorType {
-    CImage_Functor<NPY_CFLOAT, std::complex<float>>(int const& key) {
+    CImage_Functor<NPY_CFLOAT, std::complex<float>>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_CFLOAT, std::complex<float>>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_CDOUBLE, std::complex<double>> : public CImage_FunctorType {
-    CImage_Functor<NPY_CDOUBLE, std::complex<double>>(int const& key) {
+    CImage_Functor<NPY_CDOUBLE, std::complex<double>>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_CDOUBLE, std::complex<double>>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_FLOAT, float> : public CImage_FunctorType {
-    CImage_Functor<NPY_FLOAT, float>(int const& key) {
+    CImage_Functor<NPY_FLOAT, float>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_FLOAT, float>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_DOUBLE, double> : public CImage_FunctorType {
-    CImage_Functor<NPY_DOUBLE, double>(int const& key) {
+    CImage_Functor<NPY_DOUBLE, double>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_DOUBLE, double>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_CLONGDOUBLE, std::complex<long double>> : public CImage_FunctorType {
-    CImage_Functor<NPY_CLONGDOUBLE, std::complex<long double>>(int const& key) {
+    CImage_Functor<NPY_CLONGDOUBLE, std::complex<long double>>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_CLONGDOUBLE, std::complex<long double>>));
     }
 };
 
 template <>
 struct CImage_Functor<NPY_LONGDOUBLE, std::complex<long double>> : public CImage_FunctorType {
-    CImage_Functor<NPY_LONGDOUBLE, std::complex<long double>>(int const& key) {
+    CImage_Functor<NPY_LONGDOUBLE, std::complex<long double>>(unsigned int const& key) {
         get_map()->insert(make_pair(key, &create<CImage_NPY_LONGDOUBLE, std::complex<long double>>));
     }
 };

@@ -40,8 +40,10 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
     }
 
     if (PyArray_Check(buffer)) {
-        auto converter = CImage_NumpyConverter<uint8>(type->type_num);
-        CImg<uint8> cimage = converter->from_pyarray(buffer);
+        //auto converter = CImage_NumpyConverter<uint8>(type->type_num);
+        //CImg<uint8> cimage = converter->from_pyarray(buffer);
+        auto converter = CImage_NumpyConverter<npy_uint8>(buffer);
+        CImg<npy_uint8> cimage = converter->from_pyarray();
         return Py_BuildValue("iiiii", type->type_num, converter->typecode(),
                                     cimage.width(), cimage.height(), cimage.spectrum());
     }
@@ -452,7 +454,7 @@ PyMODINIT_FUNC init_PyImgC(void) {
     if (module == None) { return; }
     
     /// bring in structcode PyCapsule
-    if (PyImgC_import_structcode() < 0) { return; }
+    //if (PyImgC_import_structcode() < 0) { return; }
 
     /// Bring in NumPy
     import_array();

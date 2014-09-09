@@ -34,8 +34,7 @@ checkext:
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
 		from pliio import _PyImgC; \
-		_PyImgC.cimage_test(imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
-
+		print _PyImgC.cimage_test(imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking _structcode
 	py 'pliio._structcode.parse(">BBBB")'

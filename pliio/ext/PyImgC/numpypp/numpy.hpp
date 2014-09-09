@@ -80,8 +80,10 @@ namespace numpy {
     DECLARE_DTYPE_CODE(long long, NPY_LONGLONG)
     DECLARE_DTYPE_CODE(unsigned long long, NPY_ULONGLONG)
     DECLARE_DTYPE_CODE(double, NPY_DOUBLE)
+    DECLARE_DTYPE_CODE(long double, NPY_LONGDOUBLE)
     DECLARE_DTYPE_CODE(std::complex<float>, NPY_CFLOAT)
     DECLARE_DTYPE_CODE(std::complex<double>, NPY_CDOUBLE)
+    DECLARE_DTYPE_CODE(std::complex<long double>, NPY_CLONGDOUBLE)
     DECLARE_DTYPE_CODE(unsigned int, NPY_UINT)
 
     /// N.B. I am so grateful for Mr. Pedro for writing
