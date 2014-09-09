@@ -1,8 +1,8 @@
 
 #include "pyimgc.h"
 #include "numpypp/numpy.hpp"
+#include "numpypp/structcode.hpp"
 #include "PyImgC_CImage.h"
-#include "PyImgC_StructCodeAPI.h"
 
 #include <iostream>
 #include <vector>
@@ -155,6 +155,108 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args) {
         "no buffer info for %.200s instance (no buffer API supported)",
         buffer->ob_type->tp_name);
     return NULL;
+}
+
+
+static PyObject *PyImgC_ParseStructCode(PyObject *self, PyObject *args) {
+    char *structcode = None;
+
+    if (!PyArg_ParseTuple(args, "s", &structcode)) {
+        PyErr_SetString(PyExc_ValueError,
+            "cannot get structcode string (bad argument)");
+        return NULL;
+    }
+
+    vector<pair<string, string>> pairvec = parse(string(structcode));
+    string byteorder = "";
+
+    if (!pairvec.size()) {
+        PyErr_Format(PyExc_ValueError,
+            "Struct typecode string %.200s parsed to zero-length pair vector",
+            structcode);
+        return NULL;
+    }
+
+    /// get special values
+    for (size_t idx = 0; idx < pairvec.size(); idx++) {
+        if (pairvec[idx].first == "__byteorder__") {
+            byteorder = string(pairvec[idx].second);
+            pairvec.erase(pairvec.begin()+idx);
+        }
+    }
+
+    /// Make python list of tuples
+    PyObject *list = PyList_New((Py_ssize_t)0);
+    for (size_t idx = 0; idx < pairvec.size(); idx++) {
+        PyList_Append(list,
+            PyTuple_Pack((Py_ssize_t)2,
+                PyString_InternFromString(string(pairvec[idx].first).c_str()),
+                PyString_InternFromString(string(byteorder + pairvec[idx].second).c_str())));
+    }
+
+    return Py_BuildValue("O", list);
+}
+
+static PyObject *PyImgC_ParseSingleStructAtom(PyObject *self, PyObject *args) {
+    char *structcode = None;
+
+    if (!PyArg_ParseTuple(args, "s", &structcode)) {
+        PyErr_SetString(PyExc_ValueError,
+            "cannot get structcode string (bad argument)");
+        return NULL;
+    }
+
+    vector<pair<string, string>> pairvec = parse(string(structcode));
+    string byteorder = "=";
+
+    if (!pairvec.size()) {
+        PyErr_Format(PyExc_ValueError,
+            "Structcode string %.200s parsed to zero-length pair vector",
+            structcode);
+        return NULL;
+    }
+
+    /// get special values
+    for (size_t idx = 0; idx < pairvec.size(); idx++) {
+        if (pairvec[idx].first == "__byteorder__") {
+            byteorder = string(pairvec[idx].second);
+            pairvec.erase(pairvec.begin()+idx);
+        }
+    }
+
+    /// Get singular value
+    PyObject *dtypecode = PyString_InternFromString(
+        string(byteorder + pairvec[0].second).c_str());
+
+    return Py_BuildValue("O", dtypecode);
+}
+
+static int PyImgC_NPYCodeFromStructAtom(PyObject *self, PyObject *args) {
+    PyObject *dtypecode = PyImgC_ParseSingleStructAtom(self, args);
+    PyArray_Descr *descr;
+    int npy_type_num = 0;
+
+    if (!dtypecode) {
+        PyErr_SetString(PyExc_ValueError,
+            "cannot get structcode string (bad argument)");
+        return -1;
+    }
+
+    if (!PyArray_DescrConverter(dtypecode, &descr)) {
+        PyErr_SetString(PyExc_ValueError,
+            "cannot convert string to PyArray_Descr");
+        return -1;
+    }
+
+    npy_type_num = (int)descr->type_num;
+    Py_XDECREF(dtypecode);
+    Py_XDECREF(descr);
+
+    return npy_type_num;
+}
+
+static PyObject *PyImgC_NumpyCodeFromStructAtom(PyObject *self, PyObject *args) {
+    return Py_BuildValue("i", PyImgC_NPYCodeFromStructAtom(self, args));
 }
 
 static PyObject *Image_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
@@ -436,6 +538,21 @@ static PyMethodDef _PyImgC_methods[] = {
             (PyCFunction)PyImgC_CImageTest,
             METH_VARARGS | METH_KEYWORDS,
             "<<<<< TEST CIMG CALLS >>>>>"},
+    {
+        "structcode_parse",
+            (PyCFunction)PyImgC_ParseStructCode,
+            METH_VARARGS,
+            "Parse struct code into list of dtype-string tuples"},
+    {
+        "structcode_parse_one",
+            (PyCFunction)PyImgC_ParseSingleStructAtom,
+            METH_VARARGS,
+            "Parse unary struct code into a singular dtype string"},
+    {
+        "structcode_to_numpy_typenum",
+            (PyCFunction)PyImgC_NumpyCodeFromStructAtom,
+            METH_VARARGS,
+            "Parse unary struct code into a NumPy typenum"},
     SENTINEL
 };
 
@@ -452,9 +569,6 @@ PyMODINIT_FUNC init_PyImgC(void) {
         _PyImgC_methods,
         "PyImgC buffer interface module");
     if (module == None) { return; }
-    
-    /// bring in structcode PyCapsule
-    //if (PyImgC_import_structcode() < 0) { return; }
 
     /// Bring in NumPy
     import_array();

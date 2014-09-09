@@ -107,9 +107,7 @@ for pth in (
 
 extensions = {
     '_PyImgC': ["pliio/ext/PyImgC/pyimgc.cpp"],
-    '_structcode': ["pliio/ext/PyImgC/structcode.cpp"],
 }
-#extensions = { '_PyImgC': ["pliio/ext/PyImgC/pyimgc.cpp", "pliio/ext/PyImgC/structcode.cpp"], }
 
 # the basics
 libraries = ['png', 'jpeg', 'z', 'm', 'pthread', 'c++']

@@ -37,7 +37,7 @@ checkext:
 		print _PyImgC.cimage_test(imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking _structcode
-	py 'pliio._structcode.parse(">BBBB")'
+	py 'pliio._PyImgC.structcode_parse(">BBBB")'
 
 upload:
 	python setup.py sdist upload
