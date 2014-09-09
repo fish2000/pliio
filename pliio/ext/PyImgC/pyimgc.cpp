@@ -167,7 +167,7 @@ static PyObject *PyImgC_ParseStructCode(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    vector<pair<string, string>> pairvec = parse(string(structcode));
+    vector<pair<string, string>> pairvec = structcode::parse(string(structcode));
     string byteorder = "";
 
     if (!pairvec.size()) {
@@ -206,7 +206,7 @@ static PyObject *PyImgC_ParseSingleStructAtom(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    vector<pair<string, string>> pairvec = parse(string(structcode));
+    vector<pair<string, string>> pairvec = structcode::parse(string(structcode));
     string byteorder = "=";
 
     if (!pairvec.size()) {
