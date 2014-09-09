@@ -2,6 +2,8 @@
 #include "pyimgc.h"
 #include "numpypp/numpy.hpp"
 #include "numpypp/structcode.hpp"
+#include "numpypp/dispatch.hpp"
+#include "numpypp/utils.hpp"
 #include "PyImgC_CImage.h"
 
 #include <iostream>
@@ -22,29 +24,29 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
     PyObject *buffer = NULL;
     Py_ssize_t nin = -1, offset = 0;
     static char *kwlist[] = { "buffer", "dtype", "count", "offset", NULL };
-    PyArray_Descr *type = NULL;
+    PyArray_Descr *dtype = NULL;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs,
                 "O|O&" NPY_SSIZE_T_PYFMT NPY_SSIZE_T_PYFMT, kwlist,
-                &buffer, PyArray_DescrConverter, &type, &nin, &offset)) {
-        Py_XDECREF(type);
+                &buffer, PyArray_DescrConverter, &dtype, &nin, &offset)) {
+        Py_XDECREF(dtype);
         return NULL;
     }
 
-    if (type == NULL) {
+    if (dtype == NULL) {
         if (PyArray_Check(buffer)) {
-            type = PyArray_DESCR((PyArrayObject *)buffer);
+            dtype = PyArray_DESCR((PyArrayObject *)buffer);
         } else {
-            type = PyArray_DescrFromType(NPY_DEFAULT_TYPE);
+            dtype = PyArray_DescrFromType(NPY_DEFAULT_TYPE);
         }
     }
 
     if (PyArray_Check(buffer)) {
-        //auto converter = CImage_NumpyConverter<uint8>(type->type_num);
-        //CImg<uint8> cimage = converter->from_pyarray(buffer);
         auto converter = CImage_NumpyConverter<npy_uint8>(buffer);
         CImg<npy_uint8> cimage = converter->from_pyarray();
-        return Py_BuildValue("iiiii", type->type_num, converter->typecode(),
+        int tc = (int)converter->typecode();
+        
+        return Py_BuildValue("iiiii", dtype->type_num, tc,
                                     cimage.width(), cimage.height(), cimage.spectrum());
     }
     
@@ -85,7 +87,6 @@ static PyObject *structcode_parse(const char *code) {
 static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffer_dict = PyDict_New();
     PyObject *buffer = self, *parse_format_arg = PyInt_FromLong((long)1);
-    int parse_format = True;
     static char *keywords[] = { "buffer", "parse_format", None };
 
     if (!PyArg_ParseTupleAndKeywords(
@@ -100,7 +101,6 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
     if (PyObject_CheckBuffer(buffer)) {
         /// buffer3000
         Py_buffer buf;
-        parse_format = PyObject_IsTrue(parse_format_arg);
         if (PyObject_GetBuffer(buffer, &buf, PyBUF_FORMAT) == -1) {
             if (PyObject_GetBuffer(buffer, &buf, PyBUF_SIMPLE) == -1) {
                 PyErr_Format(PyExc_ValueError,
@@ -124,7 +124,7 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
         }
 
         if (buf.format) {
-            if (parse_format) {
+            if (PyObject_IsTrue(parse_format_arg)) {
                 PyDict_SetItemString(buffer_dict, "format", structcode_parse(buf.format));
             } else {
                 PyDict_SetItemString(buffer_dict, "format", PyString_InternFromString(buf.format));
@@ -573,7 +573,7 @@ PyMODINIT_FUNC init_PyImgC(void) {
     if (PyType_Ready(&ImageType) < 0) { return; }
 
     /// initialize CImage internals
-    CImage_Register();
+    //CImage_Register();
 
     module = Py_InitModule3(
         "pliio._PyImgC",

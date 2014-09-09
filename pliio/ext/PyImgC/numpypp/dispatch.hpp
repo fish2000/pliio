@@ -16,15 +16,29 @@ typedef unsigned short ushort;
     case NPY_INT: HANDLE(int); break; \
     case NPY_UINT: HANDLE(unsigned int); break; \
     case NPY_LONG: HANDLE(npy_long); break; \
-    case NPY_ULONG: HANDLE(npy_ulong); break;
+    case NPY_ULONG: HANDLE(npy_ulong); break; \
+    case NPY_LONGLONG: HANDLE(long long); break; \
+    case NPY_ULONGLONG: HANDLE(unsigned long long); break;
 
 #define HANDLE_FLOAT_TYPES() \
     case NPY_FLOAT: HANDLE(float); break; \
-    case NPY_DOUBLE: HANDLE(double); break;
+    case NPY_DOUBLE: HANDLE(double); break; \
+    case NPY_LONGDOUBLE: HANDLE(long double); break;
 
 #define HANDLE_TYPES() \
     HANDLE_INTEGER_TYPES() \
     HANDLE_FLOAT_TYPES()
+
+#define SAFE_SWITCH_ON_TYPECODE(typecode) \
+    try { \
+        switch(typecode) { \
+                HANDLE_TYPES();\
+                default: \
+                PyErr_SetString(PyExc_RuntimeError, "Dispatch on typecode failed!"); \
+                return NULL; \
+        } \
+    } \
+    CATCH_PYTHON_EXCEPTIONS
 
 #define SAFE_SWITCH_ON_TYPES_OF(array) \
     try { \

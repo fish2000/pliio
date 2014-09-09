@@ -208,6 +208,11 @@ struct CImage_Type : public CImage_Base<CImage_Type<T>> {
     inline const unsigned int typecode() const {
         return value_typecode;
     }
+    
+    inline PyArray_Descr *typestruct() {
+        return PyArray_DescrFromType(value_typecode);
+    }
+    
 };
 
 template <typename T>
@@ -216,6 +221,9 @@ struct CImage_Traits<CImage_Type<T>> {
     static const unsigned int value_typecode() {
         return static_cast<unsigned int>(
             numpy::dtype_code<T>());
+    }
+    static const PyArray_Descr *value_typestruct() {
+        return numpy::dtype_struct<T>();
     }
 };
 
