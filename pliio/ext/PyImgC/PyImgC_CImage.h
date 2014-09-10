@@ -20,8 +20,10 @@
 //#define cimg_use_lapack 1             /// LAPACK
 
 #define cimg_plugin1 "../cimg_numpy.h"
+#define cimg_plugin2 "../cimg_pybuffer.h"
 
 #include <map>
+#include <cmath>
 #include <cstdlib>
 #include <typeinfo>
 #include <type_traits>
@@ -31,6 +33,7 @@
 #include <numpy/ndarrayobject.h>
 #include <numpy/ndarraytypes.h>
 #include "numpypp/numpy.hpp"
+#include "numpypp/structcode.hpp"
 
 #include "cimg/CImg.h"
 using namespace cimg_library;

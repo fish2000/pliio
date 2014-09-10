@@ -94,6 +94,30 @@ static PyObject *structcode_to_dtype_code(const char *code) {
     return list;
 }
 
+static string structcode_atom_to_dtype_atom(const char *code) {
+    vector<pair<string, string>> pairvec = structcode::parse(string(code));
+    string byteorder = "=";
+
+    if (!pairvec.size()) {
+        PyErr_Format(PyExc_ValueError,
+            "Structcode string %.200s parsed to zero-length pair vector",
+            code);
+        return NULL;
+    }
+
+    /// get special values
+    for (size_t idx = 0; idx < pairvec.size(); idx++) {
+        if (pairvec[idx].first == "__byteorder__") {
+            byteorder = string(pairvec[idx].second);
+            pairvec.erase(pairvec.begin()+idx);
+        }
+    }
+
+    /// Get singular value
+    return string(byteorder + pairvec[0].second);
+}
+
+
 static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffer_dict = PyDict_New();
     PyObject *buffer = self, *parse_format_arg = PyInt_FromLong((long)1);
@@ -215,7 +239,8 @@ static PyObject *PyImgC_ParseStructCode(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    return Py_BuildValue("O", structcode_to_dtype_code(code));
+    return Py_BuildValue("O",
+        structcode_to_dtype_code(code));
 }
 
 static PyObject *PyImgC_ParseSingleStructAtom(PyObject *self, PyObject *args) {
@@ -227,29 +252,8 @@ static PyObject *PyImgC_ParseSingleStructAtom(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    vector<pair<string, string>> pairvec = structcode::parse(string(code));
-    string byteorder = "=";
-
-    if (!pairvec.size()) {
-        PyErr_Format(PyExc_ValueError,
-            "Structcode string %.200s parsed to zero-length pair vector",
-            code);
-        return NULL;
-    }
-
-    /// get special values
-    for (size_t idx = 0; idx < pairvec.size(); idx++) {
-        if (pairvec[idx].first == "__byteorder__") {
-            byteorder = string(pairvec[idx].second);
-            pairvec.erase(pairvec.begin()+idx);
-        }
-    }
-
-    /// Get singular value
-    PyObject *dtypecode = PyString_FromString(
-        string(byteorder + pairvec[0].second).c_str());
-
-    return Py_BuildValue("O", dtypecode);
+    return Py_BuildValue("O", PyString_FromString(
+        structcode_atom_to_dtype_atom(code).c_str()));
 }
 
 static int PyImgC_NPYCodeFromStructAtom(PyObject *self, PyObject *args) {
