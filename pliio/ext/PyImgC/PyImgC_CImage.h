@@ -264,7 +264,7 @@ static inline CImage_Type<dT> *CImage_NumpyConverter(PyObject *pyarray) {
 }
 
 template <typename dT>
-static inline unique_ptr<CImage_SubBase> CImage_TypePointer(PyObject *pyarray) {
+static inline unique_ptr<CImage_Type<dT>> CImage_TypePointer(PyObject *pyarray) {
     return unique_ptr<CImage_Type<dT>>(new CImage_Type<dT>(pyarray));
 }
 

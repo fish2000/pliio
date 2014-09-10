@@ -35,6 +35,12 @@ checkext:
 		from pliio import _PyImgC; \
 		print _PyImgC.cimage_test(imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
 	
+	# Checking PyCImage
+	bpython -c "$(shell echo "'';\
+		from imread import imread; \
+		from pliio import _PyImgC; \
+		print _PyImgC.PyCImage(buffer=imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
+	
 	# Checking buffer_info
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
