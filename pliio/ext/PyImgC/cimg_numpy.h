@@ -3,7 +3,7 @@
 #define PyImgC_CIMG_NUMPY_PLUGIN_H
 
 // Check if this CImg<T> instance and a given PyObject* have identical pixel types.
-bool not_pixel_type_of(const PyObject *const pyobject) const {
+bool not_typecode_of(const PyObject *const pyobject) const {
     if (PyArray_Check(pyobject)) {
         const PyArrayObject *pyarray = reinterpret_cast<const PyArrayObject *>(pyobject);
         unsigned int typecode = static_cast<unsigned int>(PyArray_TYPE(pyarray));
@@ -40,7 +40,7 @@ CImg(const PyObject *const pyobject):_width(0),_height(0),_depth(0),_spectrum(0)
 // In-place constructor; the optional flag will be ignored when the number of color channels is less than 3.
 CImg<T> &assign(const PyObject *const pyobject) {
   if (!pyobject) return assign();
-  if (not_pixel_type_of(pyobject))
+  if (not_typecode_of(pyobject))
     throw CImgInstanceException(_cimg_instance
                                 "assign(const PyObject*) : NumPy array has no corresponding pixel type.",
                                 cimg_instance);
