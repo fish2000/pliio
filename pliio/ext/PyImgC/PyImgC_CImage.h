@@ -31,12 +31,6 @@
 using namespace cimg_library;
 using namespace std;
 
-/// I hate the way the name 'CImg' looks written out --
-/// all stubby-looking and typographically cramped. And so.
-//#ifndef CImage
-//#define CImage CImg
-//#endif
-
 template <typename T>
 CImg<T> cimage_from_pybuffer(Py_buffer *pybuffer, int sW, int sH,
                     int channels, bool is_shared=true) {

@@ -51,99 +51,14 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
     }
 
     if (PyArray_Check(buffer)) {
-        switch ((int)dtype->type_num) {
-            case NPY_BOOL: {
-                auto converter = CImage_NumpyConverter<npy_uint8>(buffer);
-                CImg<npy_uint8> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_FLOAT: {
-                auto converter = CImage_NumpyConverter<npy_float>(buffer);
-                CImg<npy_float> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_DOUBLE: {
-                auto converter = CImage_NumpyConverter<npy_double>(buffer);
-                CImg<npy_double> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_LONGDOUBLE: {
-                auto converter = CImage_NumpyConverter<npy_longdouble>(buffer);
-                CImg<npy_longdouble> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_BYTE: {
-                auto converter = CImage_NumpyConverter<npy_byte>(buffer);
-                CImg<npy_byte> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_CHAR: {
-                auto converter = CImage_NumpyConverter<npy_char>(buffer);
-                CImg<npy_char> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_SHORT: {
-                auto converter = CImage_NumpyConverter<npy_short>(buffer);
-                CImg<npy_short> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_INT: {
-                auto converter = CImage_NumpyConverter<npy_int>(buffer);
-                CImg<npy_int> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_LONG: {
-                auto converter = CImage_NumpyConverter<npy_long>(buffer);
-                CImg<npy_long> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_LONGLONG: {
-                auto converter = CImage_NumpyConverter<npy_longlong>(buffer);
-                CImg<npy_longlong> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_UBYTE: {
-                auto converter = CImage_NumpyConverter<npy_ubyte>(buffer);
-                CImg<npy_ubyte> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_USHORT: {
-                auto converter = CImage_NumpyConverter<npy_ushort>(buffer);
-                CImg<npy_ushort> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_UINT: {
-                auto converter = CImage_NumpyConverter<npy_uint>(buffer);
-                CImg<npy_uint> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_ULONG: {
-                auto converter = CImage_NumpyConverter<npy_ulong>(buffer);
-                CImg<npy_ulong> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            case NPY_ULONGLONG: {
-                auto converter = CImage_NumpyConverter<npy_ulonglong>(buffer);
-                CImg<npy_ulonglong> cimage = converter->from_pyarray();
-                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
-                                            cimage.width(), cimage.height(), cimage.spectrum());
-            }
-            
-        }
+        int tc = (int)dtype->type_num;
+#define HANDLE(type) \
+        auto converter = CImage_NumpyConverter<type>(buffer); \
+        CImg<type> cimage = converter->from_pyarray(); \
+        return Py_BuildValue("iiiii", tc, (int)converter->typecode(), \
+                                    cimage.width(), cimage.height(), cimage.spectrum());
+        SAFE_SWITCH_ON_TYPECODE(tc, Py_BuildValue(""));
+#undef HANDLE
     }
     
     return Py_BuildValue("");
