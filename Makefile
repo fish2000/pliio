@@ -35,11 +35,17 @@ checkext:
 		from pliio import _PyImgC; \
 		print _PyImgC.cimage_test(imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
 	
-	# Checking PyCImage
+	# Checking type constructor and PyCImage.__repr__
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
 		from pliio import _PyImgC; \
-		print _PyImgC.PyCImage(buffer=imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
+		print repr(_PyImgC.PyCImage(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
+	
+	# Checking PyCImage.__str__
+	bpython -c "$(shell echo "'';\
+		from imread import imread; \
+		from pliio import _PyImgC; \
+		print str(_PyImgC.PyCImage(imread('$(IMG)')))[:500]" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking buffer_info
 	bpython -c "$(shell echo "'';\

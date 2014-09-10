@@ -372,6 +372,18 @@ static PyObject *PyCImage_Repr(PyCImage *pyim) {
     return PyString_InternFromString("<PyCImage(type unknown)>");
 }
 
+static PyObject *PyCImage_Str(PyCImage *pyim) {
+    if (pyim->cimage && pyim->dtype) {
+        int tc = (int)pyim->dtype->type_num;
+#define HANDLE(type) \
+        CImg<type> cim = pyim->recast<type>()->from_pyarray(); \
+        return PyString_FromString((const char *)cim.value_string().data());
+        SAFE_SWITCH_ON_TYPECODE(tc, NULL);
+#undef HANDLE
+    }
+    return PyString_FromString("");
+}
+
 
 static Py_ssize_t PyCImage_TypeFlags = Py_TPFLAGS_DEFAULT |
     Py_TPFLAGS_BASETYPE |
@@ -394,7 +406,7 @@ static PyTypeObject PyCImage_Type = {
     0,                                                          /* tp_as_mapping */
     0,                                                          /* tp_hash */
     0,                                                          /* tp_call */
-    0,                                                          /* tp_str */
+    (reprfunc)PyCImage_Str,                                     /* tp_str */
     0,                                                          /* tp_getattro */
     0,                                                          /* tp_setattro */
     0,                                                          /* tp_as_buffer */
