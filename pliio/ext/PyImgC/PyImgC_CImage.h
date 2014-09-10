@@ -33,14 +33,14 @@ using namespace std;
 
 /// I hate the way the name 'CImg' looks written out --
 /// all stubby-looking and typographically cramped. And so.
-#ifndef CImage
-#define CImage CImg
-#endif
+//#ifndef CImage
+//#define CImage CImg
+//#endif
 
 template <typename T>
-CImage<T> cimage_from_pybuffer(Py_buffer *pybuffer, int sW, int sH,
+CImg<T> cimage_from_pybuffer(Py_buffer *pybuffer, int sW, int sH,
                     int channels, bool is_shared=true) {
-    CImage<T> view(pybuffer->buf,
+    CImg<T> view(pybuffer->buf,
         sW, sH, 1,
         channels, is_shared);
     return view;
@@ -94,7 +94,7 @@ CImg<T> cimage_from_pyarray(PyObject *pyobj, bool is_shared=true) {
     if (!PyArray_Check(pyobj)) {
         return CImg<T>();
     }
-    PyArrayObject *pyarray = (PyArrayObject *)pyobj;
+    PyArrayObject *pyarray = reinterpret_cast<PyArrayObject *>(pyobj);
     return cimage_from_pyarray<T>(pyarray, is_shared);
 }
 
@@ -139,7 +139,8 @@ struct CImage_Base : public CImage_SubBase {
     }
 
     CImg<value_type> from_pyarray(PyObject *pyarray, bool is_shared=true) {
-        return cimage_from_pyarray<value_type>((PyArrayObject *)pyarray, is_shared);
+        return cimage_from_pyarray<value_type>(
+            reinterpret_cast<PyArrayObject *>(pyarray), is_shared);
     }
 
     CImg<value_type> from_datasource(PyObject *datasource, bool is_shared=true) {
@@ -170,12 +171,17 @@ template <typename T>
 struct CImage_Type : public CImage_Base<CImage_Type<T>> {
     typedef typename CImage_Traits<CImage_Type<T>>::value_type value_type;
     const unsigned int value_typecode = CImage_Traits<CImage_Type<T>>::value_typecode();
-    Py_buffer *pybuffer;
-    PyObject *datasource;
+    Py_buffer *pybuffer = 0;
+    PyObject *datasource = 0;
     CImage_Type() {}
     CImage_Type(Py_buffer *pb) : pybuffer(pb) {}
-    CImage_Type(PyArrayObject *pyarray) : datasource((PyObject *)pyarray) {}
-    CImage_Type(PyObject *ds) : datasource(ds) {}
+    CImage_Type(PyArrayObject *pyarray) : datasource(reinterpret_cast<PyObject *>(pyarray)) { Py_INCREF(pyarray); }
+    CImage_Type(PyObject *ds) : datasource(ds) { Py_INCREF(datasource); }
+
+    ~CImage_Type() {
+        if (datasource) { Py_DECREF(datasource); }
+        if (pybuffer) { PyBuffer_Release(pybuffer); }
+    }
 
     CImg<value_type> from_pybuffer(bool is_shared=true) {
         return cimage_from_pybuffer<value_type>(pybuffer, is_shared);
@@ -188,7 +194,8 @@ struct CImage_Type : public CImage_Base<CImage_Type<T>> {
     }
 
     CImg<value_type> from_pyobject(bool is_shared=true) {
-        return cimage_from_pyobject<value_type>((PyObject *)datasource, is_shared);
+        return cimage_from_pyobject<value_type>(
+            reinterpret_cast<PyObject *>(datasource), is_shared);
     }
 
     CImg<value_type> from_pyarray(bool is_shared=true) {
@@ -228,11 +235,11 @@ struct CImage_Traits<CImage_Type<T>> {
 };
 
 template <typename T, typename dT>
-CImage_SubBase *create() {
-    return new T();
+unique_ptr<CImage_SubBase> create() {
+    return unique_ptr<CImage_Type<dT>>(new T());
 }
 
-typedef std::map<unsigned int, CImage_SubBase*(*)()> CImage_TypeMap;
+typedef std::map<unsigned int, unique_ptr<CImage_SubBase>(*)()> CImage_TypeMap;
 static CImage_TypeMap *tmap;
 
 struct CImage_FunctorType {
@@ -253,9 +260,12 @@ static inline CImage_Type<dT> *CImage_NumpyConverter(unsigned int key) {
 
 template <typename dT>
 static inline CImage_Type<dT> *CImage_NumpyConverter(PyObject *pyarray) {
-    //unsigned int key = numpy::dtype_struct<dT>()->type_num;
-    //unsigned int key = static_cast<unsigned int>(PyArray_DESCR((PyArrayObject *)pyarray)->type_num);
     return new CImage_Type<dT>(pyarray);
+}
+
+template <typename dT>
+static inline unique_ptr<CImage_SubBase> CImage_TypePointer(PyObject *pyarray) {
+    return unique_ptr<CImage_Type<dT>>(new CImage_Type<dT>(pyarray));
 }
 
 template <NPY_TYPES, typename T>

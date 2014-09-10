@@ -2,8 +2,8 @@
 #include "pyimgc.h"
 #include "numpypp/numpy.hpp"
 #include "numpypp/structcode.hpp"
-#include "numpypp/dispatch.hpp"
-#include "numpypp/utils.hpp"
+//#include "numpypp/dispatch.hpp"
+//#include "numpypp/utils.hpp"
 #include "PyImgC_CImage.h"
 
 #include <iostream>
@@ -20,6 +20,12 @@ typedef struct {
     PyObject *dtype;
 } Image;
 
+typedef struct {
+    PyObject_HEAD
+    unique_ptr<CImage_SubBase> cimage;
+    PyArray_Descr *dtype;
+} PyCImage;
+
 static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffer = NULL;
     Py_ssize_t nin = -1, offset = 0;
@@ -35,19 +41,107 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
 
     if (dtype == NULL) {
         if (PyArray_Check(buffer)) {
-            dtype = PyArray_DESCR((PyArrayObject *)buffer);
+            dtype = PyArray_DESCR(
+                reinterpret_cast<PyArrayObject *>(buffer));
         } else {
             dtype = PyArray_DescrFromType(NPY_DEFAULT_TYPE);
         }
     }
 
     if (PyArray_Check(buffer)) {
-        auto converter = CImage_NumpyConverter<npy_uint8>(buffer);
-        CImg<npy_uint8> cimage = converter->from_pyarray();
-        int tc = (int)converter->typecode();
-        
-        return Py_BuildValue("iiiii", dtype->type_num, tc,
-                                    cimage.width(), cimage.height(), cimage.spectrum());
+        switch ((int)dtype->type_num) {
+            case NPY_BOOL: {
+                auto converter = CImage_NumpyConverter<npy_uint8>(buffer);
+                CImg<npy_uint8> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_FLOAT: {
+                auto converter = CImage_NumpyConverter<npy_float>(buffer);
+                CImg<npy_float> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_DOUBLE: {
+                auto converter = CImage_NumpyConverter<npy_double>(buffer);
+                CImg<npy_double> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_LONGDOUBLE: {
+                auto converter = CImage_NumpyConverter<npy_longdouble>(buffer);
+                CImg<npy_longdouble> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_BYTE: {
+                auto converter = CImage_NumpyConverter<npy_byte>(buffer);
+                CImg<npy_byte> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_CHAR: {
+                auto converter = CImage_NumpyConverter<npy_char>(buffer);
+                CImg<npy_char> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_SHORT: {
+                auto converter = CImage_NumpyConverter<npy_short>(buffer);
+                CImg<npy_short> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_INT: {
+                auto converter = CImage_NumpyConverter<npy_int>(buffer);
+                CImg<npy_int> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_LONG: {
+                auto converter = CImage_NumpyConverter<npy_long>(buffer);
+                CImg<npy_long> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_LONGLONG: {
+                auto converter = CImage_NumpyConverter<npy_longlong>(buffer);
+                CImg<npy_longlong> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_UBYTE: {
+                auto converter = CImage_NumpyConverter<npy_ubyte>(buffer);
+                CImg<npy_ubyte> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_USHORT: {
+                auto converter = CImage_NumpyConverter<npy_ushort>(buffer);
+                CImg<npy_ushort> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_UINT: {
+                auto converter = CImage_NumpyConverter<npy_uint>(buffer);
+                CImg<npy_uint> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_ULONG: {
+                auto converter = CImage_NumpyConverter<npy_ulong>(buffer);
+                CImg<npy_ulong> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            case NPY_ULONGLONG: {
+                auto converter = CImage_NumpyConverter<npy_ulonglong>(buffer);
+                CImg<npy_ulonglong> cimage = converter->from_pyarray();
+                return Py_BuildValue("iiiii", dtype->type_num, (int)converter->typecode(),
+                                            cimage.width(), cimage.height(), cimage.spectrum());
+            }
+            
+        }
     }
     
     return Py_BuildValue("");
@@ -270,6 +364,180 @@ static PyObject *PyImgC_NumpyCodeFromStructAtom(PyObject *self, PyObject *args) 
     return Py_BuildValue("i", PyImgC_NPYCodeFromStructAtom(self, args));
 }
 
+
+static PyObject *PyCImage_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+    PyCImage *self;
+    self = (PyCImage *)type->tp_alloc(type, 0);
+    if (self != None) {
+        self->cimage = unique_ptr<CImage_SubBase>(nullptr);
+        self->dtype = None;
+    }
+    return (PyObject *)self;
+}
+
+static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
+    PyObject *buffer = NULL;
+    Py_ssize_t nin = -1, offset = 0;
+    static char *kwlist[] = { "buffer", "dtype", "count", "offset", NULL };
+    PyArray_Descr *dtype = NULL;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
+                "O|O&" NPY_SSIZE_T_PYFMT NPY_SSIZE_T_PYFMT, kwlist,
+                &buffer, PyArray_DescrConverter, &dtype, &nin, &offset)) {
+        Py_XDECREF(dtype);
+        return -1;
+    }
+
+    if (self->dtype == None) {
+        if (PyArray_Check(buffer)) {
+            dtype = PyArray_DESCR(
+                reinterpret_cast<PyArrayObject *>(buffer));
+        } else {
+            dtype = PyArray_DescrFromType(NPY_DEFAULT_TYPE);
+        }
+    } else {
+        //Py_XDECREF(self->dtype);
+    }
+    Py_INCREF(dtype);
+    self->dtype = dtype;
+
+    if (PyArray_Check(buffer)) {
+        switch ((int)self->dtype->type_num) {
+            case NPY_BOOL: {
+                self->cimage = CImage_TypePointer<npy_uint8>(buffer); }
+            break;
+            case NPY_FLOAT: {
+                self->cimage = CImage_TypePointer<npy_float>(buffer); }
+            break;
+            case NPY_DOUBLE: {
+                self->cimage = CImage_TypePointer<npy_double>(buffer); }
+            break;
+            case NPY_LONGDOUBLE: {
+                self->cimage = CImage_TypePointer<npy_longdouble>(buffer); }
+            break;
+            case NPY_BYTE: {
+                self->cimage = CImage_TypePointer<npy_byte>(buffer); }
+            break;
+            case NPY_CHAR: {
+                self->cimage = CImage_TypePointer<npy_char>(buffer); }
+            break;
+            case NPY_SHORT: {
+                self->cimage = CImage_TypePointer<npy_short>(buffer); }
+            break;
+            case NPY_INT: {
+                self->cimage = CImage_TypePointer<npy_int>(buffer); }
+            break;
+            case NPY_LONG: {
+                self->cimage = CImage_TypePointer<npy_long>(buffer); }
+            break;
+            case NPY_LONGLONG: {
+                self->cimage = CImage_TypePointer<npy_longlong>(buffer); }
+            break;
+            case NPY_UBYTE: {
+                self->cimage = CImage_TypePointer<npy_ubyte>(buffer); }
+            break;
+            case NPY_USHORT: {
+                self->cimage = CImage_TypePointer<npy_ushort>(buffer); }
+            break;
+            case NPY_UINT: {
+                self->cimage = CImage_TypePointer<npy_uint>(buffer); }
+            break;
+            case NPY_ULONG: {
+                self->cimage = CImage_TypePointer<npy_ulong>(buffer); }
+            break;
+            case NPY_ULONGLONG: {
+                self->cimage = CImage_TypePointer<npy_ulonglong>(buffer); }
+            break;
+        }
+    }
+    
+    return 0;
+}
+
+
+static void PyCImage_dealloc(PyCImage *self) {
+    Py_XDECREF(self->dtype);
+    self->ob_type->tp_free((PyObject *)self);
+}
+
+
+static PyObject     *PyCImage_GET_dtype(PyCImage *self, void *closure) {
+    BAIL_WITHOUT(self->dtype);
+    Py_INCREF(self->dtype);
+    return reinterpret_cast<PyObject *>(self->dtype);
+}
+static int           PyCImage_SET_dtype(PyCImage *self, PyObject *value, void *closure) {
+    if (self->dtype) { Py_DECREF(self->dtype); }
+    Py_INCREF(value);
+    self->dtype = reinterpret_cast<PyArray_Descr *>(value);
+    return 0;
+}
+
+static PyGetSetDef PyCImage_getset[] = {
+    {
+        "dtype",
+            (getter)PyCImage_GET_dtype,
+            (setter)PyCImage_SET_dtype,
+            "Data Type (numpy.dtype)", None},
+    SENTINEL
+};
+
+/*
+static PyCImage_Repr(PyObject *pyim) {
+    if (pyim->cimage) {
+        &(im->cimage).get();
+    }
+}
+*/
+
+static Py_ssize_t PyCImage_TypeFlags = Py_TPFLAGS_DEFAULT |
+    Py_TPFLAGS_BASETYPE |
+    Py_TPFLAGS_HAVE_GETCHARBUFFER;
+
+static PyTypeObject PyCImage_Type = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                                          /* ob_size */
+    "PyImgC.PyCImage",                                          /* tp_name */
+    sizeof(PyCImage),                                           /* tp_basicsize */
+    0,                                                          /* tp_itemsize */
+    (destructor)PyCImage_dealloc,                               /* tp_dealloc */
+    0,                                                          /* tp_print */
+    0,                                                          /* tp_getattr */
+    0,                                                          /* tp_setattr */
+    0,                                                          /* tp_compare */
+    0,                                                          /* tp_repr */
+    0,                                                          /* tp_as_number */
+    0,                                                          /* tp_as_sequence */
+    0,                                                          /* tp_as_mapping */
+    0,                                                          /* tp_hash */
+    0,                                                          /* tp_call */
+    0,                                                          /* tp_str */
+    0,                                                          /* tp_getattro */
+    0,                                                          /* tp_setattro */
+    0,                                                          /* tp_as_buffer */
+    PyCImage_TypeFlags,                                         /* tp_flags*/
+    "PyImgC object wrapper for CImg instances",                 /* tp_doc */
+    0,                                                          /* tp_traverse */
+    0,                                                          /* tp_clear */
+    0,                                                          /* tp_richcompare */
+    0,                                                          /* tp_weaklistoffset */
+    0,                                                          /* tp_iter */
+    0,                                                          /* tp_iternext */
+    0,                                                          /* tp_methods */
+    0,                                                          /* tp_members */
+    PyCImage_getset,                                            /* tp_getset */
+    0,                                                          /* tp_base */
+    0,                                                          /* tp_dict */
+    0,                                                          /* tp_descr_get */
+    0,                                                          /* tp_descr_set */
+    0,                                                          /* tp_dictoffset */
+    (initproc)PyCImage_init,                                    /* tp_init */
+    0,                                                          /* tp_alloc */
+    PyCImage_new,                                               /* tp_new */
+};
+
+#define PyCImage_Check(op) PyObject_TypeCheck(op, &PyCImage_Type)
+
 static PyObject *Image_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     Image *self;
     self = (Image *)type->tp_alloc(type, 0);
@@ -349,25 +617,7 @@ static void Image_dealloc(Image *self) {
     self->ob_type->tp_free((PyObject *)self);
 }
 
-/*
-static PyMemberDef Image_members[] = {
-    {
-        "buffer", T_OBJECT_EX,
-            offsetof(Image, buffer), 0,
-            "Buffer or MemoryView"},
-    {
-        "source", T_OBJECT_EX,
-            offsetof(Image, source), 0,
-            "Buffer Source Object"},
-    {
-        "dtype", T_OBJECT_EX,
-            offsetof(Image, dtype), 0,
-            "Data Type (numpy.dtype)"},
-    SENTINEL
-};
-*/
 #define Image_members 0
-
 
 static PyObject     *Image_GET_buffer(Image *self, void *closure) {
     BAIL_WITHOUT(self->buffer);
@@ -496,7 +746,7 @@ static Py_ssize_t Image_TypeFlags = Py_TPFLAGS_DEFAULT |
     Py_TPFLAGS_BASETYPE |
     Py_TPFLAGS_HAVE_GETCHARBUFFER;
 
-static PyTypeObject ImageType = {
+static PyTypeObject Image_Type = {
     PyObject_HEAD_INIT(NULL)
     0,                                                          /* ob_size */
     "PyImgC.Image",                                             /* tp_name */
@@ -518,7 +768,7 @@ static PyTypeObject ImageType = {
     0,                                                          /* tp_setattro */
     0,                                                          /* tp_as_buffer */
     Image_TypeFlags,                                            /* tp_flags*/
-    "PyImgC object wrapper for CImg instances",                 /* tp_doc */
+    "PyImgC image data container",                              /* tp_doc */
     0,                                                          /* tp_traverse */
     0,                                                          /* tp_clear */
     0,                                                          /* tp_richcompare */
@@ -537,6 +787,8 @@ static PyTypeObject ImageType = {
     0,                                                          /* tp_alloc */
     Image_new,                                                  /* tp_new */
 };
+
+#define Image_Check(op) PyObject_TypeCheck(op, &Image_Type)
 
 static PyMethodDef _PyImgC_methods[] = {
     {
@@ -570,7 +822,8 @@ static PyMethodDef _PyImgC_methods[] = {
 PyMODINIT_FUNC init_PyImgC(void) {
     PyObject* module;
 
-    if (PyType_Ready(&ImageType) < 0) { return; }
+    if (PyType_Ready(&Image_Type) < 0) { return; }
+    if (PyType_Ready(&PyCImage_Type) < 0) { return; }
 
     /// initialize CImage internals
     //CImage_Register();
@@ -585,9 +838,12 @@ PyMODINIT_FUNC init_PyImgC(void) {
     import_array();
 
     /// Set up Image object
-    Py_INCREF(&ImageType);
+    Py_INCREF(&Image_Type);
+    Py_INCREF(&PyCImage_Type);
     PyModule_AddObject(
-        module, "Image", (PyObject *)&ImageType);
+        module, "Image", (PyObject *)&Image_Type);
+    PyModule_AddObject(
+        module, "PyCImage", (PyObject *)&PyCImage_Type);
 }
 
 
