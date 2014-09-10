@@ -8,6 +8,10 @@
 #define cimg_use_jpeg 1                 /// jpeg
 #define cimg_use_zlib 1                 /// compressed output
 
+#ifndef cimg_imagepath
+#define cimg_imagepath "cimg/img/"
+#endif
+
 //#define cimg_use_png 1                /// png (via setup.py)
 //#define cimg_use_tiff 1               /// tiff (via setup.py)
 //#define cimg_use_magick 1             /// ImageMagick++ I/O (via setup.py)
@@ -15,7 +19,11 @@
 //#define cimg_use_openexr 1            /// OpenEXR (via setup.py)
 //#define cimg_use_lapack 1             /// LAPACK
 
+#define cimg_plugin1 "../cimg_numpy.h"
+
 #include <map>
+#include <cstdlib>
+#include <typeinfo>
 #include <type_traits>
 #include <Python.h>
 #include <structmember.h>
@@ -24,9 +32,6 @@
 #include <numpy/ndarraytypes.h>
 #include "numpypp/numpy.hpp"
 
-#ifndef cimg_imagepath
-#define cimg_imagepath "cimg/img/"
-#endif
 #include "cimg/CImg.h"
 using namespace cimg_library;
 using namespace std;
