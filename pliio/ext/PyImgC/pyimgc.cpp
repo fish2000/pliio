@@ -53,9 +53,8 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
     if (PyArray_Check(buffer)) {
         int tc = (int)dtype->type_num;
 #define HANDLE(type) \
-        auto converter = CImage_NumpyConverter<type>(buffer); \
-        CImg<type> cimage = converter->from_pyarray(); \
-        return Py_BuildValue("iiiii", tc, (int)converter->typecode(), \
+        CImg<type> cimage = CImg<type>(buffer); \
+        return Py_BuildValue("iiiii", tc, cimage.npy_typecode(), \
                                     cimage.width(), cimage.height(), cimage.spectrum());
         SAFE_SWITCH_ON_TYPECODE(tc, Py_BuildValue(""));
 #undef HANDLE
@@ -64,7 +63,7 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
     return Py_BuildValue("");
 }
 
-static PyObject *structcode_parse(const char *code) {
+static PyObject *structcode_to_dtype_code(const char *code) {
     vector<pair<string, string>> pairvec = structcode::parse(string(code));
     string byteorder = "";
 
@@ -88,8 +87,8 @@ static PyObject *structcode_parse(const char *code) {
     for (size_t idx = 0; idx < pairvec.size(); idx++) {
         PyList_Append(list,
             PyTuple_Pack((Py_ssize_t)2,
-                PyString_InternFromString(string(pairvec[idx].first).c_str()),
-                PyString_InternFromString(string(byteorder + pairvec[idx].second).c_str())));
+                PyString_FromString(string(pairvec[idx].first).c_str()),
+                PyString_FromString(string(byteorder + pairvec[idx].second).c_str())));
     }
     
     return list;
@@ -136,9 +135,9 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
 
         if (buf.format) {
             if (PyObject_IsTrue(parse_format_arg)) {
-                PyDict_SetItemString(buffer_dict, "format", structcode_parse(buf.format));
+                PyDict_SetItemString(buffer_dict, "format", structcode_to_dtype_code(buf.format));
             } else {
-                PyDict_SetItemString(buffer_dict, "format", PyString_InternFromString(buf.format));
+                PyDict_SetItemString(buffer_dict, "format", PyString_FromString(buf.format));
             }
         } else {
             PyDict_SetItemString(buffer_dict, "format", PyGetNone);
@@ -216,7 +215,7 @@ static PyObject *PyImgC_ParseStructCode(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    return Py_BuildValue("O", structcode_parse(code));
+    return Py_BuildValue("O", structcode_to_dtype_code(code));
 }
 
 static PyObject *PyImgC_ParseSingleStructAtom(PyObject *self, PyObject *args) {
@@ -247,7 +246,7 @@ static PyObject *PyImgC_ParseSingleStructAtom(PyObject *self, PyObject *args) {
     }
 
     /// Get singular value
-    PyObject *dtypecode = PyString_InternFromString(
+    PyObject *dtypecode = PyString_FromString(
         string(byteorder + pairvec[0].second).c_str());
 
     return Py_BuildValue("O", dtypecode);
@@ -366,10 +365,10 @@ static PyObject *PyCImage_Repr(PyCImage *pyim) {
             cim.pixel_type(), \
             cim.width(), cim.height(), cim.spectrum(), sizeof(type),\
             pyim);
-        SAFE_SWITCH_ON_TYPECODE(tc, PyString_InternFromString("<PyCImage(type out-of-bounds)>"));
+        SAFE_SWITCH_ON_TYPECODE(tc, PyString_FromString("<PyCImage(type out-of-bounds)>"));
 #undef HANDLE
     }
-    return PyString_InternFromString("<PyCImage(type unknown)>");
+    return PyString_FromString("<PyCImage(type unknown)>");
 }
 
 static PyObject *PyCImage_Str(PyCImage *pyim) {
@@ -384,6 +383,64 @@ static PyObject *PyCImage_Str(PyCImage *pyim) {
     return PyString_FromString("");
 }
 
+static Py_ssize_t PyCImage_Len(PyCImage *pyim) {
+    if (pyim->cimage && pyim->dtype) {
+        int tc = (int)pyim->dtype->type_num;
+#define HANDLE(type) \
+        CImg<type> cim = pyim->recast<type>()->from_pyarray(); \
+        return (Py_ssize_t)cim.size();
+        SAFE_SWITCH_ON_TYPECODE(tc, NULL);
+#undef HANDLE
+    }
+    return (Py_ssize_t)0;
+}
+
+static PyObject *PyCImage_GetItem(PyCImage *pyim, register Py_ssize_t idx) {
+    if (pyim->cimage && pyim->dtype) {
+        int tc = (int)pyim->dtype->type_num;
+#define HANDLE(type) \
+        CImg<type> cim = pyim->recast<type>()->from_pyarray(); \
+        Py_ssize_t siz = (Py_ssize_t)cim.size(); \
+        if (idx < 0 || idx >= siz) { \
+            PyErr_SetString(PyExc_IndexError, \
+                "index out of range"); \
+            return NULL; \
+        } \
+        switch (tc) { \
+            case NPY_FLOAT: \
+            case NPY_DOUBLE: \
+            case NPY_LONGDOUBLE: { \
+                return Py_BuildValue("f", static_cast<long double>(cim(idx))); \
+            } \
+            break; \
+            case NPY_USHORT: \
+            case NPY_UBYTE: \
+            case NPY_UINT: \
+            case NPY_ULONG: \
+            case NPY_ULONGLONG: { \
+                return Py_BuildValue("k", static_cast<unsigned long>(cim(idx))); \
+            } \
+            break; \
+        } \
+        return Py_BuildValue("l", static_cast<long>(cim(idx)));
+        SAFE_SWITCH_ON_TYPECODE(tc, NULL);
+#undef HANDLE
+    }
+    PyErr_SetString(PyExc_IndexError,
+        "image index not initialized");
+    return NULL;
+}
+
+static PySequenceMethods PyCImage_SequenceMethods = {
+    (lenfunc)PyCImage_Len,                      /*sq_length*/
+    0,                                          /*sq_concat*/
+    0,                                          /*sq_repeat*/
+    (ssizeargfunc)PyCImage_GetItem,             /*sq_item*/
+    0,                                          /*sq_slice*/
+    0,                                          /*sq_ass_item HAHAHAHA*/
+    0,                                          /*sq_ass_slice HEHEHE ASS <snort> HA*/
+    0                                           /*sq_contains*/
+};
 
 static Py_ssize_t PyCImage_TypeFlags = Py_TPFLAGS_DEFAULT |
     Py_TPFLAGS_BASETYPE |
@@ -402,7 +459,7 @@ static PyTypeObject PyCImage_Type = {
     0,                                                          /* tp_compare */
     (reprfunc)PyCImage_Repr,                                    /* tp_repr */
     0,                                                          /* tp_as_number */
-    0,                                                          /* tp_as_sequence */
+    &PyCImage_SequenceMethods,                                  /* tp_as_sequence */
     0,                                                          /* tp_as_mapping */
     0,                                                          /* tp_hash */
     0,                                                          /* tp_call */

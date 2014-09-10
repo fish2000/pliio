@@ -569,4 +569,4 @@ struct CImage_Functor<NPY_LONGDOUBLE, std::complex<long double>> : public CImage
 
 extern "C" void CImage_Register() {}
 
-#endif /// PyImgC_INTERFACE_H
+#endif /// PyImgC_CIMAGE_H

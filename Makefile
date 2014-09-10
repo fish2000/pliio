@@ -47,6 +47,18 @@ checkext:
 		from pliio import _PyImgC; \
 		print str(_PyImgC.PyCImage(imread('$(IMG)')))[:500]" | gsed -e "s/[\\s]+/ /g")"
 	
+	# Checking PyCImage.__len__
+	bpython -c "$(shell echo "'';\
+		from imread import imread; \
+		from pliio import _PyImgC; \
+		print 'len(PyCImage) = %s' % len(_PyImgC.PyCImage(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
+	
+	# Checking PyCImage[idx]
+	bpython -c "$(shell echo "'';\
+		from imread import imread; \
+		from pliio import _PyImgC; \
+		print 'PyCImage[66] = %s' % _PyImgC.PyCImage(imread('$(IMG)'))[66]" | gsed -e "s/[\\s]+/ /g")"
+	
 	# Checking buffer_info
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
