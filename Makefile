@@ -62,9 +62,9 @@ checkext:
 	# Checking buffer_info
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import _PyImgC; \
+		from pliio import _PyImgC as imgc; \
 		from pprint import pformat; \
-		print pformat(_PyImgC.buffer_info(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
+		print pformat(imgc.buffer_info(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking structcode parser
 	py 'pliio._PyImgC.structcode_parse(">BBBB")'

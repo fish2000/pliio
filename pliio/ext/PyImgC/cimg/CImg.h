@@ -2204,6 +2204,11 @@ namespace cimg_library_suffixed {
     // Define traits that will be used to determine the best data type to work in CImg functions.
     //
     template<typename T> struct type {
+      typedef T value_type;
+      static std::unique_ptr<T> create() {
+          return std::unique_ptr<T>(new T());
+      }
+      
       static const char* string() {
         static const char* s[] = { "unknown",   "unknown8",   "unknown16",  "unknown24",
                                    "unknown32", "unknown40",  "unknown48",  "unknown56",
@@ -11619,6 +11624,13 @@ namespace cimg_library_suffixed {
     static const char* pixel_type() {
       return cimg::type<T>::string();
     }
+    static const cimg::type<T>& type() {
+      return cimg::type<T>();
+    }
+    static unique_ptr<T> type_instance() {
+      return cimg::type<T>::create();
+    }
+    
 
     //! Return the number of image columns.
     /**
