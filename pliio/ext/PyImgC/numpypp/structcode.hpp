@@ -1,17 +1,9 @@
 #ifndef PyImgC_STRUCTCODE_H
 #define PyImgC_STRUCTCODE_H
 
-#include <Python.h>
-#include <structmember.h>
-#include <iostream>
-#include <string>
-
 #ifndef NPY_NO_DEPRECATED_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #endif
-
-#include <numpy/arrayobject.h>
-#include <numpy/ndarraytypes.h>
 
 #include "../PyImgC_Constants.h"
 

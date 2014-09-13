@@ -29,6 +29,9 @@
 #define BAIL_WITHOUT(thing) if (!thing) return None
 #endif
 
+#define IMGC_DEFAULT_TYPECODE 2
+#define IMGC_DEFAULT_T unsigned char
+
 //////////////// CONSTANTS
 #if PY_VERSION_HEX <= 0x03000000
 #define IMGC_PY3 False

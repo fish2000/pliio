@@ -42,7 +42,7 @@ CImg(const PyObject *const pyobject):_width(0),_height(0),_depth(0),_spectrum(0)
     assign(pyobject);
 }
 
-// In-place constructor; the optional flag will be ignored when the number of color channels is less than 3.
+// In-place constructor
 CImg<T> &assign(const PyObject *const pyobject) {
     if (!pyobject) return assign();
     if (not_typecode_of(pyobject)) {

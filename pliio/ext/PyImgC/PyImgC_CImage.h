@@ -40,7 +40,7 @@ using namespace cimg_library;
 using namespace std;
 
 template <typename T>
-CImg<T> cimage_from_pybuffer(Py_buffer *pybuffer, int sW, int sH,
+inline CImg<T> cimage_from_pybuffer(Py_buffer *pybuffer, int sW, int sH,
                     int channels, bool is_shared=true) {
     CImg<T> view(pybuffer->buf,
         sW, sH, 1,
@@ -49,9 +49,8 @@ CImg<T> cimage_from_pybuffer(Py_buffer *pybuffer, int sW, int sH,
 }
 
 template <typename T>
-CImg<T> cimage_from_pybuffer(Py_buffer *pybuffer, bool is_shared=true) {
-    CImg<T> view(
-        pybuffer->buf,
+inline CImg<T> cimage_from_pybuffer(Py_buffer *pybuffer, bool is_shared=true) {
+    CImg<T> view(pybuffer->buf,
         pybuffer->shape[1],
         pybuffer->shape[0],
         1, 3, is_shared);
@@ -92,23 +91,21 @@ CImg<T> cimage_from_pyarray(PyArrayObject *pyarray, bool is_shared=true) {
 }
 
 template <typename T>
-CImg<T> cimage_from_pyarray(PyObject *pyobj, bool is_shared=true) {
-    if (!PyArray_Check(pyobj)) {
-        return CImg<T>();
-    }
+inline CImg<T> cimage_from_pyarray(PyObject *pyobj, bool is_shared=true) {
+    if (!PyArray_Check(pyobj)) { return CImg<T>(); }
     PyArrayObject *pyarray = reinterpret_cast<PyArrayObject *>(pyobj);
     return cimage_from_pyarray<T>(pyarray, is_shared);
 }
 
 template <typename T>
-CImg<T> cimage_from_pyobject(PyObject *datasource, int sW, int sH,
+inline CImg<T> cimage_from_pyobject(PyObject *datasource, int sW, int sH,
                     int channels, bool is_shared=true) {
     CImg<T> view(sW, sH, 1, channels, is_shared);
     return view;
 }
 
 template <typename T>
-CImg<T> cimage_from_pyobject(PyObject *datasource, bool is_shared=true) {
+inline CImg<T> cimage_from_pyobject(PyObject *datasource, bool is_shared=true) {
     CImg<T> view(640, 480, 1, 3, is_shared);
     return view;
 }
@@ -126,30 +123,30 @@ template <typename dT>
 struct CImage_Base : public CImage_SubBase {
     typedef typename CImage_Traits<dT>::value_type value_type;
 
-    CImg<value_type> from_pybuffer(Py_buffer *pybuffer, bool is_shared=true) {
+    inline CImg<value_type> from_pybuffer(Py_buffer *pybuffer, bool is_shared=true) {
         return cimage_from_pybuffer<value_type>(pybuffer, is_shared);
     }
 
-    CImg<value_type> from_pybuffer_with_dims(Py_buffer *pybuffer,
+    inline CImg<value_type> from_pybuffer_with_dims(Py_buffer *pybuffer,
         int sW, int sH, int channels=3,
         bool is_shared=true) {
         return cimage_from_pybuffer<value_type>(pybuffer, sW, sH, channels, is_shared);
     }
 
-    CImg<value_type> from_pyarray(PyArrayObject *pyarray, bool is_shared=true) {
+    inline CImg<value_type> from_pyarray(PyArrayObject *pyarray, bool is_shared=true) {
         return cimage_from_pyarray<value_type>(pyarray, is_shared);
     }
 
-    CImg<value_type> from_pyarray(PyObject *pyarray, bool is_shared=true) {
+    inline CImg<value_type> from_pyarray(PyObject *pyarray, bool is_shared=true) {
         return cimage_from_pyarray<value_type>(
             reinterpret_cast<PyArrayObject *>(pyarray), is_shared);
     }
 
-    CImg<value_type> from_datasource(PyObject *datasource, bool is_shared=true) {
+    inline CImg<value_type> from_datasource(PyObject *datasource, bool is_shared=true) {
         return cimage_from_pyobject<value_type>(datasource, is_shared);
     }
 
-    CImg<value_type> from_datasource_with_dims(PyObject *datasource,
+    inline CImg<value_type> from_datasource_with_dims(PyObject *datasource,
         int sW, int sH, int channels=3,
         bool is_shared=true) {
         return cimage_from_pyobject<value_type>(datasource, sW, sH, channels, is_shared);
@@ -175,50 +172,82 @@ struct CImage_Type : public CImage_Base<CImage_Type<T>> {
     const unsigned int value_typecode = CImage_Traits<CImage_Type<T>>::value_typecode();
     Py_buffer *pybuffer = 0;
     PyObject *datasource = 0;
+    CImg<value_type> cinstance;
     CImage_Type() {}
     CImage_Type(Py_buffer *pb) : pybuffer(pb) {}
     CImage_Type(PyArrayObject *pyarray) : datasource(reinterpret_cast<PyObject *>(pyarray)) { Py_INCREF(pyarray); }
     CImage_Type(PyObject *ds) : datasource(ds) { Py_INCREF(datasource); }
+    CImage_Type(CImg<value_type> cim) { cinstance = *cim; }
+    CImage_Type(CImg<value_type> *cim) { cinstance = &cim; }
 
-    ~CImage_Type() {
-        if (datasource) { Py_DECREF(datasource); }
-        if (pybuffer) { PyBuffer_Release(pybuffer); }
+    virtual ~CImage_Type() {
+        if (check_datasource()) { Py_DECREF(datasource); }
+        if (check_pybuffer()) { PyBuffer_Release(pybuffer); }
+        if (check_instance()) {}
     }
 
-    CImg<value_type> from_pybuffer(bool is_shared=true) {
+    virtual bool check_instance() { return static_cast<bool>(cinstance.size()); }
+    virtual bool check_datasource() { return datasource != 0; }
+    virtual bool check_pyarray() { return check_datasource() && PyArray_Check(datasource); }
+    virtual bool check_pybuffer() { return pybuffer != 0; }
+
+    CImg<value_type> get(bool is_shared=true) {
+        if (check_instance()) { return cinstance; }
+        if (check_pyarray()) { return from_pyarray(is_shared); }
+        if (check_datasource()) { return from_pyobject(is_shared); }
+        if (check_pybuffer()) { return from_pybuffer(is_shared); }
+        return cinstance; /// ugh we can do better
+    }
+
+    void set(PyArrayObject *pyarray) {
+        datasource = reinterpret_cast<PyObject *>(pyarray);
+        Py_INCREF(pyarray);
+        cinstance = cimage_from_pyarray<value_type>(datasource, true);
+    }
+    void set(PyObject *ds) {
+        datasource = ds;
+        Py_INCREF(datasource);
+        cinstance = cimage_from_pyobject<value_type>(datasource, true);
+    }
+    void set(Py_buffer *pb) {
+        pybuffer = pb;
+        cinstance = cimage_from_pybuffer<value_type>(pybuffer, true);
+    }
+
+    inline CImg<value_type> from_pybuffer(bool is_shared=true) {
         return cimage_from_pybuffer<value_type>(pybuffer, is_shared);
     }
 
-    CImg<value_type> from_pybuffer_with_dims(
+    inline CImg<value_type> from_pybuffer_with_dims(
         int sW, int sH, int channels=3,
         bool is_shared=true) {
         return cimage_from_pybuffer<value_type>(pybuffer, sW, sH, channels, is_shared);
     }
 
-    CImg<value_type> from_pyobject(bool is_shared=true) {
+    inline CImg<value_type> from_pyobject(bool is_shared=true) {
         return cimage_from_pyobject<value_type>(
             reinterpret_cast<PyObject *>(datasource), is_shared);
     }
 
-    CImg<value_type> from_pyarray(bool is_shared=true) {
+    inline CImg<value_type> from_pyarray(bool is_shared=true) {
         return cimage_from_pyarray<value_type>(datasource, is_shared);
     }
 
-    CImg<value_type> from_datasource(bool is_shared=true) {
+    inline CImg<value_type> from_datasource(bool is_shared=true) {
         return cimage_from_pyobject<value_type>(datasource, is_shared);
     }
 
-    CImg<value_type> from_datasource_with_dims(
+    inline CImg<value_type> from_datasource_with_dims(
         int sW, int sH, int channels=3,
         bool is_shared=true) {
         return cimage_from_pyobject<value_type>(datasource, sW, sH, channels, is_shared);
     }
     
-    inline const unsigned int typecode() const {
+    inline const unsigned int typecode() {
         return value_typecode;
     }
     
-    inline PyArray_Descr *typestruct() {
+    inline const PyArray_Descr *const typestruct() {
         return PyArray_DescrFromType(value_typecode);
     }
     
@@ -227,11 +256,11 @@ struct CImage_Type : public CImage_Base<CImage_Type<T>> {
 template <typename T>
 struct CImage_Traits<CImage_Type<T>> {
     typedef T value_type;
-    static const unsigned int value_typecode() {
+    static inline const unsigned int value_typecode() {
         return static_cast<unsigned int>(
             numpy::dtype_code<T>());
     }
-    static const PyArray_Descr *value_typestruct() {
+    static inline PyArray_Descr *value_typestruct() {
         return numpy::dtype_struct<T>();
     }
 };
@@ -268,6 +297,10 @@ static inline CImage_Type<dT> *CImage_NumpyConverter(PyObject *pyarray) {
 template <typename dT>
 static inline unique_ptr<CImage_Type<dT>> CImage_TypePointer(PyObject *pyarray) {
     return unique_ptr<CImage_Type<dT>>(new CImage_Type<dT>(pyarray));
+}
+template <typename dT>
+static inline unique_ptr<CImage_Type<dT>> CImage_TypePointer(CImg<dT> cimage) {
+    return unique_ptr<CImage_Type<dT>>(new CImage_Type<dT>(cimage));
 }
 
 template <NPY_TYPES, typename T>

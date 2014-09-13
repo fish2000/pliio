@@ -2359,6 +2359,32 @@ namespace cimg_library_suffixed {
       static long format(const long val) { return val; }
     };
 
+
+    template<> struct type<long double> {
+      static const char* string() { static const char *const s = "long double"; return s; }
+      static bool is_float() { return true; }
+      static bool is_inf(const long double val) {
+#ifdef isinf
+        return (bool)isinf(val);
+#else
+        return !is_nan(val) && (val<cimg::type<long double>::min() || val>cimg::type<long double>::max());
+#endif
+      }
+      static bool is_nan(const long double val) {
+#ifdef isnan
+        return (bool)isnan(val);
+#else
+        return !(val==val);
+#endif
+      }
+      static double min() { return -1.7E308; }
+      static double max() { return  1.7E308; }
+      static double inf() { return max()*max(); }
+      static double nan() { static const long double val_nan = -std::sqrt(-1.0); return val_nan; }
+      static double cut(const long double val) { return val<min()?min():val>max()?max():val; }
+      static const char* format() { return "%.16g"; }
+      static double format(const long double val) { return val; }
+    };
     template<> struct type<double> {
       static const char* string() { static const char *const s = "double"; return s; }
       static bool is_float() { return true; }
@@ -2423,6 +2449,7 @@ namespace cimg_library_suffixed {
     template<> struct superset<bool,long> { typedef long type; };
     template<> struct superset<bool,float> { typedef float type; };
     template<> struct superset<bool,double> { typedef double type; };
+    template<> struct superset<bool,long double> { typedef long double type; };
     template<> struct superset<unsigned char,char> { typedef short type; };
     template<> struct superset<unsigned char,signed char> { typedef short type; };
     template<> struct superset<unsigned char,unsigned short> { typedef unsigned short type; };
@@ -2433,6 +2460,7 @@ namespace cimg_library_suffixed {
     template<> struct superset<unsigned char,long> { typedef long type; };
     template<> struct superset<unsigned char,float> { typedef float type; };
     template<> struct superset<unsigned char,double> { typedef double type; };
+    template<> struct superset<unsigned char,long double> { typedef long double type; };
     template<> struct superset<signed char,unsigned char> { typedef short type; };
     template<> struct superset<signed char,char> { typedef short type; };
     template<> struct superset<signed char,unsigned short> { typedef int type; };
@@ -2443,6 +2471,7 @@ namespace cimg_library_suffixed {
     template<> struct superset<signed char,long> { typedef long type; };
     template<> struct superset<signed char,float> { typedef float type; };
     template<> struct superset<signed char,double> { typedef double type; };
+    template<> struct superset<signed char,long double> { typedef long double type; };
     template<> struct superset<char,unsigned char> { typedef short type; };
     template<> struct superset<char,signed char> { typedef short type; };
     template<> struct superset<char,unsigned short> { typedef int type; };
@@ -2453,6 +2482,7 @@ namespace cimg_library_suffixed {
     template<> struct superset<char,long> { typedef long type; };
     template<> struct superset<char,float> { typedef float type; };
     template<> struct superset<char,double> { typedef double type; };
+    template<> struct superset<char,long double> { typedef long double type; };
     template<> struct superset<unsigned short,char> { typedef int type; };
     template<> struct superset<unsigned short,signed char> { typedef int type; };
     template<> struct superset<unsigned short,short> { typedef int type; };
@@ -2462,6 +2492,7 @@ namespace cimg_library_suffixed {
     template<> struct superset<unsigned short,long> { typedef long type; };
     template<> struct superset<unsigned short,float> { typedef float type; };
     template<> struct superset<unsigned short,double> { typedef double type; };
+    template<> struct superset<unsigned short,long double> { typedef long double type; };
     template<> struct superset<short,unsigned short> { typedef int type; };
     template<> struct superset<short,unsigned int> { typedef long type; };
     template<> struct superset<short,int> { typedef int type; };
@@ -2469,6 +2500,7 @@ namespace cimg_library_suffixed {
     template<> struct superset<short,long> { typedef long type; };
     template<> struct superset<short,float> { typedef float type; };
     template<> struct superset<short,double> { typedef double type; };
+    template<> struct superset<short,long double> { typedef long double type; };
     template<> struct superset<unsigned int,char> { typedef long type; };
     template<> struct superset<unsigned int,signed char> { typedef long type; };
     template<> struct superset<unsigned int,short> { typedef long type; };
@@ -2477,11 +2509,13 @@ namespace cimg_library_suffixed {
     template<> struct superset<unsigned int,long> { typedef long type; };
     template<> struct superset<unsigned int,float> { typedef float type; };
     template<> struct superset<unsigned int,double> { typedef double type; };
+    template<> struct superset<unsigned int,long double> { typedef long double type; };
     template<> struct superset<int,unsigned int> { typedef long type; };
     template<> struct superset<int,unsigned long> { typedef long type; };
     template<> struct superset<int,long> { typedef long type; };
     template<> struct superset<int,float> { typedef float type; };
     template<> struct superset<int,double> { typedef double type; };
+    template<> struct superset<int,long double> { typedef double type; };
     template<> struct superset<unsigned long,char> { typedef long type; };
     template<> struct superset<unsigned long,signed char> { typedef long type; };
     template<> struct superset<unsigned long,short> { typedef long type; };
@@ -2489,9 +2523,11 @@ namespace cimg_library_suffixed {
     template<> struct superset<unsigned long,long> { typedef long type; };
     template<> struct superset<unsigned long,float> { typedef double type; };
     template<> struct superset<unsigned long,double> { typedef double type; };
+    template<> struct superset<unsigned long,long double> { typedef double type; };
     template<> struct superset<long,float> { typedef double type; };
     template<> struct superset<long,double> { typedef double type; };
     template<> struct superset<float,double> { typedef double type; };
+    template<> struct superset<float,long double> { typedef long double type; };
 
     template<typename t1, typename t2, typename t3> struct superset2 {
       typedef typename superset<t1, typename superset<t2,t3>::type>::type type;
@@ -2507,6 +2543,7 @@ namespace cimg_library_suffixed {
 #define _cimg_Tfloat   typename cimg::superset<T,float>::type
 #define _cimg_Ttfloat  typename cimg::superset2<T,t,float>::type
 #define _cimg_Ttdouble typename cimg::superset2<T,t,double>::type
+#define _cimg_Ttlongdouble typename cimg::superset2<T,t,longdouble>::type
 
     // Define variables used internally by CImg.
 #if cimg_display==1

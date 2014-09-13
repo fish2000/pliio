@@ -66,6 +66,11 @@ checkext:
 		from pprint import pformat; \
 		print pformat(imgc.buffer_info(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
 	
+	# Checking PyCImage file loading...
+	bpython -c "$(shell echo "'';\
+		from pliio import _PyImgC as imgc; \
+		print imgc.PyCImage('$(IMG)')" | gsed -e "s/[\\s]+/ /g")"
+		
 	# Checking structcode parser
 	py 'pliio._PyImgC.structcode_parse(">BBBB")'
 

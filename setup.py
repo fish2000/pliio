@@ -246,6 +246,7 @@ ext_modules = [
             '-stdlib=libc++',
             '-Wno-error=unused-command-line-argument-hard-error-in-future',
             '-Wno-unused-function',
+            '-Wno-overloaded-virtual', # WARNING WARNING WARNING
             '-Wno-deprecated-register', # CImg w/OpenEXR throws these
             '-Wno-deprecated-writable-strings',
             '-Qunused-arguments',
