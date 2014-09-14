@@ -20,9 +20,8 @@
 //#define cimg_use_openexr 1            /// OpenEXR (via setup.py)
 //#define cimg_use_lapack 1             /// LAPACK
 
-#define cimg_plugin1 "../cimg_numpy.h"
-#define cimg_plugin2 "../cimg_pybuffer.h"
-//#define cimg_plugin3 "../cimg_conversion.h"
-
+#define cimg_plugin1 "../cimg_common.h"
+#define cimg_plugin2 "../cimg_numpy.h"
+#define cimg_plugin3 "../cimg_pybuffer.h"
 
 #endif /// PyImgC_OPTIONS_H

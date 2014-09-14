@@ -5,6 +5,15 @@ import xerox
 # //const npy_intp typecode = NPY_%(npytype)s;
 
 structs = u'''
+    if (typeid(T) == typeid(%(ctype)s)) return NPY_%(npytype)s;'''
+
+functors = u'''
+        (typecode == NPY_%(npytype)s         && typeid(T) != typeid(%(ctype)s)) ||'''
+
+registration = u'''
+    if (typeid(T) == typeid(%(ctype)s)) return "%(structcode)s";'''
+
+_structs = u'''
 struct CImage_NPY_%(npytype)s : public CImage_Type<%(ctype)s> {
     const char structcode[%(structcodelen)s] = { '%(structcode)s', NILCODE };
     const unsigned int structcode_length = %(structcodelen)s;
@@ -15,7 +24,7 @@ struct CImage_NPY_%(npytype)s : public CImage_Type<%(ctype)s> {
 };
 '''
 
-functors = u'''
+_functors = u'''
 template <>
 struct CImage_Functor<NPY_%(npytype)s, %(ctype)s> : public CImage_FunctorType {
     CImage_Functor<NPY_%(npytype)s, %(ctype)s>(unsigned int const& key) {
@@ -26,13 +35,13 @@ struct CImage_Functor<NPY_%(npytype)s, %(ctype)s> : public CImage_FunctorType {
 
 _registration = u'''
 CImage_Functor<NPY_%(npytype)s, %(ctype)s> CImage_NPY_%(npytype)s::reg(NPY_%(npytype)s);'''
-registration = u""
 
 # TRAILING TUPLE: (native, complex)
 
 types = [
     ('BOOL', 'bool', ('?',), (True, False)),
     ('BYTE', 'char', ('b',), (True, False)),
+    ('BYTE', 'signed char', ('b',), (True, False)),
     ('HALF', 'npy_half', ('e',), (False, False)),
     
     ('SHORT', 'short', ('h',), (True, False)),
@@ -50,7 +59,7 @@ types = [
     ('FLOAT', 'float', ('f',), (False, False)),
     ('DOUBLE', 'double', ('d',), (False, False)),
     ('CLONGDOUBLE', 'std::complex<long double>', ('g',), (True, False)),
-    ('LONGDOUBLE', 'std::complex<long double>', ('g',), (True, True)),
+    ('LONGDOUBLE', 'long double', ('g',), (True, True)),
 ]
 
 

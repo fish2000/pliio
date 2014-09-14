@@ -4,60 +4,81 @@
 
 // Check if this CImg<T> instance and a given PyObject* have identical pixel types.
 bool not_typecode_of(const PyObject *const pyobject) const {
-    if (PyArray_Check(pyobject)) {
-        const PyArrayObject *pyarray = reinterpret_cast<const PyArrayObject *>(pyobject);
-        unsigned int typecode = static_cast<unsigned int>(PyArray_TYPE(pyarray));
-        return ((typecode == NPY_UBYTE      && typeid(T) != typeid(unsigned char)) ||
-              (typecode == NPY_CHAR         && typeid(T) != typeid(char)) ||
-              (typecode == NPY_USHORT       && typeid(T) != typeid(unsigned short)) ||
-              (typecode == NPY_UINT         && typeid(T) != typeid(unsigned int)) ||
-              (typecode == NPY_INT          && typeid(T) != typeid(int)) ||
-              (typecode == NPY_FLOAT        && typeid(T) != typeid(float)) ||
-              (typecode == NPY_DOUBLE       && typeid(T) != typeid(double)));
-    }
-    return false;
-}
-
-// Given this CImg<T> instance, return the corresponding bit-depth flag for use in the PyArray_Descr struct
-int npy_typecode() const {
-    if (typeid(T) == typeid(unsigned char))  return NPY_UBYTE;
-    if (typeid(T) == typeid(char))           return NPY_CHAR;
-    if (typeid(T) == typeid(unsigned short)) return NPY_USHORT;
-    if (typeid(T) == typeid(short))          return NPY_SHORT;
-    if (typeid(T) == typeid(int))            return NPY_INT;
-    if (typeid(T) == typeid(float))          return NPY_FLOAT;
-    if (typeid(T) == typeid(double))         return NPY_DOUBLE;
-    return 0;
-}
-
-PyArray_Descr *npy_typestruct() const {
-    return numpy::dtype_struct<T>();
+    const PyArrayObject *pyarray = reinterpret_cast<const PyArrayObject *>(pyobject);
+    unsigned int typecode = static_cast<unsigned int>(PyArray_TYPE(pyarray));
+    return TYPECODE_NOT(typecode);
 }
 
 //----------------------------
 // NumPy-to-CImg conversion
 //----------------------------
 // Copy constructor
-CImg(const PyObject *const pyobject):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
-    assign(pyobject);
+CImg(const PyObject *const pyobject, const int W = 0, const int H = 0):_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+    assign(pyobject, W, H);
 }
 
-// In-place constructor
-CImg<T> &assign(const PyObject *const pyobject) {
-    if (!pyobject) return assign();
-    if (not_typecode_of(pyobject)) {
+/// In-place (PyObject *) dispatch constructor
+CImg<T> &assign(const PyObject *const pyobject, const int W, const int H) {
+    if (PyArray_Check(pyobject)) {
+        /// It's a numpy array
+        return assign(
+            reinterpret_cast<PyArrayObject *>(pyobject));
+    }
+    if (PyBuffer_Check(pyobject)) {
+        /// It's a legacy buffer object
+        if (W == 0 && H == 0) {
+            throw CImgInstanceException(_cimg_instance
+                                        "assign(const PyObject*) : Legacy buffer constructor requires specifying width and height",
+                                        cimg_instance);
+        }
+        return assign(
+            reinterpret_cast<PyBufferObject *>(pyobject));
+    }
+}
+
+/// In-place constructor overload for (PyBufferObject *)
+CImg<T> &assign(const PyBufferObject *const pylegacybuf, const int W, const int H) {
+    if (!pylegacybuf) { return assign(); }
+    if (typeid(T) != typeid(char)) {
+        /// Legacy buffers only support const char* 
         throw CImgInstanceException(_cimg_instance
-                                    "assign(const PyObject*) : NumPy array has no corresponding pixel type.",
+                                    "assign(const PyBufferObject*) : Legacy buffers convert only to CImg<char> or similar",
                                     cimg_instance);
     }
-    const PyArrayObject *pyarray = reinterpret_cast<const PyArrayObject *>(pyobject);
+    if (!PyBuffer_Check(pyarray)) {
+        throw CImgInstanceException(_cimg_instance
+                                    "assign(const PyBufferObject*) : Bad buffer object (legacy PyBufferObject interface)",
+                                    cimg_instance);
+    }
+}
+
+/// In-place constructor overload for (PyArrayObject *)
+CImg<T> &assign(const PyArrayObject *const pyarray, width = 0, height = 0) {
+    if (!pyarray) { return assign(); }
+    if (!PyArray_Check(pyarray)) {
+        throw CImgInstanceException(_cimg_instance
+                                    "assign(const PyArrayObject*) : Invalid NumPy array",
+                                    cimg_instance);
+    }
+    if (not_typecode_of(pyarray)) {
+        throw CImgInstanceException(_cimg_instance
+                                    "assign(const PyArrayObject*) : NumPy array has no corresponding pixel type",
+                                    cimg_instance);
+    }
+    
+    if (width > 0 && height > 0) {
+        if (width != W && height != H) {
+            /// INSERT RESHAPERY HERE
+        }
+    }
     const int W = (int)PyArray_DIM(pyarray, 1), H = (int)PyArray_DIM(pyarray, 0);
+    
     const char *const dataPtrI = const_cast<char *>(
         PyArray_BYTES(const_cast<PyArrayObject *>(pyarray)));
     const int nChannels = (int)PyArray_DIM(pyarray, 2);
 
     assign(dataPtrI, W, H, 1, nChannels);
-    Py_INCREF(pyobject);
+    Py_INCREF(pyarray);
     return *this;
 }
 
@@ -65,28 +86,29 @@ CImg<T> &assign(const PyObject *const pyobject) {
 // CImg-to-NumPy conversion
 //----------------------------
 // z is the z-coordinate of the CImg slice that one wants to copy.
-PyObject* get_pyobject(const unsigned z=0) const {
+PyObject* get_pyarray(const unsigned z=0) const {
     const int typecode = npy_typecode();
     if (!typecode) {
         throw CImgInstanceException(_cimg_instance
-                                  "get_pyobject() : NPY_TYPES has no corresponding typecode.",
-                                  cimg_instance);
+                                  "get_pyarray() : No NPY_TYPES definition for pixel type: %s",
+                                  cimg_instance,
+                                  pixel_type());
     }
     if (is_empty()) {
         throw CImgArgumentException(_cimg_instance
-                                    "get_pyobject() : Empty CImg instance.",
+                                    "get_pyarray() : Called with empty CImg instance",
                                     cimg_instance);
     }
     
     if (z >= _depth) {
         throw CImgInstanceException(_cimg_instance
-                                    "get_pyobject() : Instance has not Z-dimension %u.",
+                                    "get_pyarray() : Instance lacks Z-dimension: %u",
                                     cimg_instance,
                                     z);
     }
     if (_spectrum > 4) {
         cimg::warn(_cimg_instance
-                   "get_pyobject() : Most NumPy image libraries only support 4 channels -- only the first four will be copied.",
+                   "get_pyarray() : Most NumPy image schemas support up to 4 channels -- higher-order channels won't be copied",
                    cimg_instance);
     }
   
@@ -95,9 +117,39 @@ PyObject* get_pyobject(const unsigned z=0) const {
         (npy_intp)_width,
         (npy_intp)_spectrum
     };
-    PyObject *pyobject = PyArray_SimpleNewFromData(3, dims, typecode, (void *)_data);
-    Py_INCREF(pyobject);
-    return pyobject;
+    PyObject *pyarray = PyArray_SimpleNewFromData(3, dims, typecode, (void *)_data);
+    Py_INCREF(pyarray);
+    return pyarray;
+}
+
+//----------------------------
+// CImg-to-LegacyBuf conversion
+//----------------------------
+// z is the z-coordinate of the CImg slice that one wants to copy.
+PyObject* get_legacybuffer(const unsigned z=0, const bool readonly=true) const {
+    if (is_empty()) {
+        throw CImgArgumentException(_cimg_instance
+                                    "get_pyarray() : Called with empty CImg instance",
+                                    cimg_instance);
+    }
+    
+    if (z >= _depth) {
+        throw CImgInstanceException(_cimg_instance
+                                    "get_pyarray() : Instance lacks Z-dimension: %u",
+                                    cimg_instance,
+                                    z);
+    }
+    
+    PyObject *pylegacybuf;
+    if (readonly) {
+        pylegacybuf = PyBuffer_FromMemory(
+            (void *)_data, datasize());
+    } else {
+        *pylegacybuf = PyBuffer_FromReadWriteMemory(
+            (void *)_data, datasize());
+    }
+    Py_INCREF(pylegacybuf);
+    return pylegacybuf;
 }
 
 #endif /// PyImgC_CIMG_NUMPY_PLUGIN_H

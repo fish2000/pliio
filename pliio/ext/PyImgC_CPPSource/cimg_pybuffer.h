@@ -8,35 +8,21 @@
 bool not_structcode_of(const Py_buffer *const pybuffer) const {
     if (pybuffer->format) {
         unsigned int typecode = structcode_to_typecode(pybuffer->format);
-        return ((typecode == NPY_UBYTE      && typeid(T) != typeid(unsigned char)) ||
-              (typecode == NPY_CHAR         && typeid(T) != typeid(char)) ||
-              (typecode == NPY_USHORT       && typeid(T) != typeid(unsigned short)) ||
-              (typecode == NPY_UINT         && typeid(T) != typeid(unsigned int)) ||
-              (typecode == NPY_INT          && typeid(T) != typeid(int)) ||
-              (typecode == NPY_FLOAT        && typeid(T) != typeid(float)) ||
-              (typecode == NPY_DOUBLE       && typeid(T) != typeid(double)));
+        return TYPECODE_NOT(typecode);
     }
     return false;
-}
-
-// Given this CImg<T> instance, return the corresponding structcode character
-const char *pybuffer_structcode() const {
-    if (typeid(T) == typeid(unsigned char))  return "B";
-    if (typeid(T) == typeid(signed char))    return "b";
-    if (typeid(T) == typeid(char))           return "c";
-    if (typeid(T) == typeid(unsigned short)) return "H";
-    if (typeid(T) == typeid(short))          return "h";
-    if (typeid(T) == typeid(int))            return "i";
-    if (typeid(T) == typeid(float))          return "f";
-    if (typeid(T) == typeid(double))         return "d";
-    return 0;
 }
 
 //----------------------------
 // Py_buffer-to-CImg conversion
 //----------------------------
-// Copy constructor
+/// Copy constructor
 CImg(const Py_buffer *const pybuffer):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+    assign(pybuffer);
+}
+/// Copy constructor with width and height specified
+CImg(const Py_buffer *const pybuffer, const int width = 0, const int height = 0):_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+    //assign(pybuffer, width, height);
     assign(pybuffer);
 }
 
@@ -85,9 +71,9 @@ CImg<T> &assign(const Py_buffer *const pybuffer) {
 // CImg-to-NumPy conversion
 //----------------------------
 // z is the z-coordinate of the CImg slice that one wants to copy.
-Py_buffer get_pybuffer(const unsigned z=0) const {
-    const char *structcode = pybuffer_structcode();
-    if (!structcode) {
+Py_buffer get_pybuffer(const unsigned z=0, const bool readonly=true) const {
+    const char *structcode_char = structcode();
+    if (!structcode_char) {
         throw CImgInstanceException(_cimg_instance
                                   "get_pybuffer() : no corresponding structcode for CImg type.",
                                   cimg_instance);
@@ -111,28 +97,23 @@ Py_buffer get_pybuffer(const unsigned z=0) const {
     }
     
     Py_buffer pybuffer;
-    Py_ssize_t raw_buffer_size = (Py_ssize_t)(_width * _height * _spectrum * sizeof(T));
+    Py_ssize_t raw_buffer_size = static_cast<Py_ssize_t>(datasize());
     int was_buffer_filled = PyBuffer_FillInfo(
         &pybuffer, NULL,            /// Output struct ref, and null PyObject ptr
         static_cast<T*>(_data),     /// Input raw-data ptr
         raw_buffer_size,            /// Size of *_data in bytes 
-        1,                          /// Buffer is read-only
+        readonly ? 1 : 0,           /// Buffer is read-only by default
         PyBUF_F_CONTIGUOUS);        /// I *think* CImg instances are fortran-style 
     
     if (was_buffer_filled < 0) {
         throw CImgArgumentException(_cimg_instance
-                                    "get_pybuffer() : PyBuffer_FillInfo() returned an error",
+                                    "get_pybuffer() : PyBuffer_FillInfo() failed and didn't say why",
                                     cimg_instance);
     }
     
-    pybuffer.format = const_cast<char *>(structcode);
-    pybuffer.ndim = 3;              /// for now
-    Py_ssize_t shape[3] = {
-        (Py_ssize_t)_height,
-        (Py_ssize_t)_width,
-        (Py_ssize_t)_spectrum
-    };
-    pybuffer.shape = shape;
+    pybuffer.ndim = 3;                                      /// for now
+    pybuffer.format = const_cast<char *>(structcode_char);  /// for now (do we give fucks re:byte order?)s
+    pybuffer.shape = shape();                               /// that'll work without a NULL terminator, right?
     return pybuffer;
 }
 
