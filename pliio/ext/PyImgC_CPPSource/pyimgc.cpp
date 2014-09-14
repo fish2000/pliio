@@ -4,13 +4,13 @@
 #include <string>
 #include <typeinfo>
 
-#include "PyImgC_Setup.h"
+#include "PyImgC_Constants.h"
+#include "PyImgC_SharedDefs.h"
 #include "numpypp/numpy.hpp"
 #include "numpypp/structcode.hpp"
 #include "numpypp/dispatch.hpp"
 #include "numpypp/utils.hpp"
-#include "PyImgC_Constants.h"
-#include "PyImgC_CImage.h"
+#include "PyImgC_Types.h"
 
 using namespace std;
 

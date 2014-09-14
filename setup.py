@@ -89,7 +89,7 @@ include_dirs = [
     numpy.get_include(),
     get_python_inc(plat_specific=1),
     os.path.join(os.getcwd(), 'pliio', 'ext'),
-    os.path.join(os.getcwd(), 'pliio', 'ext', 'PyImgC')]
+    os.path.join(os.getcwd(), 'pliio', 'ext', 'PyImgC_CPPSource')]
 
 library_dirs = []
 
@@ -106,7 +106,7 @@ for pth in (
         library_dirs.append(pth)
 
 extensions = {
-    '_PyImgC': ["pliio/ext/PyImgC/pyimgc.cpp"],
+    'PyImgC': ["pliio/ext/PyImgC_CPPSource/pyimgc.cpp"],
 }
 
 # the basics

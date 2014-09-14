@@ -14,8 +14,6 @@
 
 #include <numpy/arrayobject.h>
 #include <numpy/ndarraytypes.h>
-#include "PyImgC_Constants.h"
-
 
 #define IMGC_DEFAULT_TYPECODE 2 /// NPY_TYPE_UINT8
 #define IMGC_DEFAULT_T unsigned char /// same as above
