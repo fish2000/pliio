@@ -1,57 +1,79 @@
 
-#include "PyImgC_Constants.h"
-#include "PyImgC_CImage.h"
-using namespace cimg_library;
+typedef struct {
+    PyObject_HEAD
+    PyObject *buffer;
+    PyObject *source;
+    PyObject *dtype;
+} Image;
 
-
-static PyObject *CImage_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+static PyObject *Image_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     Image *self;
     self = (Image *)type->tp_alloc(type, 0);
     if (self != None) {
+        self->buffer = None;
+        self->source = None;
         self->dtype = None;
-        self->cimage = None;
     }
     return (PyObject *)self;
 }
 
-static int CImage_init(Image *self, PyObject *args, PyObject *kwargs) {
+static int Image_init(Image *self, PyObject *args, PyObject *kwargs) {
     PyObject *source=None, *dtype=None, *fake;
-    //static char *keywords[] = { "source", "dtype", None };
-    static char *keywords[] = {
-        "shape", "dtype",
-        "buffer", "offset", "strides",
-        "order", NULL
-    };
-
-    PyArray_Descr *descr = NULL;
-    int itemsize;
-    PyArray_Dims dims = {NULL, 0};
-    PyArray_Dims strides = {NULL, 0};
-    PyArray_Chunk buffer;
-    npy_longlong offset = 0;
-    NPY_ORDER order = NPY_CORDER;
-    int is_f_order = 0;
-    //CImg<>
+    static char *keywords[] = { "source", "dtype", None };
 
     if (!PyArg_ParseTupleAndKeywords(
-                                        args, kwargs,
-                                        "O&|O&O&LO&O&", keywords,
-        PyArray_IntpConverter,          &dims,
-        PyArray_DescrConverter,         &descr,
-        PyArray_BufferConverter,        &buffer,
-                                        &offset,
-        &PyArray_IntpConverter,         &strides,
-        &PyArray_OrderConverter,        &order)) {
-            Py_XDECREF(dtype);
-            return -1;
+        args, kwargs, "|OO",
+        keywords,
+        &source, &dtype)) { return -1; }
+
+    /// ok to pass nothing
+    if (!source && !dtype) { return 0; }
+
+    if (IMGC_PY2) {
+        /// Try the legacy buffer interface while it's here
+        if (PyObject_CheckReadBuffer(source)) {
+            self->buffer = PyBuffer_FromObject(source,
+                (Py_ssize_t)0,
+                Py_END_OF_BUFFER);
+            goto through;
+        } else {
+            IMGC_TRACE("YO DOGG: legacy buffer check failed");
         }
-    if (order == NPY_FORTRANORDER) {
-        is_f_order = 1;
-    }
-    if (descr == NULL) {
-        descr = PyArray_DescrFromType(NPY_DEFAULT_TYPE);
     }
 
+    /// In the year 3000 the old ways are long gone
+    if (PyObject_CheckBuffer(source)) {
+        self->buffer = PyMemoryView_FromObject(source);
+        goto through;
+    } else {
+        IMGC_TRACE("YO DOGG: buffer3000 check failed");
+    }
+    
+    /// return before 'through' cuz IT DIDNT WORK DAMNIT
+    return 0;
+    
+through:
+    IMGC_TRACE("YO DOGG WERE THROUGH");
+    fake = self->source;        Py_INCREF(source);
+    self->source = source;      Py_XDECREF(fake);
+
+    if ((source && !self->source) || source != self->source) {
+        static PyArray_Descr *descr;
+
+        if (!dtype && PyArray_Check(source)) {
+            descr = PyArray_DESCR((PyArrayObject *)source);
+        } else if (dtype && !self->dtype) {
+            if (!PyArray_DescrConverter(dtype, &descr)) {
+                IMGC_TRACE("Couldn't convert dtype arg");
+            }
+            Py_DECREF(dtype);
+        }
+    }
+
+    if ((dtype && !self->dtype) || dtype != self->dtype) {
+        fake = self->dtype;         Py_INCREF(dtype);
+        self->dtype = dtype;        Py_XDECREF(fake);
+    }
 
     return 0;
 }
@@ -63,25 +85,7 @@ static void Image_dealloc(Image *self) {
     self->ob_type->tp_free((PyObject *)self);
 }
 
-/*
-static PyMemberDef Image_members[] = {
-    {
-        "buffer", T_OBJECT_EX,
-            offsetof(Image, buffer), 0,
-            "Buffer or MemoryView"},
-    {
-        "source", T_OBJECT_EX,
-            offsetof(Image, source), 0,
-            "Buffer Source Object"},
-    {
-        "dtype", T_OBJECT_EX,
-            offsetof(Image, dtype), 0,
-            "Data Type (numpy.dtype)"},
-    SENTINEL
-};
-*/
 #define Image_members 0
-
 
 static PyObject     *Image_GET_buffer(Image *self, void *closure) {
     BAIL_WITHOUT(self->buffer);
@@ -101,7 +105,7 @@ static PyObject     *Image_GET_source(Image *self, void *closure) {
     return self->source;
 }
 static int           Image_SET_source(Image *self, PyObject *value, void *closure) {
-    if (self->buffer) { Py_DECREF(self->source); }
+    if (self->source) { Py_DECREF(self->source); }
     Py_INCREF(value);
     self->source = value;
     return 0;
@@ -113,7 +117,7 @@ static PyObject     *Image_GET_dtype(Image *self, void *closure) {
     return self->dtype;
 }
 static int           Image_SET_dtype(Image *self, PyObject *value, void *closure) {
-    if (self->buffer) { Py_DECREF(self->dtype); }
+    if (self->dtype) { Py_DECREF(self->dtype); }
     Py_INCREF(value);
     self->dtype = value;
     return 0;
@@ -176,7 +180,8 @@ static PyObject *Image_as_ndarray(Image *self) {
 
         npy_intp *shape = &raw->len;
         PyArray_Descr *descr = 0;
-        PyArray_DescrConverter(self->dtype, &descr); BAIL_WITHOUT(descr);
+        PyArray_DescrConverter(self->dtype, &descr);
+        BAIL_WITHOUT(descr);
 
         int ndims = 1;
         int typenum = (int)descr->type_num;
@@ -197,6 +202,11 @@ static PyMethodDef Image_methods[] = {
             (PyCFunction)Image_as_ndarray,
             METH_NOARGS,
             "Cast to NumPy array"},
+    {
+        "buffer_info",
+            (PyCFunction)PyImgC_PyBufferDict,
+            METH_VARARGS | METH_KEYWORDS,
+            "Get buffer info dict"},
     SENTINEL
 };
 
@@ -204,7 +214,7 @@ static Py_ssize_t Image_TypeFlags = Py_TPFLAGS_DEFAULT |
     Py_TPFLAGS_BASETYPE |
     Py_TPFLAGS_HAVE_GETCHARBUFFER;
 
-static PyTypeObject ImageType = {
+static PyTypeObject Image_Type = {
     PyObject_HEAD_INIT(NULL)
     0,                                                          /* ob_size */
     "PyImgC.Image",                                             /* tp_name */
@@ -226,7 +236,7 @@ static PyTypeObject ImageType = {
     0,                                                          /* tp_setattro */
     0,                                                          /* tp_as_buffer */
     Image_TypeFlags,                                            /* tp_flags*/
-    "PyImgC object wrapper for CImg instances",                 /* tp_doc */
+    "PyImgC image data container",                              /* tp_doc */
     0,                                                          /* tp_traverse */
     0,                                                          /* tp_clear */
     0,                                                          /* tp_richcompare */
@@ -246,29 +256,4 @@ static PyTypeObject ImageType = {
     Image_new,                                                  /* tp_new */
 };
 
-static PyMethodDef _PyImgC_methods[] = {
-    SENTINEL
-};
-
-PyMODINIT_FUNC init_PyImgC(void) {
-    PyObject* module;
-
-    if (PyType_Ready(&ImageType) < 0) { return; }
-
-    module = Py_InitModule3(
-        "_PyImgC",
-        _PyImgC_methods,
-        "PyImgC buffer interface module");
-
-    if (module == None) {
-        return;
-    }
-
-    import_array();
-
-    Py_INCREF(&ImageType);
-    PyModule_AddObject(
-        module, "Image", (PyObject *)&ImageType);
-}
-
-
+#define Image_Check(op) PyObject_TypeCheck(op, &Image_Type)
