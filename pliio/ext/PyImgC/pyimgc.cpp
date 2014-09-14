@@ -28,9 +28,9 @@ struct PyCImage {
     PyArray_Descr *dtype = NULL;
     unique_ptr<CImage_SubBase> cimage = unique_ptr<CImage_SubBase>(nullptr);
     
-    bool checkptr() { return cimage.get() != nullptr; }
-    bool checkdtype() { return dtype != NULL; }
-    unsigned int typecode() {
+    inline bool checkptr() { return cimage.get() != nullptr; }
+    inline bool checkdtype() { return dtype != NULL; }
+    inline unsigned int typecode() {
         if (checkdtype()) { return (unsigned int)dtype->type_num; }
         return 0;
     }
@@ -42,18 +42,19 @@ struct PyCImage {
     }
 };
 
+
 CImg<> PyCImage::view() {
     if (PyArray_DescrCheck(dtype)) {
-        ///int tc = (int)TYPECODE(dtype); SEGFAULT WHY UUUGGGGGGHHHH
         int tc = (int)dtype->type_num;
+        if (!tc) { tc = IMGC_DEFAULT_TYPECODE; }
 #define HANDLE(type) \
-        CImg<type> cim = recast<type>()->from_pyarray(); \
-        return cim;
-        SAFE_SWITCH_ON_TYPECODE(tc, CImg<>());
+        return recast<type>()->get(false);
+        SAFE_SWITCH_ON_TYPECODE(tc, CImg<IMGC_DEFAULT_T>());
 #undef HANDLE
     }
-    return CImg<>();
+    return CImg<IMGC_DEFAULT_T>();
 }
+
 
 static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffer = NULL;
@@ -327,7 +328,7 @@ static bool PyImgC_PathExists(PyObject *path) {
 
 
 /// SMELF ALERT!!!
-static int PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, PyObject *kwargs) {
+static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, PyObject *kwargs) {
     PyCImage *self = reinterpret_cast<PyCImage *>(smelf);
     PyObject *path;
     PyArray_Descr *dtype=None;
@@ -335,12 +336,11 @@ static int PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, PyObjec
     static char *keywords[] = { "path", "dtype", None };
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                "O|O&" NPY_SSIZE_T_PYFMT NPY_SSIZE_T_PYFMT, keywords,
+                "O|O&", keywords,
                 &path, PyArray_DescrConverter, &dtype)) {
-        Py_XDECREF(dtype);
         PyErr_SetString(PyExc_ValueError,
             "cannot load image (bad argument tuple passed to PyCImage_LoadFromFileViaCImg)");
-        return -1;
+        return NULL;
     }
     
     /// LOAD THAT SHIT
@@ -349,7 +349,7 @@ static int PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, PyObjec
         Py_XDECREF(path);
         PyErr_SetString(PyExc_ValueError,
             "path does not exist");
-        return -1;
+        return NULL;
     }
     
     /// deal with dtype
@@ -358,42 +358,44 @@ static int PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, PyObjec
         self->dtype = NULL;
         Py_INCREF(dtype);
         self->dtype = dtype;
+    } else {
+        self->dtype = dtype = numpy::dtype_struct<IMGC_DEFAULT_T>();
     }
     tc = self->typecode();
     
     /// load that shit, erm
-    if (PyArray_DescrCheck(dtype) && tc != 0) {
+    if (tc) {
+        gil_ensure NOGIL;
         /// Base the loaded CImg struct's type
         /// on the dtype we already have
 #define HANDLE(type) \
         try { \
             CImg<type> cim(PyString_AS_STRING(path)); \
-            if (!self->checkptr()) { \
-                self->cimage = CImage_TypePointer<type>(cim); \
-            } \
+            self->cimage = CImage_TypePointer<type>(cim); \
         } catch (CImgArgumentException &err) { \
             Py_XDECREF(dtype); \
             Py_XDECREF(path); \
             PyErr_Format(PyExc_ValueError, \
                 "CImg argument error: %.200s", err.what()); \
-            return -1; \
+            return NULL; \
         } catch (CImgIOException &err) { \
             Py_XDECREF(dtype); \
             Py_XDECREF(path); \
             PyErr_Format(PyExc_IOError, \
                 "CImg IO error: %.200s", err.what()); \
-            return -1; \
+            return NULL; \
         }
-            SAFE_SWITCH_ON_TYPECODE(tc, -1);
+            SAFE_SWITCH_ON_TYPECODE(tc, NULL);
 #undef HANDLE
+        NOGIL.~gil_ensure();
     } else if (!tc) {
         /// We don't have a valid dtype - let's make one!
         /// We'll create a CImg<unsigned char> from the file path
+        gil_ensure NOGIL;
         try {
             CImg<IMGC_DEFAULT_T> cim(PyString_AS_STRING(path));
             /// populate our dtype fields and ensconce the new CImg
             /// in a new instance of CImage_Type<unsigned char>
-            //self->cimage = CImage_Type<IMGC_DEFAULT_T>(cim.get_pyobject());
             self->cimage = CImage_TypePointer<IMGC_DEFAULT_T>(cim);
             self->dtype = numpy::dtype_struct<IMGC_DEFAULT_T>();
         } catch (CImgArgumentException &err) {
@@ -401,16 +403,17 @@ static int PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, PyObjec
             Py_XDECREF(path);
             PyErr_Format(PyExc_ValueError,
                 "CImg argument error: %.200s", err.what());
-            return -1;
+            return NULL;
         } catch (CImgIOException &err) {
             Py_XDECREF(dtype);
             Py_XDECREF(path);
             PyErr_Format(PyExc_IOError,
                 "CImg IO error: %.200s", err.what());
-            return -1;
+            return NULL;
         }
+        NOGIL.~gil_ensure();
     }
-    return 1; /// all is well
+    return reinterpret_cast<PyObject *>(self); /// all is well, return self
 }
 
 static PyObject *PyCImage_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
@@ -430,44 +433,91 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
     PyArray_Descr *dtype = NULL;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                "O|O&" NPY_SSIZE_T_PYFMT NPY_SSIZE_T_PYFMT, kwlist,
+                "|OO&nn:dtype", kwlist,
                 &buffer, PyArray_DescrConverter, &dtype, &nin, &offset)) {
-        Py_XDECREF(dtype);
-        PyErr_SetString(PyExc_ValueError,
-            "cannot initialize PyCImage (bad argument tuple)");
+            PyErr_SetString(PyExc_ValueError,
+                "cannot initialize PyCImage (bad argument tuple)");
         return -1;
     }
 
-    if (self->dtype == None) {
-        if (PyArray_Check(buffer)) {
-            dtype = PyArray_DESCR(
-                reinterpret_cast<PyArrayObject *>(buffer));
-        } else {
-            dtype = PyArray_DescrFromType(NPY_DEFAULT_TYPE);
-        }
+    if (!buffer && !dtype) {
+        self->dtype = numpy::dtype_struct<IMGC_DEFAULT_T>();
+        return 0; /// ITS CO0
     }
 
-    Py_INCREF(dtype);
-    self->dtype = dtype;
+    if (self->dtype == NULL) {
+        if (buffer != NULL) {
+            if (PyArray_Check(buffer)) {
+                dtype = PyArray_DESCR(reinterpret_cast<PyArrayObject *>(buffer));
+                self->dtype = dtype;
+                Py_INCREF(self->dtype);
+            } else {
+                dtype = PyArray_DescrFromType(IMGC_DEFAULT_TYPECODE);
+                self->dtype = dtype;
+                Py_INCREF(self->dtype);
+            }
+        } else if (dtype != NULL) {
+            if (PyArray_DescrCheck(dtype)) {
+                self->dtype = dtype;
+                Py_INCREF(self->dtype);
+            } else {
+                /// SHOULD NEVER HAPPEN
+                PyErr_Format(PyExc_ValueError,
+                    "PyCImage __init__ TOTAL FREAKOUT: %s",
+                        PyString_AsString(buffer));
+                return -1;
+            }
+        }
+    } else {
+        if (dtype != NULL) {
+            if (PyArray_DescrCheck(dtype)) {
+                Py_XDECREF(self->dtype);
+                delete self->dtype;
+                self->dtype = dtype;
+                Py_INCREF(self->dtype);
+            }
+        } else {
+            /// WE DONT BELIEVE IN NOSING LEBAWSKIIIII
+            self->dtype = numpy::dtype_struct<IMGC_DEFAULT_T>();
+            Py_INCREF(self->dtype);
+        }
+    }
+    
+    if (!buffer) {
+        /// GET OUT NOW BEFORE... THE BUFFERINGING
+        return 0;
+    }
     
     if (PyString_Check(buffer)) {
         /// it's a path string, load (with CImg.h)
-        if (!PyCImage_LoadFromFileViaCImg(
-                reinterpret_cast<PyObject *>(self),
-                Py_BuildValue("(sO)", PyString_AS_STRING(buffer), dtype), PyGetNone)) {
+        /// DISPATCH!!!!
+        PyObject *out = PyObject_CallMethodObjArgs(
+            reinterpret_cast<PyObject *>(self),
+            PyString_FromString("cimg_load"),
+            buffer, self->dtype, NULL);
+        if (out == NULL) {
             PyErr_Format(PyExc_ValueError,
-                "CImg failed to load: %s", PyString_AS_STRING(buffer));
+                "CImg failed to load from path: %s",
+                PyString_AS_STRING(buffer));
             return -1;
         }
-    } else if (PyArray_Check(buffer)) {
+        return 0;
+    }
+    
+    if (PyArray_Check(buffer)) {
         /// it's a numpy array
         int tc = (int)self->dtype->type_num;
 #define HANDLE(type) \
         self->cimage = CImage_TypePointer<type>(buffer);
         SAFE_SWITCH_ON_TYPECODE(tc, -1);
 #undef HANDLE
+        return 0;
     }
-    return 0;
+    
+    /// FALLING OFF
+    PyErr_SetString(PyExc_ValueError,
+        "NOTHING HAPPENED! Buffer: NOPE.");
+    return -1;
 }
 
 static void PyCImage_dealloc(PyCImage *self) {
@@ -506,18 +556,20 @@ static int PyCImage_GetBuffer(PyCImage *pyim, Py_buffer &buf, int flags=0) {
 }
 
 static PyObject *PyCImage_Repr(PyCImage *pyim) {
-    if (pyim->cimage && pyim->dtype) {
-        int tc = (int)pyim->dtype->type_num;
-#define HANDLE(type) \
-        CImg<type> cim = pyim->recast<type>()->from_pyarray(); \
-        return PyString_FromFormat("<PyCImage (%s|%s) [%ix%i, %ix%lubpp] @ %p>", \
-            cim.pixel_type(), typeid(*cim.data()).name(), \
-            cim.width(), cim.height(), cim.spectrum(), sizeof(type), \
-            pyim);
-        SAFE_SWITCH_ON_TYPECODE(tc, PyString_FromString("<PyCImage (typecode unknown)>"));
-#undef HANDLE
+    if (!pyim->cimage) { PyString_FromString("<PyCImage (empty backing stores)>"); }
+    int tc = (int)pyim->typecode();
+    if (pyim->dtype) {
+        tc = (int)pyim->dtype->type_num;
     }
-    return PyString_FromString("<PyCImage (empty backing stores)>");
+#define HANDLE(type) \
+    CImg<type> cim = pyim->recast<type>()->get(false); \
+    return PyString_FromFormat("<PyCImage (%s|%s) [%ix%i, %ix%lubpp] @ %p>", \
+        cim.pixel_type(), typeid(*cim.data()).name(), \
+        cim.width(), cim.height(), cim.spectrum(), sizeof(type), \
+        pyim);
+    SAFE_SWITCH_ON_TYPECODE(tc, PyString_FromString("<PyCImage (unknown typecode)>"));
+#undef HANDLE
+    return PyString_FromString("<PyCImage (unmatched type)>");
 }
 
 static PyObject *PyCImage_Str(PyCImage *pyim) {
@@ -582,14 +634,14 @@ static PySequenceMethods PyCImage_SequenceMethods = {
 
 static PyMethodDef PyCImage_methods[] = {
     {
-        "load_via_cimg",
+        "cimg_load",
             (PyCFunction)PyCImage_LoadFromFileViaCImg,
             METH_VARARGS | METH_KEYWORDS,
             "Load image data (using CImg.h load methods)"},
     {
         "buffer_info",
             (PyCFunction)PyImgC_PyBufferDict,
-            METH_VARARGS,
+            METH_VARARGS | METH_KEYWORDS,
             "Get buffer info dict"},
     SENTINEL
 };
@@ -924,6 +976,8 @@ static PyMethodDef _PyImgC_methods[] = {
 };
 
 PyMODINIT_FUNC init_PyImgC(void) {
+    PyEval_InitThreads(); /// BOOOOOOOOOM
+    
     PyObject* module;
 
     if (PyType_Ready(&Image_Type) < 0) { return; }

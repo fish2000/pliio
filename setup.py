@@ -56,7 +56,7 @@ USE_PNG = os.environ.get('USE_PNG', '16')
 USE_TIFF = os.environ.get('USE_TIFF', '1')
 USE_MAGICKPP = os.environ.get('USE_MAGICKPP', '1')
 USE_FFTW3 = os.environ.get('USE_FFTW3', '1')
-USE_OPENEXR = os.environ.get('USE_OPENEXR', '1')
+USE_OPENEXR = os.environ.get('USE_OPENEXR', '0')
 
 # LIBS: disabled
 USE_OPENCV = os.environ.get('USE_OPENCV', '0') # libtbb won't link
@@ -110,7 +110,10 @@ extensions = {
 }
 
 # the basics
-libraries = ['png', 'jpeg', 'z', 'm', 'pthread', 'c++']
+#libraries = ['png', 'jpeg', 'z', 'm', 'pthread', 'c++']
+#libraries = ['png', 'jpeg', 'z', 'm']
+libraries = ['png', 'm']
+
 
 # the addenda
 def parse_config_flags(config, config_flags=None):
@@ -249,6 +252,7 @@ ext_modules = [
             '-Wno-overloaded-virtual', # WARNING WARNING WARNING
             '-Wno-deprecated-register', # CImg w/OpenEXR throws these
             '-Wno-deprecated-writable-strings',
+            '-ferror-limit=-1',
             '-Qunused-arguments',
         ]) for key, sources in extensions.items()]
 

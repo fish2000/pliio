@@ -19,7 +19,7 @@ functors = u'''
 template <>
 struct CImage_Functor<NPY_%(npytype)s, %(ctype)s> : public CImage_FunctorType {
     CImage_Functor<NPY_%(npytype)s, %(ctype)s>(unsigned int const& key) {
-        get_map()->insert(make_pair(key, &create<CImage_NPY_%(npytype)s, %(ctype)s>));
+        get_map()->insert(make_pair(key, &create<CImage_Type<%(ctype)s>, %(ctype)s>));
     }
 };
 '''

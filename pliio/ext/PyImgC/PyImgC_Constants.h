@@ -31,6 +31,7 @@
 
 #define IMGC_DEFAULT_TYPECODE 2
 #define IMGC_DEFAULT_T unsigned char
+#define IMGT typename T = IMGC_DEFAULT_T
 
 //////////////// CONSTANTS
 #if PY_VERSION_HEX <= 0x03000000
@@ -44,5 +45,11 @@
 #ifndef PyGetNone
 #define PyGetNone Py_BuildValue("")
 #endif
+
+/*
+#ifndef PyObject_TypeName
+#define PyObject_TypeName(object) static_cast<const char *>((PyTypeObject *)PyObject_Type(reinterpret_cast<PyObject *>(object)))->tp_name)
+#endif
+*/
 
 #endif

@@ -26,20 +26,50 @@ private:
 // gil_release is a sort of reverse RAII object: it acquires the GIL on scope exit
 /// [... would that not then make this a RAID, since the resource is allocated on destruction? -fish]
 struct gil_release {
+    PyThreadState *thread_state;
+    bool gil_active;
+    
     gil_release() {
-        _save = PyEval_SaveThread();
-        active_ = true;
+        //IMGC_CERR("> GIL: releasing");
+        thread_state = PyEval_SaveThread();
+        gil_active = true;
     }
+    
     ~gil_release() {
-        if (active_) restore();
+        //IMGC_CERR("> GIL: restoring from release");
+        if (gil_active) { restore(); }
     }
+    
     void restore() {
-        PyEval_RestoreThread(_save);
-        active_ = false;
+        PyEval_RestoreThread(thread_state);
+        gil_active = false;
     }
-    PyThreadState *_save;
-    bool active_;
 };
+
+/// This one does the opposite of gil_release -- it uses C++ scoping rules to 
+/// acquire the GIL for threaded C/C++ calls, resetting the threading state
+/// when blown away
+struct gil_ensure {
+    PyGILState_STATE gil_state;
+    bool gil_ensured;
+    
+    gil_ensure() {
+        //IMGC_CERR("> GIL: ensuring state");
+        gil_state = PyGILState_Ensure();
+        gil_ensured = true;
+    }
+    
+    ~gil_ensure() {
+        //IMGC_CERR("> GIL: THE UNINSURED");
+        if (gil_ensured) { restore(); }
+    }
+    
+    void restore() {
+        PyGILState_Release(gil_state);
+        gil_ensured = false;
+    }
+};
+
 
 
 // This encapsulates the arguments to PyErr_SetString

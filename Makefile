@@ -68,8 +68,24 @@ checkext:
 	
 	# Checking PyCImage file loading...
 	bpython -c "$(shell echo "'';\
+		import numpy;\
 		from pliio import _PyImgC as imgc; \
-		print imgc.PyCImage('$(IMG)')" | gsed -e "s/[\\s]+/ /g")"
+		im = imgc.PyCImage('$(IMG)', dtype=numpy.uint8); \
+		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
+	
+	bpython -c "$(shell echo "'';\
+		import numpy;\
+		from pliio import _PyImgC as imgc; \
+		im = imgc.PyCImage(dtype=numpy.uint8); \
+		im.cimg_load('${IMG}'); \
+		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
+		
+	bpython -c "$(shell echo "'';\
+		import numpy;\
+		from pliio import _PyImgC as imgc; \
+		im = imgc.PyCImage(); \
+		im.cimg_load('${IMG}'); \
+		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
 		
 	# Checking structcode parser
 	py 'pliio._PyImgC.structcode_parse(">BBBB")'
