@@ -2,54 +2,7 @@
 #ifndef PyImgC_CIMG_PYBUFFER_PLUGIN_H
 #define PyImgC_CIMG_PYBUFFER_PLUGIN_H
 
-/// structcode parser invocation (from pyimgc.cpp)
-const char *structcode_to_dtype(const char *structcode, bool include_byteorder=true) {
-    std::vector<std::pair<std::string, std::string>> pairvec = structcode::parse(string(structcode));
-    std::string byteorder = "=";
-
-    if (!pairvec.size()) {
-        throw CImgInstanceException(_cimg_instance
-                                    "Structcode string parsed to zero-length pair vector",
-                                    cimg_instance);
-    }
-
-    /// get special values
-    for (size_t idx = 0; idx < pairvec.size(); idx++) {
-        if (pairvec[idx].first == "__byteorder__") {
-            byteorder = std::string(pairvec[idx].second);
-            pairvec.erase(pairvec.begin()+idx);
-        }
-    }
-
-    /// Get singular value
-    if (include_byteorder) {
-        return std::string(byteorder + pairvec[0].second).c_str();
-    }
-    return std::string(pairvec[0].second).c_str();
-}
-
-unsigned int structcode_to_typecode(const char *structcode) {
-    const char *dtypecode = structcode_to_dtype(structcode);
-    PyArray_Descr *descr;
-    int npy_type_num = 0;
-
-    if (!dtypecode) {
-        throw CImgInstanceException(_cimg_instance
-                                    "Cannot get structcode string (bad argument)",
-                                    cimg_instance);
-    }
-
-    if (!PyArray_DescrConverter(PyString_FromString(dtypecode), &descr)) {
-        throw CImgInstanceException(_cimg_instance
-                                    "cannot convert string to PyArray_Descr",
-                                    cimg_instance);
-    }
-
-    npy_type_num = (unsigned int)descr->type_num;
-    Py_XDECREF(descr);
-
-    return npy_type_num;
-}
+#include <Python.h>
 
 // Check if this CImg<T> instance and a given Py_buffer* have identical pixel types.
 bool not_structcode_of(const Py_buffer *const pybuffer) const {

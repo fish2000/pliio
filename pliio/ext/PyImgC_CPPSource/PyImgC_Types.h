@@ -14,6 +14,9 @@
 #include <numpy/ndarrayobject.h>
 #include <numpy/ndarraytypes.h>
 #include "numpypp/numpy.hpp"
+
+#include "PyImgC_Options.h"
+#include "PyImgC_SharedDefs.h"
 #include "cimg/CImg.h"
 
 using namespace cimg_library;

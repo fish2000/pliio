@@ -1,23 +1,20 @@
 
+#include <iostream>
+
 #ifndef PY_ARRAY_UNIQUE_SYMBOL
 #define PY_ARRAY_UNIQUE_SYMBOL PyImgC_PyArray_API_Symbol
-#endif /// PY_ARRAY_UNIQUE_SYMBOL
-
-#include <Python.h>
-#include <structmember.h>
-#include <iostream>
-#include <string>
-
+#endif
 #ifndef NPY_NO_DEPRECATED_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #endif
 
+#include <Python.h>
+#include <structmember.h>
 #include <numpy/arrayobject.h>
 #include <numpy/ndarraytypes.h>
 
 #define IMGC_DEFAULT_TYPECODE 2 /// NPY_TYPE_UINT8
 #define IMGC_DEFAULT_T unsigned char /// same as above
-
 
 //////////////// TYPEDEFS
 #ifndef RAWBUFFER_T_

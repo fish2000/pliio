@@ -2,6 +2,8 @@
 #ifndef PyImgC_CONSTANTS_H
 #define PyImgC_CONSTANTS_H
 
+#include <Python.h>
+
 /// lil' bit pythonic
 #ifndef False
 #define False 0
