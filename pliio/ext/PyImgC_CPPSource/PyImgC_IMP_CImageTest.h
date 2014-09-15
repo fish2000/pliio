@@ -41,7 +41,7 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
         int tc = (int)dtype->type_num;
 #define HANDLE(type) \
         CImg<type> cimage = CImg<type>(buffer); \
-        return Py_BuildValue("iiiii", tc, cimage.npy_typecode(), \
+        return Py_BuildValue("iiiii", tc, cimage.typecode(), \
                                     cimage.width(), cimage.height(), cimage.spectrum());
         SAFE_SWITCH_ON_TYPECODE(tc, Py_BuildValue(""));
 #undef HANDLE

@@ -2,25 +2,30 @@
 #define PyImgC_CIMAGE_H
 
 #include <map>
+#include <array>
 #include <cmath>
+#include <string>
+#include <vector>
+#include <memory>
 #include <cstdlib>
 #include <type_traits>
 #if IMGC_DEBUG > 0
 #include <typeinfo>
 #endif
 
+#include "PyImgC_Options.h"
+#include "PyImgC_SharedDefs.h"
 #include <Python.h>
 #include <structmember.h>
 #include <numpy/ndarrayobject.h>
 #include <numpy/ndarraytypes.h>
 #include "numpypp/numpy.hpp"
 
-#include "PyImgC_Options.h"
-#include "PyImgC_SharedDefs.h"
+using namespace std;
+
 #include "cimg/CImg.h"
 
 using namespace cimg_library;
-using namespace std;
 
 template <IMGT>
 CImg<T> cimage_from_pybuffer(Py_buffer *pybuffer, int sW, int sH,
@@ -106,7 +111,7 @@ struct CImage_Traits;
 template <typename dT>
 struct CImage_Base : public CImage_SubBase {
     typedef typename CImage_Traits<dT>::value_type value_type;
-    const unsigned int value_typecode = CImage_Traits<CImage_Type<T>>::value_typecode();
+    const unsigned int value_typecode = CImage_Traits<dT>::value_typecode();
     
     inline CImg<value_type> from_pybuffer(Py_buffer *pybuffer, bool is_shared=true) {
         return cimage_from_pybuffer<value_type>(pybuffer, is_shared);
@@ -146,10 +151,6 @@ struct CImage_Base : public CImage_SubBase {
 
     /// QUESTIONABLE
     inline bool operator()(const char sc) {
-        dT self = static_cast<dT*>(this);
-        for (int idx = 0; self->structcode[idx] != NILCODE; ++idx) {
-            if (self->structcode[idx] == sc) { return true; }
-        }
         return false;
     }
 
@@ -267,6 +268,51 @@ struct CImage_Traits<CImage_Type<T>> {
     }
 };
 
+//// UUUGGGGGGHHHHHHH
+#define NILCODE '~'
+
+template <IMGT, typename dT>
+unique_ptr<CImage_SubBase> create() {
+    //return unique_ptr<CImage_Type<dT>>(new T());
+    return unique_ptr<CImage_Type<dT>>(new CImage_Type<dT>());
 }
+
+typedef std::map<unsigned int, unique_ptr<CImage_SubBase>(*)()> CImage_TypeMap;
+static CImage_TypeMap *tmap;
+
+struct CImage_FunctorType {
+    static inline CImage_TypeMap *get_map() {
+        if (!tmap) { tmap = new CImage_TypeMap(); }
+        return tmap;
+    }
+};
+
+template <typename dT>
+static inline CImage_Type<dT> *CImage_NumpyConverter(unsigned int key) {
+    // CImage_TypeMap::iterator it = CImage_FunctorType::get_map()->find(key);
+    // if (it == CImage_FunctorType::get_map()->end()) {
+        return new CImage_Type<dT>();
+    // }
+    // return dynamic_cast<CImage_Type<dT>*>(it->second());
+}
+
+template <typename dT>
+static inline CImage_Type<dT> *CImage_NumpyConverter(PyObject *pyarray) {
+    return new CImage_Type<dT>(pyarray);
+}
+
+template <typename dT>
+static inline unique_ptr<CImage_Type<dT>> CImage_TypePointer(PyObject *pyarray) {
+    IMGC_COUT("> Calling CImage_TypePointer with pyarray: " << reinterpret_cast<PyTypeObject *>(PyObject_Type(pyarray))->tp_name);
+    return unique_ptr<CImage_Type<dT>>(new CImage_Type<dT>(pyarray));
+}
+template <typename dT>
+static inline unique_ptr<CImage_Type<dT>> CImage_TypePointer(CImg<dT> cimage) {
+    IMGC_COUT("> Calling CImage_TypePointer with cimage: " << cimage.pixel_type());
+    return unique_ptr<CImage_Type<dT>>(new CImage_Type<dT>(cimage));
+}
+
+template <NPY_TYPES, IMGT>
+struct CImage_Functor : public CImage_FunctorType {};
 
 #endif /// PyImgC_CIMAGE_H

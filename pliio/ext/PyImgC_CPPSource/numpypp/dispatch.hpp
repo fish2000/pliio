@@ -25,6 +25,11 @@ typedef unsigned short ushort;
     case NPY_DOUBLE: { HANDLE(double); } break; \
     case NPY_LONGDOUBLE: { HANDLE(long double); } break;
 
+#define HANDLE_COMPLEX_TYPES() \
+    case NPY_CFLOAT: { HANDLE(std::complex<float>); } break; \
+    case NPY_CDOUBLE: { HANDLE(std::complex<double>); } break; \
+    case NPY_CLONGDOUBLE: { HANDLE(std::complex<long double>); } break;
+
 #define HANDLE_TYPES() \
     HANDLE_INTEGER_TYPES() \
     HANDLE_FLOAT_TYPES()
@@ -46,7 +51,7 @@ typedef unsigned short ushort;
         switch(PyArray_TYPE(array)) { \
                 HANDLE_TYPES();\
                 default: \
-                PyErr_SetString(PyExc_RuntimeError, "Dispatch on types failed!"); \
+                PyErr_SetString(PyExc_RuntimeError, "Dispatch on all real types failed!"); \
                 return NULL; \
         } \
     } \
@@ -57,7 +62,7 @@ typedef unsigned short ushort;
         switch(PyArray_TYPE(array)) { \
                 HANDLE_INTEGER_TYPES();\
                 default: \
-                PyErr_SetString(PyExc_RuntimeError, "Dispatch on types failed!"); \
+                PyErr_SetString(PyExc_RuntimeError, "Dispatch on integer types failed!"); \
                 return NULL; \
         } \
     } \
@@ -68,7 +73,18 @@ typedef unsigned short ushort;
         switch(PyArray_TYPE(array)) { \
                 HANDLE_FLOAT_TYPES();\
                 default: \
-                PyErr_SetString(PyExc_RuntimeError, "Dispatch on types failed!"); \
+                PyErr_SetString(PyExc_RuntimeError, "Dispatch on float types failed!"); \
+                return NULL; \
+        } \
+    } \
+    CATCH_PYTHON_EXCEPTIONS(NULL)
+
+#define SAFE_SWITCH_ON_COMPLEX_TYPES_OF(array) \
+    try { \
+        switch(PyArray_TYPE(array)) { \
+                HANDLE_COMPLEX_TYPES();\
+                default: \
+                PyErr_SetString(PyExc_RuntimeError, "Dispatch on float types failed!"); \
                 return NULL; \
         } \
     } \

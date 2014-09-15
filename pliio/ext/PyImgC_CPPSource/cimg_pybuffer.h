@@ -2,8 +2,6 @@
 #ifndef PyImgC_CIMG_PYBUFFER_PLUGIN_H
 #define PyImgC_CIMG_PYBUFFER_PLUGIN_H
 
-#include <Python.h>
-
 // Check if this CImg<T> instance and a given Py_buffer* have identical pixel types.
 bool not_structcode_of(const Py_buffer *const pybuffer) const {
     if (pybuffer->format) {
@@ -41,9 +39,7 @@ CImg<T> &assign(const Py_buffer *const pybuffer) {
     const char *const dataPtrI = const_cast<const char *const>(static_cast<char *>(pybuffer->buf));
     int nChannels = 1, W, H, WH;
     
-    if (!pybuffer->ndim) {
-        return assign();
-    }
+    if (!pybuffer->ndim) { return assign(); }
     
     // for (int idx = 0; idx < (int)buf->ndim; idx++) {
     //     pybuffer->shape[idx];
@@ -62,8 +58,14 @@ CImg<T> &assign(const Py_buffer *const pybuffer) {
         H = WH;
     }
 
-    assign(dataPtrI, const_cast<int&>(W), const_cast<int&>(H), 1, const_cast<int&>(nChannels));
-    PyBuffer_Release(const_cast<Py_buffer *>(pybuffer));
+    assign(dataPtrI,
+        const_cast<int&>(W),
+        const_cast<int&>(H), 1,
+        const_cast<int&>(nChannels));
+    
+    PyBuffer_Release(
+        const_cast<Py_buffer *>(pybuffer));
+    
     return *this;
 }
 

@@ -22,7 +22,7 @@ CImg<T> &assign(const PyObject *const pyobject, const int W, const int H) {
     if (PyArray_Check(pyobject)) {
         /// It's a numpy array
         return assign(
-            reinterpret_cast<PyArrayObject *>(pyobject));
+            reinterpret_cast<const PyArrayObject *const>(pyobject));
     }
     if (PyBuffer_Check(pyobject)) {
         /// It's a legacy buffer object
@@ -31,13 +31,13 @@ CImg<T> &assign(const PyObject *const pyobject, const int W, const int H) {
                                         "assign(const PyObject*) : Legacy buffer constructor requires specifying width and height",
                                         cimg_instance);
         }
-        return assign(
-            reinterpret_cast<PyBufferObject *>(pyobject));
+        return assign_legacybuf_data(pyobject, W, H);
     }
 }
 
-/// In-place constructor overload for (PyBufferObject *)
-CImg<T> &assign(const PyBufferObject *const pylegacybuf, const int W, const int H) {
+/// In-place custom constructor for (PyBufferObject *)
+/// ONLY ITS NOT THAT ITS JUST A PYOBJECT DURRRRR
+CImg<T> &assign_legacybuf_data(const PyObject *const pylegacybuf, const int W, const int H) {
     if (!pylegacybuf) { return assign(); }
     if (typeid(T) != typeid(char)) {
         /// Legacy buffers only support const char* 
@@ -45,15 +45,16 @@ CImg<T> &assign(const PyBufferObject *const pylegacybuf, const int W, const int 
                                     "assign(const PyBufferObject*) : Legacy buffers convert only to CImg<char> or similar",
                                     cimg_instance);
     }
-    if (!PyBuffer_Check(pyarray)) {
+    if (!PyBuffer_Check(pylegacybuf)) {
         throw CImgInstanceException(_cimg_instance
                                     "assign(const PyBufferObject*) : Bad buffer object (legacy PyBufferObject interface)",
                                     cimg_instance);
     }
+    return *this;
 }
 
 /// In-place constructor overload for (PyArrayObject *)
-CImg<T> &assign(const PyArrayObject *const pyarray, width = 0, height = 0) {
+CImg<T> &assign(const PyArrayObject *const pyarray, const int width = 0, const int height = 0) {
     if (!pyarray) { return assign(); }
     if (!PyArray_Check(pyarray)) {
         throw CImgInstanceException(_cimg_instance
@@ -67,9 +68,7 @@ CImg<T> &assign(const PyArrayObject *const pyarray, width = 0, height = 0) {
     }
     
     if (width > 0 && height > 0) {
-        if (width != W && height != H) {
-            /// INSERT RESHAPERY HERE
-        }
+        /// INSERT RESHAPERY HERE
     }
     const int W = (int)PyArray_DIM(pyarray, 1), H = (int)PyArray_DIM(pyarray, 0);
     
@@ -87,8 +86,8 @@ CImg<T> &assign(const PyArrayObject *const pyarray, width = 0, height = 0) {
 //----------------------------
 // z is the z-coordinate of the CImg slice that one wants to copy.
 PyObject* get_pyarray(const unsigned z=0) const {
-    const int typecode = npy_typecode();
-    if (!typecode) {
+    const int typecode_int = typecode();
+    if (!typecode_int) {
         throw CImgInstanceException(_cimg_instance
                                   "get_pyarray() : No NPY_TYPES definition for pixel type: %s",
                                   cimg_instance,
@@ -117,7 +116,7 @@ PyObject* get_pyarray(const unsigned z=0) const {
         (npy_intp)_width,
         (npy_intp)_spectrum
     };
-    PyObject *pyarray = PyArray_SimpleNewFromData(3, dims, typecode, (void *)_data);
+    PyObject *pyarray = PyArray_SimpleNewFromData(3, dims, typecode_int, (void *)_data);
     Py_INCREF(pyarray);
     return pyarray;
 }

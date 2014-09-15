@@ -4,6 +4,9 @@
  * Annotated and rearranged by FI$H 2000
  */
 
+#ifndef PyImgC_NUMPYPP_UTILS_H
+#define PyImgC_NUMPYPP_UTILS_H
+
 #include <Python.h>
 #include <numpy/ndarrayobject.h>
 
@@ -30,13 +33,11 @@ struct gil_release {
     bool gil_active;
     
     gil_release() {
-        //IMGC_CERR("> GIL: releasing");
         thread_state = PyEval_SaveThread();
         gil_active = true;
     }
     
     ~gil_release() {
-        //IMGC_CERR("> GIL: restoring from release");
         if (gil_active) { restore(); }
     }
     
@@ -54,13 +55,11 @@ struct gil_ensure {
     bool gil_ensured;
     
     gil_ensure() {
-        //IMGC_CERR("> GIL: ensuring state");
         gil_state = PyGILState_Ensure();
         gil_ensured = true;
     }
     
     ~gil_ensure() {
-        //IMGC_CERR("> GIL: THE UNINSURED");
         if (gil_ensured) { restore(); }
     }
     
@@ -101,9 +100,7 @@ void init##name () { \
     import_array(); \
     (void)Py_InitModule(#name, methods); \
 }
-
 #else
-
 #define DECLARE_MODULE(name) \
 namespace { \
     struct PyModuleDef moduledef = { \
@@ -123,8 +120,7 @@ PyInit_##name () { \
     import_array(); \
     return PyModule_Create(&moduledef); \
 }
-
-
 #endif
 
 
+#endif /// PyImgC_NUMPYPP_UTILS_H

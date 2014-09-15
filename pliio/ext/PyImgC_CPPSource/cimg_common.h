@@ -59,29 +59,75 @@ int datasize() const {
     return static_cast<int>(size()) * sizeof(T);
 }
 
-Py_ssize_t *shape2D() const {
-    Py_ssize_t shape[3] = {
-        (Py_ssize_t)_height,
-        (Py_ssize_t)_width,
-        (Py_ssize_t)_spectrum
-    };
-    return shape;
+std::array<Py_ssize_t, 3> shape2D() const {
+    return {{
+        static_cast<Py_ssize_t>(_height),
+        static_cast<Py_ssize_t>(_width),
+        static_cast<Py_ssize_t>(_spectrum)
+    }};
 }
 
-Py_ssize_t *shape3D() const {
-    Py_ssize_t shape[4] = {
-        (Py_ssize_t)_height,
-        (Py_ssize_t)_width,
-        (Py_ssize_t)_depth,
-        (Py_ssize_t)_spectrum
-    };
-    return shape;
+std::array<Py_ssize_t, 4> shape3D() const {
+    return {{
+        static_cast<Py_ssize_t>(_height),
+        static_cast<Py_ssize_t>(_width),
+        static_cast<Py_ssize_t>(_depth),
+        static_cast<Py_ssize_t>(_spectrum)
+    }};
 }
 
 #ifndef shape
 #define shape() shape2D()
 #endif
 
+/// structcode parser invocation (from pyimgc.cpp)
+const char *structcode_to_dtype(const char *structcode, bool include_byteorder=true) {
+    std::vector<pair<std::string, std::string>> pairvec = structcode::parse(std::string(structcode));
+    std::string byteorder = "=";
+
+    if (!pairvec.size()) {
+        throw CImgInstanceException(_cimg_instance
+                                    "Structcode std::string parsed to zero-length pair vector",
+                                    cimg_instance);
+    }
+
+    /// get special values
+    for (size_t idx = 0; idx < pairvec.size(); idx++) {
+        if (pairvec[idx].first == "__byteorder__") {
+            byteorder = std::string(pairvec[idx].second);
+            pairvec.erase(pairvec.begin()+idx);
+        }
+    }
+
+    /// Get singular value
+    if (include_byteorder) {
+        return std::string(byteorder + pairvec[0].second).c_str();
+    }
+    return std::string(pairvec[0].second).c_str();
+}
+
+unsigned int structcode_to_typecode(const char *structcode) {
+    const char *dtypecode = structcode_to_dtype(structcode);
+    PyArray_Descr *descr;
+    int npy_type_num = 0;
+
+    if (!dtypecode) {
+        throw CImgInstanceException(_cimg_instance
+                                    "Cannot get structcode std::string (bad argument)",
+                                    cimg_instance);
+    }
+
+    if (!PyArray_DescrConverter(PyString_FromString(dtypecode), &descr)) {
+        throw CImgInstanceException(_cimg_instance
+                                    "cannot convert std::string to PyArray_Descr",
+                                    cimg_instance);
+    }
+
+    npy_type_num = (unsigned int)descr->type_num;
+    Py_XDECREF(descr);
+
+    return npy_type_num;
+}
 
 
 
