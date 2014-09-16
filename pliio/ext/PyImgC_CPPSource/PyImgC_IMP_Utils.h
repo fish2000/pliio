@@ -7,9 +7,8 @@ using namespace std;
 
 static bool PyImgC_PathExists(PyObject *path) {
     PyStringObject *putative = reinterpret_cast<PyStringObject *>(path);
-    if (!putative) {
-            PyErr_SetString(PyExc_ValueError,
-            "Couldn't unpack path string");
+    if (!PyString_Check(putative)) {
+        PyErr_SetString(PyExc_ValueError, "Bad path string");
         return false;
      }
      PyObject *ospath = PyImport_ImportModuleNoBlock("os.path");

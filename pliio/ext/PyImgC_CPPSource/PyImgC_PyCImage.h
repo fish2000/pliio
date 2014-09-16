@@ -2,15 +2,26 @@
 #ifndef PyImgC_TYPESTRUCT_PYCIMAGE_H
 #define PyImgC_TYPESTRUCT_PYCIMAGE_H
 
-#include <Python.h>
-#include <numpy/ndarrayobject.h>
-#include "PyImgC_Constants.h"
-#include "PyImgC_SharedDefs.h"
-#include "PyImgC_Types.h"
-//#include "PyImgC_IMP_PyBufferDict.h"
+#include <map>
+#include <array>
+#include <cmath>
+#include <string>
+#include <vector>
+#include <memory>
+#include <cstdlib>
+#include <type_traits>
 
-using namespace cimg_library;
+#include "PyImgC_Options.h"
+#include "PyImgC_SharedDefs.h"
+#include <Python.h>
+#include <structmember.h>
+#include <numpy/ndarrayobject.h>
+#include <numpy/ndarraytypes.h>
+#include "numpypp/numpy.hpp"
 using namespace std;
+
+#include "cimg/CImg.h"
+using namespace cimg_library;
 
 struct PyCImage {
     PyObject_HEAD

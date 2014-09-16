@@ -10,7 +10,6 @@
 
 #include "PyImgC_Constants.h"
 #include "PyImgC_SharedDefs.h"
-#include "PyImgC_Types.h"
 
 using namespace cimg_library;
 using namespace std;

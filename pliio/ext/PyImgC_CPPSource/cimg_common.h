@@ -22,6 +22,26 @@
         (typecode == NPY_LONGDOUBLE   && typeid(T) != typeid(long double)) || \
         (typecode == NPY_DOUBLE       && typeid(T) != typeid(double)))
 
+#define STRUCTCODE_CHAR_NOT(structcode_char) \
+       ((structcode_char == NPY_BOOLLTR         && typeid(T) != typeid(bool)) || \
+        (structcode_char == NPY_BYTELTR         && typeid(T) != typeid(char)) || \
+        (structcode_char == NPY_HALFLTR         && typeid(T) != typeid(npy_half)) || \
+        (structcode_char == NPY_SHORTLTR        && typeid(T) != typeid(short)) || \
+        (structcode_char == NPY_INTLTR          && typeid(T) != typeid(int)) || \
+        (structcode_char == NPY_LONGLTR         && typeid(T) != typeid(long)) || \
+        (structcode_char == NPY_LONGLONGLTR     && typeid(T) != typeid(long long)) || \
+        (structcode_char == NPY_UBYTELTR        && typeid(T) != typeid(unsigned char)) || \
+        (structcode_char == NPY_USHORTLTR       && typeid(T) != typeid(unsigned short)) || \
+        (structcode_char == NPY_UINTLTR         && typeid(T) != typeid(unsigned int)) || \
+        (structcode_char == NPY_ULONGLTR        && typeid(T) != typeid(unsigned long)) || \
+        (structcode_char == NPY_ULONGLONGLTR    && typeid(T) != typeid(unsigned long long)) || \
+        (structcode_char == NPY_CFLOATLTR       && typeid(T) != typeid(std::complex<float>)) || \
+        (structcode_char == NPY_CLONGDOUBLELTR  && typeid(T) != typeid(std::complex<long double>)) || \
+        (structcode_char == NPY_CDOUBLELTR      && typeid(T) != typeid(std::complex<double>)) || \
+        (structcode_char == NPY_FLOATLTR        && typeid(T) != typeid(float)) || \
+        (structcode_char == NPY_LONGDOUBLELTR   && typeid(T) != typeid(long double)) || \
+        (structcode_char == NPY_DOUBLELTR       && typeid(T) != typeid(double)))
+
 /// Given this CImg<T> instance, return the corresponding structcode character --
 /// from inside the CImg<T> struct this is way faster than using structcode::parse()
 const char *structcode() const {
@@ -77,7 +97,7 @@ std::array<Py_ssize_t, 4> shape3D() const {
 }
 
 #ifndef shape
-#define shape() shape2D()
+#define shape() shape2D().data()
 #endif
 
 /// structcode parser invocation (from pyimgc.cpp)
@@ -128,21 +148,5 @@ unsigned int structcode_to_typecode(const char *structcode) {
 
     return npy_type_num;
 }
-
-
-
-
-//CImg<T>(const struct CImage_Type<T>&)
-//struct CImage_Type<T>;
-
-/// THE IDEA HERE IS:
-/// When you have a CImage_Type<T> e.g.
-/// CImage_Type<unsigned char> cmtype;
-/// ... you can then be all like:
-/// CImg<T> = CImage_Type<T>; specifically --
-/// cimage = CImage_Type<unsigned char>; or (maybe)
-
-//CImg<T>(const struct CImage_Type<T>&) {}
-
 
 #endif /// PyImgC_CIMG_COMMON_PLUGIN_H

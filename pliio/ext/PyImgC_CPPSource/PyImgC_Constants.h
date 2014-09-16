@@ -55,10 +55,4 @@
 #define PyGetNone Py_BuildValue("")
 #endif
 
-/*
-#ifndef PyObject_TypeName
-#define PyObject_TypeName(object) static_cast<const char *>((PyTypeObject *)PyObject_Type(reinterpret_cast<PyObject *>(object)))->tp_name)
-#endif
-*/
-
 #endif

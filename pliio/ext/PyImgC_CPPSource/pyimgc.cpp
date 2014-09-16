@@ -14,7 +14,6 @@
 
 #include "PyImgC_Constants.h"
 #include "PyImgC_SharedDefs.h"
-#include "PyImgC_Types.h"
 #include "PyImgC_PyCImage.h"
 #include "PyImgC_IMP_CImageTest.h"
 #include "PyImgC_IMP_StructCodeParse.h"

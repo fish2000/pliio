@@ -20,26 +20,35 @@ CImg(const Py_buffer *const pybuffer):_width(0),_height(0),_depth(0),_spectrum(0
 }
 /// Copy constructor with width and height specified
 CImg(const Py_buffer *const pybuffer, const int width = 0, const int height = 0):_depth(0),_spectrum(0),_is_shared(false),_data(0) {
-    //assign(pybuffer, width, height);
-    assign(pybuffer);
+    assign(pybuffer, width, height);
+}
+
+CImg(Py_buffer *pybuffer):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+    assign(const_cast<Py_buffer *>(pybuffer));
+}
+/// Copy constructor with width and height specified
+CImg(Py_buffer *pybuffer, int width = 0, int height = 0):_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+    assign(
+        const_cast<Py_buffer *>(pybuffer),
+        const_cast<int&>(width),
+        const_cast<int&>(width));
 }
 
 // In-place constructor
-CImg<T> &assign(const Py_buffer *const pybuffer) {
+CImg<T> &assign(const Py_buffer *const pybuffer, const int width = 0, const int height = 0) {
     if (!pybuffer) return assign();
     if (not_structcode_of(pybuffer)) {
         throw CImgInstanceException(_cimg_instance
                                     "assign(const Py_buffer*) : Buffer structcode has no corresponding pixel type.",
                                     cimg_instance);
     }
+    if (!pybuffer->ndim) { return assign(); }
     
     //pybuffer->len;
     //pybuffer->itemsize;
     
     const char *const dataPtrI = const_cast<const char *const>(static_cast<char *>(pybuffer->buf));
     int nChannels = 1, W, H, WH;
-    
-    if (!pybuffer->ndim) { return assign(); }
     
     // for (int idx = 0; idx < (int)buf->ndim; idx++) {
     //     pybuffer->shape[idx];
@@ -49,13 +58,13 @@ CImg<T> &assign(const Py_buffer *const pybuffer) {
     
     if (pybuffer->ndim > 2) { nChannels = (int)pybuffer->shape[2]; }
     if (pybuffer->ndim > 1) {
-        W = (int)pybuffer->shape[1];
-        H = (int)pybuffer->shape[0];
+        W = width ? width : (int)pybuffer->shape[1];
+        H = height ? height : (int)pybuffer->shape[0];
     } else {
         /// fuck
         WH = (int)lrint(sqrt(pybuffer->len / pybuffer->itemsize));
-        W = WH;
-        H = WH;
+        W = width ? width : WH;
+        H = height ? height : WH;
     }
 
     assign(dataPtrI,
@@ -115,7 +124,7 @@ Py_buffer get_pybuffer(const unsigned z=0, const bool readonly=true) const {
     
     pybuffer.ndim = 3;                                      /// for now
     pybuffer.format = const_cast<char *>(structcode_char);  /// for now (do we give fucks re:byte order?)s
-    pybuffer.shape = shape().data();                               /// that'll work without a NULL terminator, right?
+    pybuffer.shape = shape();                               /// that'll work without a NULL terminator, right?
     return pybuffer;
 }
 
