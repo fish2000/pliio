@@ -114,8 +114,8 @@ extensions = {
 
 # the basics
 #libraries = ['png', 'jpeg', 'z', 'm', 'pthread', 'c++']
-#libraries = ['png', 'jpeg', 'z', 'm']
-libraries = ['png', 'm']
+libraries = ['png', 'jpeg', 'z', 'm', 'pthread']
+#libraries = ['png', 'm']
 
 
 # the addenda

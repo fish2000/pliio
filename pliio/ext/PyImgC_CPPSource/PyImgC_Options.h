@@ -6,8 +6,8 @@
 #define cimg_verbosity 1                /// log to the console
 #define cimg_display 0                  /// don't need this
 
-//#define cimg_use_jpeg 1                 /// jpeg
-//#define cimg_use_zlib 1                 /// compressed output
+#define cimg_use_jpeg 1                 /// jpeg
+#define cimg_use_zlib 1                 /// compressed output
 
 #ifndef cimg_imagepath
 #define cimg_imagepath "cimg/img/"
