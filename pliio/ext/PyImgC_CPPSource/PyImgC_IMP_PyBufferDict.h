@@ -3,7 +3,9 @@
 #define PyImgC_IMP_PYBUFFERDICT_H
 
 #include <Python.h>
-#include "PyImgC_IMP_StructCodeParse.h"
+//#include "PyImgC_IMP_StructCodeParse.h"
+
+static PyObject *structcode_to_dtype_code(const char *code); /// FOREWARD!
 
 static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffer_dict = PyDict_New();

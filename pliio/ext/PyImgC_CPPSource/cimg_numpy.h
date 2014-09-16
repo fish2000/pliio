@@ -8,6 +8,10 @@ bool not_typecode_of(const PyObject *const pyobject) const {
     unsigned int typecode = static_cast<unsigned int>(PyArray_TYPE(pyarray));
     return TYPECODE_NOT(typecode);
 }
+bool not_typecode_of(const PyArrayObject *const pyarray) const {
+    unsigned int typecode = static_cast<unsigned int>(PyArray_TYPE(pyarray));
+    return TYPECODE_NOT(typecode);
+}
 
 //----------------------------
 // NumPy-to-CImg conversion
@@ -33,6 +37,7 @@ CImg<T> &assign(const PyObject *const pyobject, const int W, const int H) {
         }
         return assign_legacybuf_data(pyobject, W, H);
     }
+    return assign_legacybuf_data(pyobject, W, H);
 }
 
 /// In-place custom constructor for (PyBufferObject *)

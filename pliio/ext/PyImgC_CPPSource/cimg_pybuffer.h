@@ -115,7 +115,7 @@ Py_buffer get_pybuffer(const unsigned z=0, const bool readonly=true) const {
     
     pybuffer.ndim = 3;                                      /// for now
     pybuffer.format = const_cast<char *>(structcode_char);  /// for now (do we give fucks re:byte order?)s
-    pybuffer.shape = shape();                               /// that'll work without a NULL terminator, right?
+    pybuffer.shape = shape().data();                               /// that'll work without a NULL terminator, right?
     return pybuffer;
 }
 

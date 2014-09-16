@@ -1,6 +1,6 @@
 
-#ifndef PyImgC_TYPESTRUCT_PYCIMAGE_H
-#define PyImgC_TYPESTRUCT_PYCIMAGE_H
+#ifndef PyImgC_IMP_STRUCTCODEPARSE_H
+#define PyImgC_IMP_STRUCTCODEPARSE_H
 
 #include <vector>
 #include <string>
@@ -123,4 +123,4 @@ static PyObject *PyImgC_NumpyCodeFromStructAtom(PyObject *self, PyObject *args) 
     return Py_BuildValue("i", PyImgC_NPYCodeFromStructAtom(self, args));
 }
 
-#endif /// PyImgC_TYPESTRUCT_PYCIMAGE_H
+#endif /// PyImgC_IMP_STRUCTCODEPARSE_H

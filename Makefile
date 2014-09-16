@@ -32,63 +32,63 @@ checkext:
 	# Checking _PyImgC
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import _PyImgC; \
-		print _PyImgC.cimage_test(imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
+		from pliio import PyImgC; \
+		print PyImgC.cimage_test(imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking type constructor and PyCImage.__repr__
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import _PyImgC; \
-		print repr(_PyImgC.PyCImage(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
+		from pliio import PyImgC; \
+		print repr(PyImgC.PyCImage(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking PyCImage.__str__
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import _PyImgC; \
-		print str(_PyImgC.PyCImage(imread('$(IMG)')))[:500]" | gsed -e "s/[\\s]+/ /g")"
+		from pliio import PyImgC; \
+		print str(PyImgC.PyCImage(imread('$(IMG)')))[:500]" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking PyCImage.__len__
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import _PyImgC; \
-		print 'len(PyCImage) = %s' % len(_PyImgC.PyCImage(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
+		from pliio import PyImgC; \
+		print 'len(PyCImage) = %s' % len(PyImgC.PyCImage(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking PyCImage[idx]
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import _PyImgC; \
-		print 'PyCImage[66] = %s' % _PyImgC.PyCImage(imread('$(IMG)'))[66]" | gsed -e "s/[\\s]+/ /g")"
+		from pliio import PyImgC; \
+		print 'PyCImage[66] = %s' % PyImgC.PyCImage(imread('$(IMG)'))[66]" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking buffer_info
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import _PyImgC as imgc; \
+		from pliio import PyImgC as imgc; \
 		from pprint import pformat; \
 		print pformat(imgc.buffer_info(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking PyCImage file loading...
 	bpython -c "$(shell echo "'';\
 		import numpy;\
-		from pliio import _PyImgC as imgc; \
+		from pliio import PyImgC as imgc; \
 		im = imgc.PyCImage('$(IMG)', dtype=numpy.uint8); \
 		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
 	
 	bpython -c "$(shell echo "'';\
 		import numpy;\
-		from pliio import _PyImgC as imgc; \
+		from pliio import PyImgC as imgc; \
 		im = imgc.PyCImage(dtype=numpy.uint8); \
 		im.cimg_load('${IMG}'); \
 		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
 		
 	bpython -c "$(shell echo "'';\
 		import numpy;\
-		from pliio import _PyImgC as imgc; \
+		from pliio import PyImgC as imgc; \
 		im = imgc.PyCImage(); \
 		im.cimg_load('${IMG}'); \
 		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
 		
 	# Checking structcode parser
-	py 'pliio._PyImgC.structcode_parse(">BBBB")'
+	py 'pliio.PyImgC.structcode_parse(">BBBB")'
 
 upload:
 	python setup.py sdist upload

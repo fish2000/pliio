@@ -9183,8 +9183,13 @@ namespace cimg_library_suffixed {
      - operator()(): allows to access or write pixel values.
      - display(): displays the image in a new window.
   **/
+  
+  struct CImg_Base {
+      virtual bool NOOp() { return true; }
+  };
+  
   template<typename T>
-  struct CImg {
+  struct CImg : public CImg_Base {
 
     unsigned int _width, _height, _depth, _spectrum;
     bool _is_shared;

@@ -65,10 +65,10 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
         gil_ensure NOGIL;
         /// Base the loaded CImg struct type and ancilliaries
         /// on whatever is in the dtype we already have
-#define HANDLE(type) \
+#define HANDLE(type) {\
         try { \
             CImg<type> cim(PyString_AS_STRING(path)); \
-            self->cimage = CImage_TypePointer<type>(cim); \
+            self->assign(cim); \
         } catch (CImgArgumentException &err) { \
             Py_XDECREF(dtype); \
             Py_XDECREF(path); \
@@ -81,8 +81,9 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
             PyErr_Format(PyExc_IOError, \
                 "CImg IO error: %.200s", err.what()); \
             return NULL; \
-        }
-            SAFE_SWITCH_ON_TYPECODE(tc, NULL);
+        } \
+    }
+    SAFE_SWITCH_ON_TYPECODE(tc, NULL);
 #undef HANDLE
         NOGIL.~gil_ensure();
     } else if (!tc) {
@@ -92,8 +93,7 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
         try {
             CImg<IMGC_DEFAULT_T> cim(PyString_AS_STRING(path));
             /// populate our dtype fields and ensconce the new CImg
-            /// in a new instance of CImage_Type<unsigned char>
-            self->cimage = CImage_TypePointer<IMGC_DEFAULT_T>(cim);
+            self->assign<IMGC_DEFAULT_T>(cim);
             self->dtype = numpy::dtype_struct<IMGC_DEFAULT_T>();
         } catch (CImgArgumentException &err) {
             Py_XDECREF(dtype);
@@ -117,7 +117,7 @@ static PyObject *PyCImage_new(PyTypeObject *type, PyObject *args, PyObject *kwar
     PyCImage *self;
     self = (PyCImage *)type->tp_alloc(type, 0);
     if (self != None) {
-        self->cimage = unique_ptr<CImage_SubBase>(nullptr);
+        self->cimage = shared_ptr<CImg_Base>(nullptr);
         self->dtype = None;
     }
     return (PyObject *)self;
@@ -206,11 +206,10 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
     
     if (PyArray_Check(buffer)) {
         /// it's a numpy array
-        int tc = (int)self->dtype->type_num;
-#define HANDLE(type) \
-        self->cimage = CImage_TypePointer<type>(buffer); \
-        self->viewptr = (void *)self->force<type>()->get(false);
-        SAFE_SWITCH_ON_TYPECODE(tc, -1);
+#define HANDLE(type) { \
+        self->assign(CImg<type>(buffer)); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, -1);
 #undef HANDLE
         IMGC_CERR("> REPR:" << PyString_AS_STRING(PyCImage_Repr(self)));
         return 0;
@@ -250,8 +249,12 @@ static PyGetSetDef PyCImage_getset[] = {
 
 static int PyCImage_GetBuffer(PyCImage *pyim, Py_buffer &buf, int flags=0) {
     if (pyim->cimage && pyim->dtype) {
-        auto cim = pyim->view();
-        buf = cim->get_pybuffer();
+#define HANDLE(type) {\
+        auto cim = pyim->recast<type>(); \
+        buf = cim->get_pybuffer(); \
+    }
+    SAFE_SWITCH_ON_DTYPE(pyim->dtype, -1); 
+#undef HANDLE
         if (buf.len) { return 0; } /// success
     }
     return -1;
@@ -263,12 +266,13 @@ static PyObject *PyCImage_Repr(PyCImage *pyim) {
     if (pyim->dtype) {
         tc = (int)pyim->dtype->type_num;
     }
-#define HANDLE(type) \
-    CImg<type> cim = pyim->recast<type>()->get(false); \
+#define HANDLE(type) {\
+    CImg<type> cim = *pyim->recast<type>(); \
     return PyString_FromFormat("<PyCImage (%s|%s) [%ix%i, %ix%lubpp] @ %p>", \
         cim.pixel_type(), typeid(*cim.data()).name(), \
         cim.width(), cim.height(), cim.spectrum(), sizeof(type), \
-        pyim);
+        pyim); \
+    }
     SAFE_SWITCH_ON_TYPECODE(tc, PyString_FromString("<PyCImage (unknown typecode)>"));
 #undef HANDLE
     return PyString_FromString("<PyCImage (unmatched type)>");
@@ -276,25 +280,41 @@ static PyObject *PyCImage_Repr(PyCImage *pyim) {
 
 static PyObject *PyCImage_Str(PyCImage *pyim) {
     if (pyim->cimage && pyim->dtype) {
-        auto cim = pyim->view();
-        return PyString_FromString((const char *)cim->value_string()->data());
+#define HANDLE(type) { \
+        auto cim = pyim->recast<type>(); \
+        auto value_string = cim->value_string(); \
+        return PyString_FromString((const char *)value_string.data()); \
+    }
+    SAFE_SWITCH_ON_DTYPE(pyim->dtype, NULL);
+#undef HANDLE
     }
     return PyString_FromString("");
 }
 
 static Py_ssize_t PyCImage_Len(PyCImage *pyim) {
     if (pyim->cimage && pyim->dtype) {
-        auto cim = pyim->view();
-        return (Py_ssize_t)cim->size();
+#define HANDLE(type) { \
+        auto cim = pyim->recast<type>(); \
+        return (Py_ssize_t)cim->size(); \
+    }
+    SAFE_SWITCH_ON_DTYPE(pyim->dtype, -1);
+#undef HANDLE
     }
     return (Py_ssize_t)0;
 }
 
 static PyObject *PyCImage_GetItem(PyCImage *pyim, register Py_ssize_t idx) {
     if (pyim->cimage && pyim->dtype) {
-        void *cim = (void *)pyim->view();
         int tc = (int)pyim->dtype->type_num;
-        Py_ssize_t siz = (Py_ssize_t)cim->size();
+        long op;
+        Py_ssize_t siz;
+#define HANDLE(type) { \
+        auto cim = pyim->recast<type>(); \
+        op = static_cast<long>(cim->operator()(idx)); \
+        siz = (Py_ssize_t)cim->size(); \
+    }
+    SAFE_SWITCH_ON_TYPECODE(tc, NULL);
+#undef HANDLE
         if (idx < 0 || idx >= siz) {
             PyErr_SetString(PyExc_IndexError,
                 "index out of range");
@@ -304,7 +324,7 @@ static PyObject *PyCImage_GetItem(PyCImage *pyim, register Py_ssize_t idx) {
             case NPY_FLOAT:
             case NPY_DOUBLE:
             case NPY_LONGDOUBLE: {
-                return Py_BuildValue("f", static_cast<long double>(cim->operator()(idx)));
+                return Py_BuildValue("f", static_cast<long double>(op));
             }
             break;
             case NPY_USHORT:
@@ -312,11 +332,11 @@ static PyObject *PyCImage_GetItem(PyCImage *pyim, register Py_ssize_t idx) {
             case NPY_UINT:
             case NPY_ULONG:
             case NPY_ULONGLONG: {
-                return Py_BuildValue("k", static_cast<unsigned long>(cim->operator()(idx)));
+                return Py_BuildValue("k", static_cast<unsigned long>(op));
             }
             break;
         }
-        return Py_BuildValue("l", static_cast<long>(cim->operator()(idx)));
+        return Py_BuildValue("l", op);
     }
     PyErr_SetString(PyExc_IndexError,
         "image index not initialized");

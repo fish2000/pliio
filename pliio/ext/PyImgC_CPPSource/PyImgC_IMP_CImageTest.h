@@ -39,10 +39,11 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
 
     if (PyArray_Check(buffer)) {
         int tc = (int)dtype->type_num;
-#define HANDLE(type) \
-        CImg<type> cimage = CImg<type>(buffer); \
-        return Py_BuildValue("iiiii", tc, cimage.typecode(), \
-                                    cimage.width(), cimage.height(), cimage.spectrum());
+#define HANDLE(type) { \
+        CImg<type> cim(buffer); \
+        return Py_BuildValue("iiiii", tc, cim.typecode(), \
+                             cim.width(), cim.height(), cim.spectrum()); \
+        }
         SAFE_SWITCH_ON_TYPECODE(tc, Py_BuildValue(""));
 #undef HANDLE
     }
@@ -50,4 +51,4 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
     return Py_BuildValue("");
 }
 
-#define PyImgC_IMP_CIMAGETEST_H
+#endif /// PyImgC_IMP_CIMAGETEST_H

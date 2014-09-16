@@ -14,50 +14,56 @@ using namespace std;
 
 struct PyCImage {
     PyObject_HEAD
-
-private:
-    PyArray_Descr *dtype = NULL;
-    shared_ptr<void> cimage = shared_ptr<void>(nullptr);
     
 public:
+    PyArray_Descr *dtype = NULL;
+    shared_ptr<CImg_Base> cimage = shared_ptr<CImg_Base>(nullptr);
+    
     PyCImage() = default;
     
-    // template <typename T>
-    // PyCImage(const struct CImg<T> &ci) {
-    //     cimage(shared_ptr<CImg<T>>(ci));
-    //     dtype((cimage.get())->typestruct());
-    // }
     template <typename T>
     PyCImage(CImg<T> const &ci) {
-        cimage(shared_ptr<CImg<T>>(ci));
-        dtype((cimage.get())->typestruct());
+        cimage(make_shared<CImg<T>>(ci));
+        dtype(recast<T>()->typestruct());
     }
     template <typename T>
     PyCImage &operator=(CImg<T> const &ci) {
         if (checkptr()) { cimage.reset(); }
-        cimage = shared_ptr<T>(ci);
-        dtype = (cimage.get())->typestruct();
+        cimage = make_shared<CImg<T>>(ci);
+        dtype = recast<T>()->typestruct();
     }
     
     template <typename T>
     PyCImage(shared_ptr<CImg<T>> &ptr) {
         cimage(ptr);
-        dtype((cimage.get())->typestruct());
+        dtype(recast<T>()->typestruct());
     }
     template <typename T>
     PyCImage &operator=(shared_ptr<CImg<T>> const &ptr) {
         if (checkptr()) { cimage.reset(); }
         if (checkdtype()) { delete dtype; }
         cimage = ptr;
-        dtype = (cimage.get())->typestruct();
+        dtype = recast<T>()->typestruct();
     }
     
-    auto view() -> decltype(remove_pointer<cimage.get()>::type>);
+    template <typename T>
+    void assign(CImg<T> &ci) {
+        if (checkptr()) { cimage.reset(); }
+        cimage = make_shared<CImg<T>>(ci);
+        dtype = recast<T>()->typestruct();
+    }
+    template <typename T>
+    void assign(CImg<T> const &ci) {
+        if (checkptr()) { cimage.reset(); }
+        CImg<T> cim(ci);
+        cimage = make_shared<CImg<T>>(cim);
+        dtype = recast<T>()->typestruct();
+    }
+    
     inline bool checkptr() { return cimage.get() != nullptr; }
     inline bool checkdtype() { return dtype != NULL && PyArray_DescrCheck(dtype); }
     inline unsigned int typecode() {
         if (checkdtype()) { return (unsigned int)dtype->type_num; }
-        if (checkptr()) { dtype((cimage.get())->typestruct()); return dtype; }
         return 0;
     }
     
@@ -76,25 +82,9 @@ public:
     
     operator PyArray_Descr*() {
         if (checkdtype()) { Py_INCREF(dtype); return dtype; }
-        if (checkptr()) { dtype = (cimage.get())->typestruct(); Py_INCREF(dtype); return dtype; }
         return 0;
     }
     
-    
 };
-
-auto PyCImage::view() -> decltype(remove_pointer<cimage.get()>::type>) {
-    if (PyArray_DescrCheck(dtype)) {
-        int tc = (int)dtype->type_num;
-        if (!tc) { tc = IMGC_DEFAULT_TYPECODE; }
-#define HANDLE(type) \
-        return CImg<type>(*recast<type>());
-        SAFE_SWITCH_ON_TYPECODE(tc, CImg<IMGC_DEFAULT_T>());
-#undef HANDLE
-    }
-    return CImg<IMGC_DEFAULT_T>();
-}
-
-
 
 #endif /// PyImgC_TYPESTRUCT_PYCIMAGE_H
