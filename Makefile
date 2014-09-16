@@ -29,6 +29,9 @@ IMG = "/Users/fish/Downloads/__1n68Pmd.jpg"
 checkext:
 	py 'print(clint.textui.colored.red("%(s)s TESTS: %(s)s" % dict(s="*"*65)))'
 	
+	# Checking structcode parser
+	py 'pliio.PyImgC.structcode_parse(">BBBB")'
+	
 	# Checking _PyImgC
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
@@ -86,9 +89,16 @@ checkext:
 		im = imgc.PyCImage(); \
 		im.cimg_load('${IMG}'); \
 		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
-		
-	# Checking structcode parser
-	py 'pliio.PyImgC.structcode_parse(">BBBB")'
+	
+	# Checking comparison function...
+	bpython -c "$(shell echo "'';\
+		import numpy;\
+		from pliio import PyImgC as imgc; \
+		im = imgc.PyCImage(dtype=numpy.uint8); \
+		im2 = imgc.PyCImage(dtype=numpy.int32); \
+		im.cimg_load('${IMG}'); \
+		im2.cimg_load('${IMG}'); \
+		print im == im2" | gsed -e "s/[\\s]+/ /g")"
 
 upload:
 	python setup.py sdist upload

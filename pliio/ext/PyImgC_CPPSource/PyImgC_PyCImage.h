@@ -18,6 +18,8 @@
 #include <numpy/ndarrayobject.h>
 #include <numpy/ndarraytypes.h>
 #include "numpypp/numpy.hpp"
+#include "numpypp/dispatch.hpp"
+#include "numpypp/utils.hpp"
 using namespace std;
 
 #include "cimg/CImg.h"
@@ -76,6 +78,40 @@ public:
     inline unsigned int typecode() {
         if (checkdtype()) { return (unsigned int)dtype->type_num; }
         return 0;
+    }
+    
+    inline unsigned short compare(PyCImage *other) {
+        if (!dtype) {
+            PyErr_SetString(PyExc_ValueError,
+                "Comparator object has no dtype");
+                return -1;
+        }
+#define HANDLE(type) return compare_with<type>(other);
+    SAFE_SWITCH_ON_DTYPE(dtype, -2);
+#undef HANDLE
+    PyErr_SetString(PyExc_ValueError,
+        "Comparison failure in PyCImage.compare()");
+        return -1;
+    }
+    
+    template <typename selfT>
+    inline unsigned short compare_with(PyCImage *other) {
+        if (!other->dtype) {
+            PyErr_SetString(PyExc_ValueError,
+                "Object to compare has no dtype");
+            return -1;
+        }
+#define HANDLE(otherT) { \
+        auto self = *recast<selfT>(); \
+        auto another = *other->recast<otherT>(); \
+        if (self == another) { return 0; } \
+        return self.size() > another.size() ? 1 : -1; \
+    }
+    SAFE_SWITCH_ON_DTYPE(other->dtype, -3);
+#undef HANDLE
+    PyErr_SetString(PyExc_ValueError,
+        "Comparison failure in PyCImage.compare_with<T>();");
+        return -1;
     }
     
     template <typename T>

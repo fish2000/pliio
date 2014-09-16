@@ -342,6 +342,34 @@ static PyObject *PyCImage_GetItem(PyCImage *pyim, register Py_ssize_t idx) {
     return NULL;
 }
 
+
+static int PyCImage_Compare(PyObject *smelf, PyObject *smother) {
+    if (!smelf || !smother) {
+        PyErr_SetString(PyExc_ValueError,
+            "Bad comparison arguments");
+        return -1;
+    }
+    
+    PyCImage *self = reinterpret_cast<PyCImage *>(smelf);
+    PyCImage *other = reinterpret_cast<PyCImage *>(smother);
+    
+    int result = self->compare(other);
+    switch (result) {
+        case -2: {
+            PyErr_SetString(PyExc_ValueError,
+                "Comparator object typecode mismatch (-2)");
+            return -1;
+        }
+        case -3: {
+            PyErr_SetString(PyExc_ValueError,
+                "Comparison object typecode mismatch (-3)");
+            return -1;
+        }
+    }
+    return result;
+}
+
+
 static PySequenceMethods PyCImage_SequenceMethods = {
     (lenfunc)PyCImage_Len,                      /*sq_length*/
     0,                                          /*sq_concat*/
@@ -381,7 +409,7 @@ static PyTypeObject PyCImage_Type = {
     0,                                                          /* tp_print */
     0,                                                          /* tp_getattr */
     0,                                                          /* tp_setattr */
-    0,                                                          /* tp_compare */
+    (cmpfunc)PyCImage_Compare,                                  /* tp_compare */
     (reprfunc)PyCImage_Repr,                                    /* tp_repr */
     0,                                                          /* tp_as_number */
     &PyCImage_SequenceMethods,                                  /* tp_as_sequence */
