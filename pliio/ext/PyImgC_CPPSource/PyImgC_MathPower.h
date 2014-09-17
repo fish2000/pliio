@@ -3,6 +3,7 @@
 #define PyImgC_MATHPOWER_H
 
 #include <string>
+#include "numpypp/utils.hpp"
 using namespace std;
 
 #define OP(nm) nm
@@ -122,9 +123,9 @@ template <typename selfT>
 
 template <typename rT>
 CImg<rT> unary_op(PyCImage *self, UnaryOp op) {
+    gil_release NOGIL;
     return unary_op_LHS<CImg<rT>>(self, op);
 }
-
 
 template <typename selfT>
 selfT binary_op_RHS(PyCImage *self, PyCImage *other, BinaryOp op) {
@@ -135,8 +136,6 @@ selfT binary_op_RHS(PyCImage *self, PyCImage *other, BinaryOp op) {
     }
 #ifdef IMGC_DEBUG
     #define HANDLE(otherT) { \
-        cout << PyString_AS_STRING(PyCImage_Repr(self)) << "\n"; \
-        cout << PyString_AS_STRING(PyCImage_Repr(other)) << "\n"; \
         auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
         auto cm_other = *dynamic_cast<CImg<unsigned char>*>((other->cimage).get()); \
         cout << "{CImg self} -> " \
@@ -178,6 +177,7 @@ otherT binary_op_LHS(PyCImage *self, PyCImage *other, BinaryOp op) {
 
 template <typename rT>
 CImg<rT> binary_op(PyCImage *self, PyCImage *other, BinaryOp op) {
+    gil_release NOGIL;
     return binary_op_LHS<CImg<rT>>(self, other, op);
 }
 

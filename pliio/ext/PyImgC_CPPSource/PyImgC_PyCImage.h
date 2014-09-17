@@ -93,6 +93,7 @@ public:
     inline CImg_Base *__base__() { return cimage.get(); }
     
     inline signed short compare(PyCImage *other) {
+        gil_release NOGIL;
         if (!dtype) {
             PyErr_SetString(PyExc_ValueError,
                 "Comparator object has no dtype");

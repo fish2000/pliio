@@ -219,6 +219,7 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
     
     if (PyArray_Check(buffer)) {
         /// it's a numpy array
+        gil_release NOGIL;
 #define HANDLE(type) { \
         self->assign(CImg<type>(buffer)); \
     }
@@ -261,6 +262,7 @@ static PyGetSetDef PyCImage_getset[] = {
 };
 
 static int PyCImage_GetBuffer(PyCImage *pyim, Py_buffer &buf, int flags=0) {
+    gil_release NOGIL;
     if (pyim->cimage && pyim->dtype) {
 #define HANDLE(type) {\
         auto cim = pyim->recast<type>(); \

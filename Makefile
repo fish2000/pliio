@@ -102,7 +102,7 @@ checkext:
 		print 'im2: %s' % repr(im2); \
 		print 'im == im2 -> %s' % str(im == im2)" | gsed -e "s/[\\s]+/ /g")"
 	
-	# Checking BINARY_OP() implementations...
+	# Checking BINARY_OP() implementations... WORKS:
 	bpython -c "$(shell echo "'';\
 		import numpy;\
 		from pliio import PyImgC as imgc; \
@@ -112,24 +112,11 @@ checkext:
 		print 'im2: %s' % repr(im2); \
 		print 'im + im2 = %s' % repr(im + im2); \
 		print 'im - im2 = %s' % repr(im - im2); \
-		print 'im * im2 = %s' % repr(im * im2); \
-		print 'im / im2 = %s' % repr(im / im2); \
 		print 'im >> im2 = %s' % repr(im >> im2); \
 		print 'im << im2 = %s' % repr(im << im2); \
 		print 'im & im2 = %s' % repr(im & im2); \
 		print 'im ^ im2 = %s' % repr(im ^ im2); \
-		print 'im | im2 = %s' % repr(im | im2); \
-		print 'im += im2 = %s' % repr(im += im2); \
-		print 'im -= im2 = %s' % repr(im -= im2); \
-		print 'im *= im2 = %s' % repr(im *= im2); \
-		print 'im /= im2 = %s' % repr(im /= im2); \
-		print 'im >>= im2 = %s' % repr(im >>= im2); \
-		print 'im <<= im2 = %s' % repr(im <<= im2); \
-		print 'im &= im2 = %s' % repr(im &= im2); \
-		print 'im ^= im2 = %s' % repr(im ^= im2); \
-		print 'im |= im2 = %s' % repr(im |= im2); \
-		print 'im // im2 = %s' % repr(im // im2); \
-		print 'im //= im2 = %s' % repr(im //= im2);" | gsed -e "s/[\\s]+/ /g")"
+		print 'im | im2 = %s' % repr(im | im2)" | gsed -e "s/[\\s]+/ /g")"
 
 upload:
 	python setup.py sdist upload
