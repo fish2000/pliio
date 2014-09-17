@@ -290,8 +290,15 @@ namespace structcode {
                         cerr    << ">>> Native structcode symbol not found: "
                                 << code << "\n>>> Exception message: "
                                 << err.what() << "\n";
+                        try {
+                            dtypechar = structcodemaps::standard.at(code);
+                        } catch (const out_of_range &err) {
+                            cerr    << ">>> Subsequent standard symbol lookup failed: "
+                                    << code << "\n>>> Exception message: "
+                                    << err.what() << "\n";
+                        }
                         break;
-                    }
+                     }
                 } else {
                     try {
                         dtypechar = structcodemaps::standard.at(code);
@@ -299,6 +306,13 @@ namespace structcode {
                         cerr    << ">>> Standard structcode symbol not found: "
                                 << code << "\n>>> Exception message: "
                                 << err.what() << "\n";
+                        try {
+                            dtypechar = structcodemaps::native.at(code);
+                        } catch (const out_of_range &err) {
+                            cerr    << ">>> Subsequent native structcode symbol lookup failed: "
+                                    << code << "\n>>> Exception message: "
+                                    << err.what() << "\n";
+                        }
                         break;
                     }
                 }

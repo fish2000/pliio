@@ -114,7 +114,7 @@ Py_buffer get_pybuffer(const unsigned z=0, const bool readonly=true) const {
         static_cast<T*>(_data),     /// Input raw-data ptr
         raw_buffer_size,            /// Size of *_data in bytes 
         readonly ? 1 : 0,           /// Buffer is read-only by default
-        PyBUF_F_CONTIGUOUS);        /// I *think* CImg instances are fortran-style 
+        PyBUF_C_CONTIGUOUS);        /// I *think* CImg instances are fortran-style 
     
     if (was_buffer_filled < 0) {
         throw CImgArgumentException(_cimg_instance

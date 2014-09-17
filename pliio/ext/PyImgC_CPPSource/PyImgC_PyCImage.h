@@ -18,18 +18,13 @@
 #include <numpy/ndarrayobject.h>
 #include <numpy/ndarraytypes.h>
 #include "numpypp/numpy.hpp"
+#include "numpypp/typecode.hpp"
 #include "numpypp/dispatch.hpp"
 #include "numpypp/utils.hpp"
 using namespace std;
 
 #include "cimg/CImg.h"
 using namespace cimg_library;
-
-///PyCImage_BinaryOp
-// enum class BinaryOp;
-// enum class UnaryOp;
-// CImg_Base binary_op(PyCImage *self, PyCImage *other, BinaryOp op);
-// CImg_Base unary_op(PyCImage *self, UnaryOp op);
 
 struct PyCImage {
     PyObject_HEAD
@@ -85,10 +80,19 @@ public:
         if (checkdtype()) { return (unsigned int)dtype->type_num; }
         return 0;
     }
+    inline char typechar() {
+        if (checkdtype()) { return typecode::typechar(typecode()); }
+        return '?';
+    }
+    inline string typecode_name() {
+        if (checkdtype()) { return typecode::typecode_name(typecode()); }
+        return string("?");
+    }
+    
     
     inline CImg_Base *__base__() { return cimage.get(); }
     
-    inline unsigned short compare(PyCImage *other) {
+    inline signed short compare(PyCImage *other) {
         if (!dtype) {
             PyErr_SetString(PyExc_ValueError,
                 "Comparator object has no dtype");
@@ -103,7 +107,7 @@ public:
     }
     
     template <typename selfT>
-    inline unsigned short compare_with(PyCImage *other) {
+    inline signed short compare_with(PyCImage *other) {
         if (!other->dtype) {
             PyErr_SetString(PyExc_ValueError,
                 "Object to compare has no dtype");

@@ -98,15 +98,38 @@ checkext:
 		im2 = imgc.PyCImage(dtype=numpy.int32); \
 		im.cimg_load('${IMG}'); \
 		im2.cimg_load('${IMG}'); \
-		print im == im2" | gsed -e "s/[\\s]+/ /g")"
+		print 'im : %s' % repr(im); \
+		print 'im2: %s' % repr(im2); \
+		print 'im == im2 -> %s' % str(im == im2)" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking BINARY_OP() implementations...
 	bpython -c "$(shell echo "'';\
 		import numpy;\
 		from pliio import PyImgC as imgc; \
-		im = imgc.PyCImage('$(IMG)', dtype=numpy.uint8); \
-		im2 = imgc.PyCImage('$(IMG)', dtype=numpy.uint8); \
-		print 'im + im2 = %s' % repr(im + im2)" | gsed -e "s/[\\s]+/ /g")"
+		im = imgc.PyCImage('$(IMG)', dtype=numpy.int32); \
+		im2 = imgc.PyCImage('$(IMG)', dtype=numpy.int32); \
+		print 'im : %s' % repr(im); \
+		print 'im2: %s' % repr(im2); \
+		print 'im + im2 = %s' % repr(im + im2); \
+		print 'im - im2 = %s' % repr(im - im2); \
+		print 'im * im2 = %s' % repr(im * im2); \
+		print 'im / im2 = %s' % repr(im / im2); \
+		print 'im >> im2 = %s' % repr(im >> im2); \
+		print 'im << im2 = %s' % repr(im << im2); \
+		print 'im & im2 = %s' % repr(im & im2); \
+		print 'im ^ im2 = %s' % repr(im ^ im2); \
+		print 'im | im2 = %s' % repr(im | im2); \
+		print 'im += im2 = %s' % repr(im += im2); \
+		print 'im -= im2 = %s' % repr(im -= im2); \
+		print 'im *= im2 = %s' % repr(im *= im2); \
+		print 'im /= im2 = %s' % repr(im /= im2); \
+		print 'im >>= im2 = %s' % repr(im >>= im2); \
+		print 'im <<= im2 = %s' % repr(im <<= im2); \
+		print 'im &= im2 = %s' % repr(im &= im2); \
+		print 'im ^= im2 = %s' % repr(im ^= im2); \
+		print 'im |= im2 = %s' % repr(im |= im2); \
+		print 'im // im2 = %s' % repr(im // im2); \
+		print 'im //= im2 = %s' % repr(im //= im2);" | gsed -e "s/[\\s]+/ /g")"
 
 upload:
 	python setup.py sdist upload

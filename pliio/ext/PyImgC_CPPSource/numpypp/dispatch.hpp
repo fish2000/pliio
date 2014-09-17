@@ -162,7 +162,19 @@ typedef unsigned short ushort;
     catch (const PythonException& pe) { \
         PyErr_SetString(pe.type(), pe.message()); \
         return error_value; \
-    } catch (const std::bad_alloc&) { \
+    } catch (CImgArgumentException& ca) { \
+        PyErr_SetString("Bad arguments to the CImg library: %s", ca.what()); \
+        return error_value; \
+    } catch (CImgInstanceException& ca) { \
+        PyErr_SetString("CImg Library Instance Freakout: %s", ca.what()); \
+        return error_value; \
+    } catch (CImgIOException& ca) { \
+        PyErr_SetString("CImg I/O shit the bed: %s", ca.what()); \
+        return error_value; \
+    } catch (CImgWarningException& ca) { \
+        PyErr_SetString("WARNING! DANGER! CAUTION! %s", ca.what()); \
+        return error_value; \
+    } catch (const std::bad_alloc& ba) { \
         PyErr_NoMemory(); \
         return error_value; \
     }
