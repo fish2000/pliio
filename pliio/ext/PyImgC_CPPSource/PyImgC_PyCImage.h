@@ -25,6 +25,12 @@ using namespace std;
 #include "cimg/CImg.h"
 using namespace cimg_library;
 
+///PyCImage_BinaryOp
+// enum class BinaryOp;
+// enum class UnaryOp;
+// CImg_Base binary_op(PyCImage *self, PyCImage *other, BinaryOp op);
+// CImg_Base unary_op(PyCImage *self, UnaryOp op);
+
 struct PyCImage {
     PyObject_HEAD
     
@@ -80,6 +86,8 @@ public:
         return 0;
     }
     
+    inline CImg_Base *__base__() { return cimage.get(); }
+    
     inline unsigned short compare(PyCImage *other) {
         if (!dtype) {
             PyErr_SetString(PyExc_ValueError,
@@ -120,12 +128,14 @@ public:
         return dynamic_cast<CImg<T>*>(cimage.get());
     }
     
+    /*
     template <typename T>
     operator shared_ptr<CImg<T>>() const { return dynamic_pointer_cast<CImg<T>>(cimage); }
     template <typename T>
     operator CImg<T>() const { return cimage.get(); }
     template <typename T>
     operator CImg<T>&() { return *cimage.get(); }
+    */
     
     operator PyArray_Descr*() {
         if (checkdtype()) { Py_INCREF(dtype); return dtype; }

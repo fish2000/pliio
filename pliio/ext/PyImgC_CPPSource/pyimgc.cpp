@@ -15,9 +15,12 @@
 #include "PyImgC_Constants.h"
 #include "PyImgC_SharedDefs.h"
 #include "PyImgC_PyCImage.h"
-#include "PyImgC_IMP_CImageTest.h"
+#include "PyImgC_MathPower.h"
+#include "PyImgC_IMP_UnaryOps.h"
+#include "PyImgC_IMP_BinaryOps.h"
 #include "PyImgC_IMP_StructCodeParse.h"
 #include "PyImgC_IMP_PyBufferDict.h"
+#include "PyImgC_IMP_CImageTest.h"
 #include "PyImgC_IMP_Utils.h"
 
 using namespace cimg_library;
@@ -342,7 +345,6 @@ static PyObject *PyCImage_GetItem(PyCImage *pyim, register Py_ssize_t idx) {
     return NULL;
 }
 
-
 static int PyCImage_Compare(PyObject *smelf, PyObject *smother) {
     if (!smelf || !smother) {
         PyErr_SetString(PyExc_ValueError,
@@ -370,15 +372,129 @@ static int PyCImage_Compare(PyObject *smelf, PyObject *smother) {
 }
 
 
+/// Binary Op Macros
+PyCImage_BINARY_OP(ADD, BinaryOp::ADD)
+PyCImage_BINARY_OP(SUBTRACT, BinaryOp::SUBTRACT)
+PyCImage_BINARY_OP(MULTIPLY, BinaryOp::MULTIPLY)
+PyCImage_BINARY_OP(DIVIDE, BinaryOp::DIVIDE)
+PyCImage_BINARY_OP(REMAINDER, BinaryOp::REMAINDER)
+/*PyCImage_BINARY_OP(DIVMOD, BinaryOp::DIVMOD)*/
+PyCImage_BINARY_OP(POWER, BinaryOp::POWER)
+PyCImage_BINARY_OP(LSHIFT, BinaryOp::LSHIFT)
+PyCImage_BINARY_OP(RSHIFT, BinaryOp::RSHIFT)
+PyCImage_BINARY_OP(AND, BinaryOp::AND)
+PyCImage_BINARY_OP(XOR, BinaryOp::XOR)
+PyCImage_BINARY_OP(OR, BinaryOp::OR)
+
+PyCImage_BINARY_OP(INPLACE_ADD, BinaryOp::INPLACE_ADD)
+PyCImage_BINARY_OP(INPLACE_SUBTRACT, BinaryOp::INPLACE_SUBTRACT)
+PyCImage_BINARY_OP(INPLACE_MULTIPLY, BinaryOp::INPLACE_MULTIPLY)
+PyCImage_BINARY_OP(INPLACE_DIVIDE, BinaryOp::INPLACE_DIVIDE)
+PyCImage_BINARY_OP(INPLACE_REMAINDER, BinaryOp::INPLACE_REMAINDER)
+PyCImage_BINARY_OP(INPLACE_POWER, BinaryOp::INPLACE_POWER)
+PyCImage_BINARY_OP(INPLACE_LSHIFT, BinaryOp::INPLACE_LSHIFT)
+PyCImage_BINARY_OP(INPLACE_RSHIFT, BinaryOp::INPLACE_RSHIFT)
+PyCImage_BINARY_OP(INPLACE_AND, BinaryOp::INPLACE_AND)
+PyCImage_BINARY_OP(INPLACE_XOR, BinaryOp::INPLACE_XOR)
+PyCImage_BINARY_OP(INPLACE_OR, BinaryOp::INPLACE_OR)
+
+PyCImage_BINARY_OP(FLOOR_DIVIDE, BinaryOp::FLOOR_DIVIDE)
+PyCImage_BINARY_OP(TRUE_DIVIDE, BinaryOp::TRUE_DIVIDE)
+PyCImage_BINARY_OP(INPLACE_FLOOR_DIVIDE, BinaryOp::INPLACE_FLOOR_DIVIDE)
+PyCImage_BINARY_OP(INPLACE_TRUE_DIVIDE, BinaryOp::INPLACE_TRUE_DIVIDE)
+
+/// Unary Op Macros
+PyCImage_UNARY_OP(NEGATIVE, UnaryOp::NEGATIVE)
+PyCImage_UNARY_OP(POSITIVE, UnaryOp::POSITIVE)
+PyCImage_UNARY_OP(INVERT, UnaryOp::INVERT)
+PyCImage_UNARY_OP(ABSOLUTE, UnaryOp::ABSOLUTE)
+PyCImage_UNARY_OP(INT, UnaryOp::INT)
+PyCImage_UNARY_OP(LONG, UnaryOp::LONG)
+PyCImage_UNARY_OP(FLOAT, UnaryOp::FLOAT)
+PyCImage_UNARY_OP(INDEX, UnaryOp::INDEX)
+
+/*
+static PyObject *PyCImage_ADD(PyObject *smelf, PyObject *smother) {
+    if (!smelf || !smother) {
+        PyErr_SetString(PyExc_ValueError,
+            "Bad binary operation arguments");
+        return NULL;
+    }
+    PyCImage *self = reinterpret_cast<PyCImage *>(smelf);
+    PyCImage *other = reinterpret_cast<PyCImage *>(smother);
+    Py_INCREF(self);
+    Py_INCREF(other);
+    //Py_DECREF(self);
+    //Py_DECREF(other);
+#define HANDLE(type) { \
+        auto out_img = binary_op<type>(self, other, BinaryOp::ADD); \
+        self->assign(out_img); \
+        return reinterpret_cast<PyObject *>(self); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, NULL);
+#undef HANDLE
+    return NULL;
+}
+*/
+
+
+static PyNumberMethods PyCImage_NumberMethods = {
+    (binaryfunc)PyCImage_ADD,                   /* nb_add */
+    (binaryfunc)PyCImage_SUBTRACT,              /* nb_subtract */
+    (binaryfunc)PyCImage_MULTIPLY,              /* nb_multiply */
+    (binaryfunc)PyCImage_DIVIDE,                /* nb_divide */
+    (binaryfunc)PyCImage_REMAINDER,             /* nb_remainder */
+    0,                                          /* nb_divmod */
+    0, /*(ternaryfunc)PyCImage_POWER,*/         /* nb_power */
+    (unaryfunc)PyCImage_NEGATIVE,               /* nb_negative */
+    (unaryfunc)PyCImage_POSITIVE,               /* nb_positive */
+    (unaryfunc)PyCImage_ABSOLUTE,               /* nb_absolute */
+    0,                                          /* nb_nonzero */
+    (unaryfunc)PyCImage_INVERT,                 /* nb_invert */
+    (binaryfunc)PyCImage_LSHIFT,                /* nb_lshift */
+    (binaryfunc)PyCImage_RSHIFT,                /* nb_rshift */
+    (binaryfunc)PyCImage_AND,                   /* nb_and */
+    (binaryfunc)PyCImage_XOR,                   /* nb_xor */
+    (binaryfunc)PyCImage_OR,                    /* nb_or */
+    
+    0, /*(coercion)PyCImage_COERCE,*/           /* nb_coerce */
+    
+    (unaryfunc)PyCImage_INT,                    /* nb_int */
+    (unaryfunc)PyCImage_LONG,                   /* nb_long */
+    (unaryfunc)PyCImage_FLOAT,                  /* nb_float */
+    0,                                          /* nb_oct */
+    0,                                          /* nb_hex */
+    
+    (binaryfunc)PyCImage_INPLACE_ADD,           /* nb_inplace_add */
+    (binaryfunc)PyCImage_INPLACE_SUBTRACT,      /* nb_inplace_subtract */
+    (binaryfunc)PyCImage_INPLACE_MULTIPLY,      /* nb_inplace_multiply */
+    (binaryfunc)PyCImage_INPLACE_DIVIDE,        /* nb_inplace_divide */
+    (binaryfunc)PyCImage_INPLACE_REMAINDER,     /* nb_inplace_remainder */
+    0, /*(ternaryfunc)PyCImage_INPLACE_POWER,*/ /* nb_inplace_power */
+    (binaryfunc)PyCImage_INPLACE_LSHIFT,        /* nb_inplace_lshift */
+    (binaryfunc)PyCImage_INPLACE_RSHIFT,        /* nb_inplace_rshift */
+    (binaryfunc)PyCImage_INPLACE_AND,           /* nb_inplace_and */
+    (binaryfunc)PyCImage_INPLACE_XOR,           /* nb_inplace_xor */
+    (binaryfunc)PyCImage_INPLACE_OR,            /* nb_inplace_or */
+    
+    (binaryfunc)PyCImage_FLOOR_DIVIDE,          /* nb_floor_divide */
+    (binaryfunc)PyCImage_TRUE_DIVIDE,           /* nb_true_divide */
+    (binaryfunc)PyCImage_INPLACE_FLOOR_DIVIDE,  /* nb_inplace_floor_divide */
+    (binaryfunc)PyCImage_INPLACE_TRUE_DIVIDE,   /* nb_inplace_true_divide */
+
+    0,                                          /* nb_index */
+};
+
+
 static PySequenceMethods PyCImage_SequenceMethods = {
-    (lenfunc)PyCImage_Len,                      /*sq_length*/
-    0,                                          /*sq_concat*/
-    0,                                          /*sq_repeat*/
-    (ssizeargfunc)PyCImage_GetItem,             /*sq_item*/
-    0,                                          /*sq_slice*/
-    0,                                          /*sq_ass_item HAHAHAHA*/
-    0,                                          /*sq_ass_slice HEHEHE ASS <snort> HA*/
-    0                                           /*sq_contains*/
+    (lenfunc)PyCImage_Len,                      /* sq_length */
+    0,                                          /* sq_concat */
+    0,                                          /* sq_repeat */
+    (ssizeargfunc)PyCImage_GetItem,             /* sq_item */
+    0,                                          /* sq_slice */
+    0,                                          /* sq_ass_item HAHAHAHA */
+    0,                                          /* sq_ass_slice HEHEHE ASS <snort> HA */
+    0                                           /* sq_contains*/
 };
 
 static PyMethodDef PyCImage_methods[] = {
@@ -411,7 +527,7 @@ static PyTypeObject PyCImage_Type = {
     0,                                                          /* tp_setattr */
     (cmpfunc)PyCImage_Compare,                                  /* tp_compare */
     (reprfunc)PyCImage_Repr,                                    /* tp_repr */
-    0,                                                          /* tp_as_number */
+    &PyCImage_NumberMethods,                                    /* tp_as_number */
     &PyCImage_SequenceMethods,                                  /* tp_as_sequence */
     0,                                                          /* tp_as_mapping */
     0,                                                          /* tp_hash */
