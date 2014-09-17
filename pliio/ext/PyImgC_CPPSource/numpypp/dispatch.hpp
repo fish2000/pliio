@@ -160,19 +160,30 @@ typedef unsigned short ushort;
 
 #define CATCH_PYTHON_EXCEPTIONS(error_value) \
     catch (const PythonException& pe) { \
-        PyErr_SetString(pe.type(), pe.message()); \
+        PyErr_Format(PyExc_RuntimeError, \
+            "Python Exception: %s (%s)", \
+                static_cast<const char *>( \
+                    reinterpret_cast<PyTypeObject *>(pe.type())->tp_name), \
+                pe.message()); \
         return error_value; \
     } catch (CImgArgumentException& ca) { \
-        PyErr_SetString("Bad arguments to the CImg library: %s", ca.what()); \
+        PyErr_Format(PyExc_AttributeError, \
+            "Bad arguments to the CImg library: %s", \
+                ca.what()); \
         return error_value; \
     } catch (CImgInstanceException& ca) { \
-        PyErr_SetString("CImg Library Instance Freakout: %s", ca.what()); \
+        PyErr_Format(PyExc_ValueError, \
+            "CImg Library Instance Freakout: %s", \
+                ca.what()); \
         return error_value; \
     } catch (CImgIOException& ca) { \
-        PyErr_SetString("CImg I/O shit the bed: %s", ca.what()); \
+        PyErr_Format(PyExc_IOError, \
+            "CImg I/O shit the bed: %s", \
+                ca.what()); \
         return error_value; \
     } catch (CImgWarningException& ca) { \
-        PyErr_SetString("WARNING! DANGER! CAUTION! %s", ca.what()); \
+        PyErr_Format(PyExc_EnvironmentError, \
+            "WARNING! DANGER! CAUTION! %s", ca.what()); \
         return error_value; \
     } catch (const std::bad_alloc& ba) { \
         PyErr_NoMemory(); \
