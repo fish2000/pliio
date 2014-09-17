@@ -261,12 +261,13 @@ static PyGetSetDef PyCImage_getset[] = {
     SENTINEL
 };
 
+/*
 static int PyCImage_GetBuffer(PyCImage *pyim, Py_buffer &buf, int flags=0) {
     gil_release NOGIL;
     if (pyim->cimage && pyim->dtype) {
 #define HANDLE(type) {\
         auto cim = pyim->recast<type>(); \
-        buf = cim->get_pybuffer(); \
+        cim->get_pybuffer(buf); \
     }
     SAFE_SWITCH_ON_DTYPE(pyim->dtype, -1); 
 #undef HANDLE
@@ -274,6 +275,7 @@ static int PyCImage_GetBuffer(PyCImage *pyim, Py_buffer &buf, int flags=0) {
     }
     return -1;
 }
+*/
 
 static PyObject *PyCImage_Repr(PyCImage *pyim) {
     if (!pyim->cimage) { PyString_FromString("<PyCImage (empty backing stores)>"); }
@@ -486,41 +488,41 @@ static PySequenceMethods PyCImage_SequenceMethods = {
 };
 
 static int PyCImage_GetBuffer(PyObject *self, Py_buffer *view, int flags) {
+    gil_release NOGIL;
     PyCImage *pyim = reinterpret_cast<PyCImage *>(self);
     if (pyim->cimage && pyim->dtype) {
 #define HANDLE(type) { \
         auto cim = pyim->recast<type>(); \
-        auto buf = cim->get_pybuffer(); \
-        view = &buf; \
+        cim->get_pybuffer(view); \
     }
     SAFE_SWITCH_ON_DTYPE(pyim->dtype, -1);
 #undef HANDLE
     }
-    return 0; /// OK
+    view->obj = self;
+    return 0;
 }
 
 static void PyCImage_ReleaseBuffer(PyObject *self, Py_buffer *view) {
-    //PyCImage *pyim = reinterpret_cast<PyCImage *>(self);
     PyBuffer_Release(view);
 }
 
-// static PyBufferProcs PyCImage_Buffer3000Methods = {
-//     0, /*(readbufferproc)*/
-//     0, /*(writebufferproc)*/
-//     0, /*(segcountproc)*/
-//     (getbufferproc)PyCImage_GetBuffer,
-//     (releasebufferproc)PyCImage_ReleaseBuffer,
-// };
-
-
-static PyBufferProcs PyCImage_AllBufferMethods = {
+static PyBufferProcs PyCImage_Buffer3000Methods = {
     0, /*(readbufferproc)*/
     0, /*(writebufferproc)*/
     0, /*(segcountproc)*/
-    0, /*(charbufferproc)*/
+    0,
     (getbufferproc)PyCImage_GetBuffer,
     (releasebufferproc)PyCImage_ReleaseBuffer,
 };
+
+// static PyBufferProcs PyCImage_AllBufferMethods = {
+//     0, /*(readbufferproc)*/
+//     0, /*(writebufferproc)*/
+//     0, /*(segcountproc)*/
+//     0, /*(charbufferproc)*/
+//     (getbufferproc)PyCImage_GetBuffer,
+//     (releasebufferproc)PyCImage_ReleaseBuffer,
+// };
 
 static PyMethodDef PyCImage_methods[] = {
     {
@@ -530,19 +532,19 @@ static PyMethodDef PyCImage_methods[] = {
             "Load image data (using CImg.h load methods)"},
     {
         "buffer_info",
-            (PyCFunction)PyImgC_PyBufferDict,
+            (PyCFunction)PyCImage_PyBufferDict,
             METH_VARARGS | METH_KEYWORDS,
             "Get buffer info dict"},
     SENTINEL
 };
 
-static Py_ssize_t PyCImage_TypeFlags_Buffer = Py_TPFLAGS_DEFAULT |
-    Py_TPFLAGS_BASETYPE |
-    Py_TPFLAGS_HAVE_GETCHARBUFFER |
-    Py_TPFLAGS_HAVE_NEWBUFFER |
-    Py_TPFLAGS_HAVE_INPLACEOPS;
+// static Py_ssize_t PyCImage_TypeFlags_Buffer = Py_TPFLAGS_DEFAULT |
+//     Py_TPFLAGS_BASETYPE |
+//     Py_TPFLAGS_HAVE_GETCHARBUFFER |
+//     Py_TPFLAGS_HAVE_NEWBUFFER |
+//     Py_TPFLAGS_HAVE_INPLACEOPS;
 
-//static Py_ssize_t PyCImage_TypeFlags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_INPLACEOPS;
+static Py_ssize_t PyCImage_TypeFlags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_INPLACEOPS | Py_TPFLAGS_HAVE_NEWBUFFER;
 
 static PyTypeObject PyCImage_Type = {
     PyObject_HEAD_INIT(NULL)
@@ -564,8 +566,8 @@ static PyTypeObject PyCImage_Type = {
     (reprfunc)PyCImage_Str,                                     /* tp_str */
     0,                                                          /* tp_getattro */
     0,                                                          /* tp_setattro */
-    &PyCImage_AllBufferMethods,                                 /* tp_as_buffer */
-    PyCImage_TypeFlags_Buffer,                                  /* tp_flags*/
+    &PyCImage_Buffer3000Methods,                                /* tp_as_buffer */
+    PyCImage_TypeFlags,                                         /* tp_flags*/
     "PyImgC object wrapper for CImg instances",                 /* tp_doc */
     0,                                                          /* tp_traverse */
     0,                                                          /* tp_clear */

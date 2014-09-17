@@ -8,17 +8,20 @@ static PyObject *structcode_to_dtype_code(const char *code); /// FOREWARD!
 
 static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffer_dict = PyDict_New();
-    PyObject *buffer = self, *parse_format_arg = PyInt_FromLong((long)1);
+    PyObject *buffer = NULL, *parse_format_arg = PyInt_FromLong((long)1);
     static char *keywords[] = { "buffer", "parse_format", None };
 
     if (!PyArg_ParseTupleAndKeywords(
-        args, kwargs, "|OO",
+        args, kwargs, "O|O",
         keywords,
         &buffer, &parse_format_arg)) {
             PyErr_SetString(PyExc_ValueError,
                 "cannot get Py_buffer (bad argument)");
             return NULL;
     }
+
+    // IMGC_COUT("> parse_format_arg = " << PyString_AS_STRING(PyObject_Str(parse_format_arg)));
+    // IMGC_COUT("> parse_format_arg IS TRUE? = " << PyObject_IsTrue(parse_format_arg));
 
     if (PyObject_CheckBuffer(buffer)) {
         /// buffer3000
@@ -31,12 +34,19 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
                 return NULL;
             }
         }
-
+        
+        IMGC_COUT("> STRUCTCODE in INFODICT FUNCTION: " << buf.format);
+        IMGC_COUT("> RAW BUFFER SIZE: " << buf.len);
+        
+        // IMGC_COUT("> buf.len: " << buf.len);
+        
         if (buf.len) {
             PyDict_SetItemString(buffer_dict, "len", PyInt_FromSsize_t(buf.len));
         } else {
             PyDict_SetItemString(buffer_dict, "len", PyGetNone);
         }
+        
+        // IMGC_COUT("> buf.readonly: " << buf.readonly);
 
         if (buf.readonly) {
             PyDict_SetItemString(buffer_dict, "readonly", PyBool_FromLong((long)buf.readonly));
@@ -115,6 +125,25 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
         "no buffer info for %.200s instance (no buffer API supported)",
         buffer->ob_type->tp_name);
     return NULL;
+}
+
+static PyObject *PyCImage_PyBufferDict(PyObject *self, PyObject *args, PyObject *kwargs) {
+    PyObject *parse_format_arg = PyInt_FromLong((long)1);
+    static char *keywords[] = { "parse_format", None };
+
+    if (!PyArg_ParseTupleAndKeywords(
+        args, kwargs, "|O",
+        keywords,
+        &parse_format_arg)) {
+            PyErr_SetString(PyExc_ValueError,
+                "bad arguments");
+            return NULL;
+    }
+    
+    PyObject *imgc = PyImport_ImportModuleNoBlock("pliio.PyImgC");
+    PyObject *buffer_info = PyObject_GetAttrString(imgc, "buffer_info");
+    return PyObject_CallFunction(buffer_info, "(OO)",
+                                 self, parse_format_arg, NULL);
 }
 
 #endif /// PyImgC_IMP_PYBUFFERDICT_H
