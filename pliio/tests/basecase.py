@@ -2,7 +2,7 @@
 from unittest2 import TestCase
 
 import numpy, sys
-from pprint import pprint, pformat
+from pprint import pprint
 from imread import imread
 from pliio import PyImgC as imgc
 
@@ -15,7 +15,7 @@ class BaseCase(TestCase):
         self.image_paths = map(
             lambda nm: expanduser(join('~fish', 'Downloads', nm)), filter(
                 lambda nm: nm.lower().endswith('jpg'),
-                    listdir(abspath(expanduser(join('~fish', 'Downloads'))))))
+                    listdir(abspath(expanduser(join('~fish', 'Downloads'))))))[:10]
         self.imgc = map(
             lambda image_path: imgc.PyCImage(image_path,
                 dtype=numpy.uint8), self.image_paths)

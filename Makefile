@@ -5,6 +5,8 @@ distclean: clean-all-pyc clean-so clean-build-artifacts
 
 ext: distclean buildext test checkext
 
+prepare: distclean build test
+
 dist: ext upload
 
 clean-pyc:
@@ -21,6 +23,9 @@ clean-build-artifacts:
 
 buildext:
 	DEBUG=3 python setup.py build_ext --inplace
+
+build:
+	DEBUG=0 python setup.py build_ext --inplace
 
 test:
 	DEBUG=3 NOSE_REDNOSE=1 python runtests.py

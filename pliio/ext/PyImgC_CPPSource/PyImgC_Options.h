@@ -23,5 +23,6 @@
 #define cimg_plugin1 "../cimg_common.h"
 #define cimg_plugin2 "../cimg_numpy.h"
 #define cimg_plugin3 "../cimg_pybuffer.h"
+#define cimg_plugin4 "../cimg_NSBitmapImageRep.h"
 
 #endif /// PyImgC_OPTIONS_H
