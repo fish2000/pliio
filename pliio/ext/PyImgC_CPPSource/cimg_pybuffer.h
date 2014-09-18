@@ -15,19 +15,19 @@ bool not_structcode_of(const Py_buffer *const pybuffer) const {
 // Py_buffer-to-CImg conversion
 //----------------------------
 /// Copy constructor
-CImg(const Py_buffer *const pybuffer):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+CImg(const Py_buffer *const pybuffer):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(true),_data(0) {
     assign(pybuffer);
 }
 /// Copy constructor with width and height specified
-CImg(const Py_buffer *const pybuffer, const int width = 0, const int height = 0):_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+CImg(const Py_buffer *const pybuffer, const int width = 0, const int height = 0):_depth(0),_spectrum(0),_is_shared(true),_data(0) {
     assign(pybuffer, width, height);
 }
 
-CImg(Py_buffer *pybuffer):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+CImg(Py_buffer *pybuffer):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(true),_data(0) {
     assign(const_cast<Py_buffer *>(pybuffer));
 }
 /// Copy constructor with width and height specified
-CImg(Py_buffer *pybuffer, int width = 0, int height = 0):_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+CImg(Py_buffer *pybuffer, int width = 0, int height = 0):_depth(0),_spectrum(0),_is_shared(true),_data(0) {
     assign(
         const_cast<Py_buffer *>(pybuffer),
         const_cast<int&>(width),
@@ -70,7 +70,7 @@ CImg<T> &assign(const Py_buffer *const pybuffer, const int width = 0, const int 
     assign(dataPtrI,
         const_cast<int&>(W),
         const_cast<int&>(H), 1,
-        const_cast<int&>(nChannels));
+        const_cast<int&>(nChannels), true);
     
     PyBuffer_Release(
         const_cast<Py_buffer *>(pybuffer));

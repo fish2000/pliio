@@ -16,4 +16,4 @@ plotdevice_image_io.egg-info/
 build/
 dist/
 sdist/
-
+thirdparty/

@@ -81,7 +81,7 @@ CImg<T> &assign(const PyArrayObject *const pyarray, const int width = 0, const i
         PyArray_BYTES(const_cast<PyArrayObject *>(pyarray)));
     const int nChannels = (int)PyArray_DIM(pyarray, 2);
 
-    assign(dataPtrI, W, H, 1, nChannels);
+    assign(dataPtrI, W, H, 1, nChannels, true);
     Py_INCREF(pyarray);
     return *this;
 }

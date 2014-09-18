@@ -35,10 +35,9 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
             }
         }
         
-        IMGC_COUT("> STRUCTCODE in INFODICT FUNCTION: " << buf.format);
-        IMGC_COUT("> RAW BUFFER SIZE: " << buf.len);
-        
-        // IMGC_COUT("> buf.len: " << buf.len);
+        // IMGC_COUT("> STRUCTCODE in INFODICT FUNCTION: " << buf.format);
+        // IMGC_COUT("> RAW BUFFER SIZE: " << buf.len);
+        // IMGC_COUT("> buf.readonly: " << buf.readonly);
         
         if (buf.len) {
             PyDict_SetItemString(buffer_dict, "len", PyInt_FromSsize_t(buf.len));
@@ -46,7 +45,6 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
             PyDict_SetItemString(buffer_dict, "len", PyGetNone);
         }
         
-        // IMGC_COUT("> buf.readonly: " << buf.readonly);
 
         if (buf.readonly) {
             PyDict_SetItemString(buffer_dict, "readonly", PyBool_FromLong((long)buf.readonly));

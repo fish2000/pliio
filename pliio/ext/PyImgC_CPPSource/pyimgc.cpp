@@ -54,18 +54,18 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
     /// deal with dtype
     if (!self->dtype) {
         if (!dtype) {
-            IMGC_CERR("- PyCImage.cimg_load(): NO DTYPE FOUND (creating default)");
+            //IMGC_CERR("- PyCImage.cimg_load(): NO DTYPE FOUND (creating default)");
             self->dtype = dtype = numpy::dtype_struct<IMGC_DEFAULT_T>();
         } else {
-            IMGC_CERR("- PyCImage.cimg_load(): Member dtype missing (copying from args)");
+            //IMGC_CERR("- PyCImage.cimg_load(): Member dtype missing (copying from args)");
             self->dtype = dtype;
         }
     } else {
-        IMGC_CERR("> PyCImage.cimg_load(): "
-               << "Member dtype found: "
-               << self->typecode_name()
-               << " (>" << self->typechar()
-               << ", #" << self->typecode() << ")");
+        // IMGC_CERR("> PyCImage.cimg_load(): "
+        //        << "Member dtype found: "
+        //        << self->typecode_name()
+        //        << " (>" << self->typechar()
+        //        << ", #" << self->typecode() << ")");
     }
     
     /// load that shit, dogg
@@ -136,13 +136,14 @@ static PyObject *PyCImage_Repr(PyCImage *pyim);
 
 static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffer = NULL;
-    Py_ssize_t nin = -1, offset = 0;
-    static char *kwlist[] = { "buffer", "dtype", "count", "offset", NULL };
-    PyArray_Descr *dtype = NULL;
+    Py_ssize_t nin = -1, offset = 0, raise_errors = 1;
+    static char *kwlist[] = { "buffer", "dtype", "count", "offset", "raise_errors", NULL };
+    PyArray_Descr *dtype = PyArray_DescrFromType(IMGC_DEFAULT_TYPECODE);
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                "|OO&nn:dtype", kwlist,
-                &buffer, PyArray_DescrConverter, &dtype, &nin, &offset)) {
+                "|OO&nnn:dtype", kwlist,
+                &buffer, PyArray_DescrConverter, &dtype,
+                &nin, &offset, &raise_errors)) {
             PyErr_SetString(PyExc_ValueError,
                 "cannot initialize PyCImage (bad argument tuple)");
         return -1;
@@ -209,10 +210,14 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
             PyString_FromString("cimg_load"),
             buffer, self->dtype, NULL);
         if (out == NULL) {
-            PyErr_Format(PyExc_ValueError,
-                "CImg failed to load from path: %s",
-                PyString_AS_STRING(buffer));
-            return -1;
+            if (raise_errors) {
+                PyErr_Format(PyExc_ValueError,
+                    "CImg failed to load from path: %s",
+                    PyString_AS_STRING(buffer));
+                return -1;
+            } else {
+                /// warnings? dunno
+            }
         }
         return 0;
     }
@@ -238,6 +243,7 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
 static void PyCImage_dealloc(PyCImage *self) {
     Py_XDECREF(self->dtype);
     self->ob_type->tp_free((PyObject *)self);
+    self->cleanup();
 }
 
 static PyObject     *PyCImage_GET_dtype(PyCImage *self, void *closure) {
@@ -498,7 +504,7 @@ static int PyCImage_GetBuffer(PyObject *self, Py_buffer *view, int flags) {
     SAFE_SWITCH_ON_DTYPE(pyim->dtype, -1);
 #undef HANDLE
     }
-    view->obj = self;
+    //view->obj = self;
     return 0;
 }
 

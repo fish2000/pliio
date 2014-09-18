@@ -74,6 +74,10 @@ public:
         dtype = recast<T>()->typestruct();
     }
     
+    void cleanup() {
+        if (checkptr()) { cimage.reset(); }
+    }
+    
     inline bool checkptr() { return cimage.get() != nullptr; }
     inline bool checkdtype() { return dtype != NULL && PyArray_DescrCheck(dtype); }
     inline unsigned int typecode() {
@@ -88,7 +92,6 @@ public:
         if (checkdtype()) { return typecode::typecode_name(typecode()); }
         return string("?");
     }
-    
     
     inline CImg_Base *__base__() { return cimage.get(); }
     
@@ -132,15 +135,6 @@ public:
         if (!checkptr()) { return nullptr; }
         return dynamic_cast<CImg<T>*>(cimage.get());
     }
-    
-    /*
-    template <typename T>
-    operator shared_ptr<CImg<T>>() const { return dynamic_pointer_cast<CImg<T>>(cimage); }
-    template <typename T>
-    operator CImg<T>() const { return cimage.get(); }
-    template <typename T>
-    operator CImg<T>&() { return *cimage.get(); }
-    */
     
     operator PyArray_Descr*() {
         if (checkdtype()) { Py_INCREF(dtype); return dtype; }

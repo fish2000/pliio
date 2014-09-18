@@ -1,0 +1,205 @@
+> PyCImage.cimg_load(): Member dtype found: NPY_UBYTE (>B, #2)
+> parse_format_arg = 1
+> parse_format_arg IS TRUE? = 1
+> STRUCTCODE in BUFFER FORMAT: B
+> RAW BUFFER SIZE: 2127000
+> CIMAGE SIZE: 2127000
+> CIMAGE SIZE*sizeof(T): 2127000
+make: *** [checkext] Bus error: 10
+
+> PyCImage.cimg_load(): Member dtype found: NPY_UBYTE (>B, #2)
+> parse_format_arg = 1
+> parse_format_arg IS TRUE? = 1
+> STRUCTCODE in BUFFER FORMAT: B
+> RAW BUFFER SIZE: 2127000
+> CIMAGE SIZE: 2127000
+> CIMAGE SIZE*sizeof(T): 2127000
+> buf.len: 140735149634592
+> buf.readonly: 1573785168
+make: *** [checkext] Segmentation fault: 11
+
+> PyCImage.cimg_load(): Member dtype found: NPY_UBYTE (>B, #2)
+> parse_format_arg = 1
+> parse_format_arg IS TRUE? = 1
+> STRUCTCODE in BUFFER FORMAT: B
+> RAW BUFFER SIZE: 2127000
+> CIMAGE SIZE: 2127000
+> CIMAGE SIZE*sizeof(T): 2127000
+> buf.len: 140735149634592
+> buf.readonly: 1520516688
+make: *** [checkext] Segmentation fault: 11
+
+> PyCImage.cimg_load(): Member dtype found: NPY_UBYTE (>B, #2)
+> parse_format_arg = 1
+> parse_format_arg IS TRUE? = 1
+> STRUCTCODE in BUFFER FORMAT: B
+> RAW BUFFER SIZE: 2127000
+> CIMAGE SIZE: 2127000
+> CIMAGE SIZE*sizeof(T): 2127000
+> buf.len: 140735149634592
+> buf.readonly: 1601752656
+make: *** [checkext] Segmentation fault: 11
+
+
+
+Thread 0 Crashed:: Dispatch queue: com.apple.main-thread
+0   PyImgC.so                     	0x000000010a78ccc9 cimg_library::CImg<unsigned char> binary_op_RHS<cimg_library::CImg<unsigned char> >(PyCImage*, PyCImage*, BinaryOp) + 41 (PyImgC_MathPower.h:148)
+1   PyImgC.so                     	0x000000010a80051e cimg_library::CImg<unsigned char> binary_op_LHS<cimg_library::CImg<unsigned char> >(PyCImage*, PyCImage*, BinaryOp) + 302 (PyImgC_MathPower.h:172)
+2   PyImgC.so                     	0x000000010a6ebc30 PyCImage_INPLACE_ADD(_object*, _object*) + 304 (pyimgc.cpp:400)
+3   org.python.python             	0x0000000108205a67 binary_iop1 + 61
+4   org.python.python             	0x0000000108205988 PyNumber_InPlaceAdd + 28
+5   org.python.python             	0x0000000108282ea3 PyEval_EvalFrameEx + 9887
+6   org.python.python             	0x0000000108280673 PyEval_EvalCodeEx + 1608
+7   org.python.python             	0x000000010828484a PyEval_EvalFrameEx + 16454
+8   org.python.python             	0x0000000108280673 PyEval_EvalCodeEx + 1608
+9   org.python.python             	0x0000000108286d38 fast_function + 295
+10  org.python.python             	0x00000001082837e5 PyEval_EvalFrameEx + 12257
+11  org.python.python             	0x0000000108280673 PyEval_EvalCodeEx + 1608
+12  org.python.python             	0x000000010822531f function_call + 349
+13  org.python.python             	0x00000001082073ef PyObject_Call + 99
+14  org.python.python             	0x000000010821214b instancemethod_call + 174
+15  org.python.python             	0x00000001082073ef PyObject_Call + 99
+16  org.python.python             	0x0000000108283b7b PyEval_EvalFrameEx + 13175
+17  org.python.python             	0x0000000108280673 PyEval_EvalCodeEx + 1608
+18  org.python.python             	0x0000000108286d38 fast_function + 295
+19  org.python.python             	0x00000001082837e5 PyEval_EvalFrameEx + 12257
+20  org.python.python             	0x0000000108280673 PyEval_EvalCodeEx + 1608
+21  org.python.python             	0x000000010822531f function_call + 349
+22  org.python.python             	0x00000001082073ef PyObject_Call + 99
+23  org.python.python             	0x000000010821214b instancemethod_call + 174
+24  org.python.python             	0x00000001082073ef PyObject_Call + 99
+25  org.python.python             	0x0000000108283b7b PyEval_EvalFrameEx + 13175
+26  org.python.python             	0x0000000108280673 PyEval_EvalCodeEx + 1608
+27  org.python.python             	0x0000000108286d38 fast_function + 295
+28  org.python.python             	0x00000001082837e5 PyEval_EvalFrameEx + 12257
+29  org.python.python             	0x0000000108280673 PyEval_EvalCodeEx + 1608
+30  org.python.python             	0x0000000108286d38 fast_function + 295
+31  org.python.python             	0x00000001082837e5 PyEval_EvalFrameEx + 12257
+32  org.python.python             	0x0000000108280673 PyEval_EvalCodeEx + 1608
+33  org.python.python             	0x000000010822531f function_call + 349
+34  org.python.python             	0x00000001082073ef PyObject_Call + 99
+35  org.python.python             	0x00000001082834e9 PyEval_EvalFrameEx + 11493
+36  org.python.python             	0x0000000108280673 PyEval_EvalCodeEx + 1608
+37  org.python.python             	0x0000000108286d38 fast_function + 295
+38  org.python.python             	0x00000001082837e5 PyEval_EvalFrameEx + 12257
+39  org.python.python             	0x0000000108280673 PyEval_EvalCodeEx + 1608
+40  org.python.python             	0x0000000108286d38 fast_function + 295
+41  org.python.python             	0x00000001082837e5 PyEval_EvalFrameEx + 12257
+42  org.python.python             	0x0000000108280673 PyEval_EvalCodeEx + 1608
+43  org.python.python             	0x0000000108280025 PyEval_EvalCode + 54
+44  org.python.python             	0x000000010829feba run_mod + 53
+45  org.python.python             	0x000000010829ff5d PyRun_FileExFlags + 133
+46  org.python.python             	0x000000010829fafa PyRun_SimpleFileExFlags + 769
+47  org.python.python             	0x00000001082b104e Py_Main + 2970
+48  libdyld.dylib                 	0x00007fff8f3cd5fd start + 1
+
+
+Crashed Thread:  0  Dispatch queue: com.apple.main-thread
+
+Exception Type:  EXC_CRASH (SIGABRT)
+Exception Codes: 0x0000000000000000, 0x0000000000000000
+
+Application Specific Information:
+abort() called
+terminating with uncaught exception of type cimg_library::CImgArgumentException: [instance(1000,709,1,3,0x108719000,non-shared)] CImg<unsigned char>::operator*(): Invalid multiplication of instance by specified matrix (1000,709,1,3,0x108921000)
+
+Thread 0 Crashed:: Dispatch queue: com.apple.main-thread
+0   libsystem_kernel.dylib        	0x00007fff89160866 __pthread_kill + 10
+1   libsystem_pthread.dylib       	0x00007fff95f5b35c pthread_kill + 92
+2   libsystem_c.dylib             	0x00007fff94d0fb1a abort + 125
+3   libc++abi.dylib               	0x00007fff92eb5f31 abort_message + 257
+4   libc++abi.dylib               	0x00007fff92edb93a default_terminate_handler() + 240
+5   libobjc.A.dylib               	0x00007fff94dbc322 _objc_terminate() + 124
+6   libc++abi.dylib               	0x00007fff92ed91d1 std::__terminate(void (*)()) + 8
+7   libc++abi.dylib               	0x00007fff92ed8c5b __cxa_throw + 124
+8   PyImgC.so                     	0x00000001072cbf24 cimg_library::CImg<cimg_library::cimg::superset<unsigned char, unsigned char>::type> cimg_library::CImg<unsigned char>::operator*<unsigned char>(cimg_library::CImg<unsigned char> const&) const + 484 (CImg.h:10771)
+9   PyImgC.so                     	0x0000000107274548 cimg_library::CImg<unsigned char> binary_op_RHS<cimg_library::CImg<unsigned char> >(PyCImage*, PyCImage*, BinaryOp) + 12280 (PyImgC_MathPower.h:148)
+10  PyImgC.so                     	0x00000001072e3aee cimg_library::CImg<unsigned char> binary_op_LHS<cimg_library::CImg<unsigned char> >(PyCImage*, PyCImage*, BinaryOp) + 302 (PyImgC_MathPower.h:172)
+11  PyImgC.so                     	0x00000001071c9e30 PyCImage_MULTIPLY(_object*, _object*) + 304 (pyimgc.cpp:389)
+12  org.python.python             	0x0000000104b201d3 binary_op1 + 397
+13  org.python.python             	0x0000000104b2026b PyNumber_Multiply + 27
+14  org.python.python             	0x0000000104b9c743 PyEval_EvalFrameEx + 3903
+15  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+16  org.python.python             	0x0000000104b9f84a PyEval_EvalFrameEx + 16454
+17  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+18  org.python.python             	0x0000000104ba1d38 fast_function + 295
+19  org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+20  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+21  org.python.python             	0x0000000104ba1d38 fast_function + 295
+22  org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+23  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+24  org.python.python             	0x0000000104ba1d38 fast_function + 295
+25  org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+26  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+27  org.python.python             	0x0000000104ba1d38 fast_function + 295
+28  org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+29  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+30  org.python.python             	0x0000000104ba1d38 fast_function + 295
+31  org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+32  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+33  org.python.python             	0x0000000104ba1d38 fast_function + 295
+34  org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+35  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+36  org.python.python             	0x0000000104b4031f function_call + 349
+37  org.python.python             	0x0000000104b223ef PyObject_Call + 99
+38  org.python.python             	0x0000000104b9e4e9 PyEval_EvalFrameEx + 11493
+39  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+40  org.python.python             	0x0000000104ba1d38 fast_function + 295
+41  org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+42  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+43  org.python.python             	0x0000000104b9b025 PyEval_EvalCode + 54
+44  org.python.python             	0x0000000104bbaeba run_mod + 53
+45  org.python.python             	0x0000000104bbaf5d PyRun_FileExFlags + 133
+46  org.python.python             	0x0000000104bbaafa PyRun_SimpleFileExFlags + 769
+47  org.python.python             	0x0000000104bcc04e Py_Main + 2970
+48  libdyld.dylib                 	0x00007fff957fa5fd start + 1
+
+Thread 1:
+0   libsystem_kernel.dylib        	0x00007fff89160716 __psynch_cvwait + 10
+1   libsystem_pthread.dylib       	0x00007fff95f5cc3b _pthread_cond_wait + 727
+2   org.python.python             	0x0000000104bca27b PyThread_acquire_lock + 135
+3   org.python.python             	0x0000000104b9ad7e PyEval_RestoreThread + 62
+4   org.python.python             	0x0000000104bcd995 lock_PyThread_acquire_lock + 82
+5   org.python.python             	0x0000000104b9d64b PyEval_EvalFrameEx + 7751
+6   org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+7   org.python.python             	0x0000000104ba1d38 fast_function + 295
+8   org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+9   org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+10  org.python.python             	0x0000000104ba1d38 fast_function + 295
+11  org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+12  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+13  org.python.python             	0x0000000104b4031f function_call + 349
+14  org.python.python             	0x0000000104b223ef PyObject_Call + 99
+15  org.python.python             	0x0000000104b9e4e9 PyEval_EvalFrameEx + 11493
+16  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+17  org.python.python             	0x0000000104ba1d38 fast_function + 295
+18  org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+19  org.python.python             	0x0000000104ba1cd1 fast_function + 192
+20  org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+21  org.python.python             	0x0000000104ba1cd1 fast_function + 192
+22  org.python.python             	0x0000000104b9e7e5 PyEval_EvalFrameEx + 12257
+23  org.python.python             	0x0000000104b9b673 PyEval_EvalCodeEx + 1608
+24  org.python.python             	0x0000000104b4031f function_call + 349
+25  org.python.python             	0x0000000104b223ef PyObject_Call + 99
+26  org.python.python             	0x0000000104b2d14b instancemethod_call + 174
+27  org.python.python             	0x0000000104b223ef PyObject_Call + 99
+28  org.python.python             	0x0000000104ba1477 PyEval_CallObjectWithKeywords + 93
+29  org.python.python             	0x0000000104bcddd3 t_bootstrap + 70
+30  libsystem_pthread.dylib       	0x00007fff95f5a899 _pthread_body + 138
+31  libsystem_pthread.dylib       	0x00007fff95f5a72a _pthread_start + 137
+32  libsystem_pthread.dylib       	0x00007fff95f5efc9 thread_start + 13
+
+
+
+		#print 'im * im2 = %s' % repr(im * im2); \	CImg does actual matrix-multiplication (!)
+		#print 'im / im2 = %s' % repr(im / im2); \  ... so these need to be squaresies
+		#print 'im += im2 = %s' % repr(im += im2); \
+		#print 'im -= im2 = %s' % repr(im -= im2); \
+		#print 'im *= im2 = %s' % repr(im *= im2); \
+		#print 'im /= im2 = %s' % repr(im /= im2); \
+		#print 'im >>= im2 = %s' % repr(im >>= im2); \
+		#print 'im <<= im2 = %s' % repr(im <<= im2); \
+		#print 'im &= im2 = %s' % repr(im &= im2); \
+		#print 'im ^= im2 = %s' % repr(im ^= im2); \
+		#print 'im |= im2 = %s' % repr(im |= im2); \
+		#print 'im // im2 = %s' % repr(im // im2); \

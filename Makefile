@@ -3,7 +3,7 @@ clean: clean-pyc clean-cython
 
 distclean: clean-all-pyc clean-so clean-build-artifacts
 
-ext: distclean buildext checkext
+ext: distclean buildext test checkext
 
 dist: ext upload
 
@@ -21,6 +21,10 @@ clean-build-artifacts:
 
 buildext:
 	DEBUG=3 python setup.py build_ext --inplace
+
+test:
+	DEBUG=3 NOSE_REDNOSE=1 python runtests.py
+	#DEBUG=3 NOSE_REDNOSE=1 nosetests --verbose
 
 #IMG = "/Users/fish/Downloads/tumblr_mgq73sTl6z1qb9r7fo1_r1_500.jpg"
 #IMG = "/Users/fish/Downloads/___17ZYXH2.jpg"
