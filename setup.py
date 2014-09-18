@@ -246,6 +246,9 @@ ext_modules = [
         undef_macros=undef_macros,
         define_macros=define_macros,
         language='c++',
+        extra_link_args=[
+            '-framework', 'AppKit',
+            '-framework', 'Foundation'],
         extra_compile_args=[
             '-O2',
             '-std=c++11',
@@ -256,7 +259,6 @@ ext_modules = [
             '-Wno-dynamic-class-memaccess', # WARNING WARNING etc
             '-Wno-deprecated-register', # CImg w/OpenEXR throws these
             '-Wno-deprecated-writable-strings',
-            #'-ferror-limit=-1',
             '-Qunused-arguments',
         ]) for key, sources in extensions.items()]
 

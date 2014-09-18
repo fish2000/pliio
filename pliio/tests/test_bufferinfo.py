@@ -10,7 +10,7 @@ from pliio import PyImgC as imgc
 
 class StructCodeTests(BaseCase):
     
-    def _test_bufferinfo_PyCImage(self):
+    def test_bufferinfo_PyCImage(self):
         for im in self.imgc:
             print(pformat(
                 im.buffer_info(), indent=4), file=sys.stderr)
