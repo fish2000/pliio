@@ -12,11 +12,8 @@ class StructCodeTests(BaseCase):
     
     def test_bufferinfo_PyCImage(self):
         for im in self.imgc:
-            print(pformat(
-                im.buffer_info(), indent=4), file=sys.stderr)
+            im.buffer_info()
     
     def test_bufferinfo_modulefunc_imread(self):
         for im in self.imread:
-            print(pformat(
-                imgc.buffer_info(im),
-                indent=4), file=sys.stderr)
+            imgc.buffer_info(im)

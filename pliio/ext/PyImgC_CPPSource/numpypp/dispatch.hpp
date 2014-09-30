@@ -152,7 +152,7 @@ typedef unsigned short ushort;
         switch(PyArray_TYPE(array)) { \
                 HANDLE_COMPLEX_TYPES();\
                 default: \
-                PyErr_SetString(PyExc_RuntimeError, "Dispatch on float types failed!"); \
+                PyErr_SetString(PyExc_RuntimeError, "Dispatch on complex types failed!"); \
                 return NULL; \
         } \
     } \

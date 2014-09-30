@@ -20,9 +20,6 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
             return NULL;
     }
 
-    // IMGC_COUT("> parse_format_arg = " << PyString_AS_STRING(PyObject_Str(parse_format_arg)));
-    // IMGC_COUT("> parse_format_arg IS TRUE? = " << PyObject_IsTrue(parse_format_arg));
-
     if (PyObject_CheckBuffer(buffer)) {
         /// buffer3000
         Py_buffer buf;
@@ -34,10 +31,6 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
                 return NULL;
             }
         }
-        
-        // IMGC_COUT("> STRUCTCODE in INFODICT FUNCTION: " << buf.format);
-        // IMGC_COUT("> RAW BUFFER SIZE: " << buf.len);
-        // IMGC_COUT("> buf.readonly: " << buf.readonly);
         
         if (buf.len) {
             PyDict_SetItemString(buffer_dict, "len", PyInt_FromSsize_t(buf.len));
