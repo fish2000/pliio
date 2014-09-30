@@ -77,8 +77,6 @@ CImg<T> &assign(const PyArrayObject *const pyarray, const int width = 0, const i
     }
     const int W = (int)PyArray_DIM(pyarray, 1), H = (int)PyArray_DIM(pyarray, 0);
     
-    // const char *const dataPtrI = const_cast<char *>(
-    //     PyArray_BYTES(const_cast<PyArrayObject *>(pyarray)));
     unsigned char *dataPtrI = (unsigned char *)PyArray_DATA(const_cast<PyArrayObject *>(pyarray));
     const int nChannels = (int)PyArray_DIM(pyarray, 2);
 
