@@ -29,9 +29,6 @@ namespace numpy {
     /// here in post-apocalyptic c++-istan. THEYRE NOT BY ME LUIS WROTE EM, FUCK YES
     ///     -fish
     
-    /// NOTA BENE: use the decoder like so:
-    ///     CImg<decoder<NPY_UBYTE>::type> image(...);
-    
     #define DECLARE_DTYPE_CODE(ctype, constant) \
         template <> inline \
         npy_intp dtype_code<ctype>() { return constant; } \

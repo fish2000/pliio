@@ -35,10 +35,10 @@ static PyObject *structcode_to_dtype_code(const char *code) {
     }
 
     /// Make python list of tuples
-    PyObject *list = PyList_New((Py_ssize_t)0);
+    PyObject *list = PyList_New(static_cast<Py_ssize_t>(0));
     for (size_t idx = 0; idx < pairvec.size(); idx++) {
         PyList_Append(list,
-            PyTuple_Pack((Py_ssize_t)2,
+            PyTuple_Pack(static_cast<Py_ssize_t>(2),
                 PyString_FromString(string(pairvec[idx].first).c_str()),
                 PyString_FromString(string(byteorder + pairvec[idx].second).c_str())));
     }
@@ -112,7 +112,7 @@ static int PyImgC_NPYCodeFromStructAtom(PyObject *self, PyObject *args) {
         return -1;
     }
 
-    npy_type_num = (int)descr->type_num;
+    npy_type_num = static_cast<int>(descr->type_num);
     Py_XDECREF(dtypecode);
     Py_XDECREF(descr);
 

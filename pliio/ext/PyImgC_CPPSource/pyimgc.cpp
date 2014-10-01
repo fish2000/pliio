@@ -58,12 +58,6 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
         } else {
             self->dtype = dtype;
         }
-        //} else {
-        // IMGC_CERR("> PyCImage.cimg_load(): "
-        //        << "Member dtype found: "
-        //        << self->typecode_name()
-        //        << " (>" << self->typechar()
-        //        << ", #" << self->typecode() << ")");
     }
     
     /// load that shit, dogg
@@ -121,13 +115,11 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
 
 static PyObject *PyCImage_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyCImage *self;
-    //self = (PyCImage *)type->tp_alloc(type, 0);
     self = reinterpret_cast<PyCImage *>(type->tp_alloc(type, 0));
     if (self != None) {
         self->cimage = shared_ptr<CImg_Base>(nullptr);
         self->dtype = None;
     }
-    //return (PyObject *)self;
     return reinterpret_cast<PyObject *>(self); /// all is well, return self
 }
 
@@ -158,11 +150,13 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
     if (self->dtype == NULL) {
         if (buffer != NULL) {
             if (PyArray_Check(buffer)) {
-                dtype = PyArray_DESCR(reinterpret_cast<PyArrayObject *>(buffer));
+                dtype = PyArray_DESCR(
+                    reinterpret_cast<PyArrayObject *>(buffer));
                 self->dtype = dtype;
                 Py_INCREF(self->dtype);
             } else {
-                dtype = PyArray_DescrFromType(IMGC_DEFAULT_TYPECODE);
+                dtype = PyArray_DescrFromType(
+                    IMGC_DEFAULT_TYPECODE);
                 self->dtype = dtype;
                 Py_INCREF(self->dtype);
             }
@@ -262,31 +256,15 @@ static PyGetSetDef PyCImage_getset[] = {
         "dtype",
             (getter)PyCImage_GET_dtype,
             (setter)PyCImage_SET_dtype,
-            "Data Type (numpy.dtype)", None},
+            "Data Type (numpy.dtype)", None },
     SENTINEL
 };
 
-/*
-static int PyCImage_GetBuffer(PyCImage *pyim, Py_buffer &buf, int flags=0) {
-    gil_release NOGIL;
-    if (pyim->cimage && pyim->dtype) {
-#define HANDLE(type) {\
-        auto cim = pyim->recast<type>(); \
-        cim->get_pybuffer(buf); \
-    }
-    SAFE_SWITCH_ON_DTYPE(pyim->dtype, -1); 
-#undef HANDLE
-        if (buf.len) { return 0; } /// success
-    }
-    return -1;
-}
-*/
-
 static PyObject *PyCImage_Repr(PyCImage *pyim) {
     if (!pyim->cimage) { PyString_FromString("<PyCImage (empty backing stores)>"); }
-    int tc = (int)pyim->typecode();
+    int tc = static_cast<int>(pyim->typecode());
     if (pyim->dtype) {
-        tc = (int)pyim->dtype->type_num;
+        tc = static_cast<int>(pyim->dtype->type_num);
     }
 #define HANDLE(type) {\
     CImg<type> cim = *pyim->recast<type>(); \
@@ -327,7 +305,7 @@ static Py_ssize_t PyCImage_Len(PyCImage *pyim) {
 
 static PyObject *PyCImage_GetItem(PyCImage *pyim, register Py_ssize_t idx) {
     if (pyim->cimage && pyim->dtype) {
-        int tc = (int)pyim->dtype->type_num;
+        int tc = static_cast<int>(pyim->dtype->type_num);
         long op;
         Py_ssize_t siz;
 #define HANDLE(type) { \
@@ -503,7 +481,6 @@ static int PyCImage_GetBuffer(PyObject *self, Py_buffer *view, int flags) {
     SAFE_SWITCH_ON_DTYPE(pyim->dtype, -1);
 #undef HANDLE
     }
-    //view->obj = self;
     return 0;
 }
 
