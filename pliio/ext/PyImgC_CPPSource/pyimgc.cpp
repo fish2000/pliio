@@ -54,13 +54,11 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
     /// deal with dtype
     if (!self->dtype) {
         if (!dtype) {
-            //IMGC_CERR("- PyCImage.cimg_load(): NO DTYPE FOUND (creating default)");
             self->dtype = dtype = numpy::dtype_struct<IMGC_DEFAULT_T>();
         } else {
-            //IMGC_CERR("- PyCImage.cimg_load(): Member dtype missing (copying from args)");
             self->dtype = dtype;
         }
-    } else {
+        //} else {
         // IMGC_CERR("> PyCImage.cimg_load(): "
         //        << "Member dtype found: "
         //        << self->typecode_name()
@@ -73,7 +71,7 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
         gil_ensure GIL;
         /// Base the loaded CImg struct type and ancilliaries
         /// on whatever is in the dtype we already have
-#define HANDLE(type) {\
+#define HANDLE(type) { \
         try { \
             CImg<IMGC_DEFAULT_T> cim(PyString_AS_STRING(path)); \
             self->assign<type>(cim); \
@@ -123,15 +121,18 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
 
 static PyObject *PyCImage_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyCImage *self;
-    self = (PyCImage *)type->tp_alloc(type, 0);
+    //self = (PyCImage *)type->tp_alloc(type, 0);
+    self = reinterpret_cast<PyCImage *>(type->tp_alloc(type, 0));
     if (self != None) {
         self->cimage = shared_ptr<CImg_Base>(nullptr);
         self->dtype = None;
     }
-    return (PyObject *)self;
+    //return (PyObject *)self;
+    return reinterpret_cast<PyObject *>(self); /// all is well, return self
 }
 
 /// forward declaration (for debugging)
+/// -- TODO: Fix the fundamental need for this fucking shit
 static PyObject *PyCImage_Repr(PyCImage *pyim);
 
 static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
@@ -203,8 +204,7 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
     }
     
     if (PyString_Check(buffer)) {
-        /// it's a path string, load (with CImg.h)
-        /// DISPATCH!!!!
+        /// it's a path string, load (with CImg.h) -- DISPATCH!!!!
         PyObject *out = PyObject_CallMethodObjArgs(
             reinterpret_cast<PyObject *>(self),
             PyString_FromString("cimg_load"),
@@ -215,8 +215,7 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
                     "CImg failed to load from path: %s",
                     PyString_AS_STRING(buffer));
                 return -1;
-            } else {
-                /// warnings? dunno
+            } else { /// warnings? dunno
             }
         }
         return 0;
@@ -234,7 +233,7 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
         return 0;
     }
     
-    /// FALLING OFF
+    /// FALLING OFF (DANGER WILL ROBINSON)
     PyErr_SetString(PyExc_ValueError,
         "NOTHING HAPPENED! Buffer: NOPE.");
     return -1;
@@ -318,12 +317,12 @@ static Py_ssize_t PyCImage_Len(PyCImage *pyim) {
     if (pyim->cimage && pyim->dtype) {
 #define HANDLE(type) { \
         auto cim = pyim->recast<type>(); \
-        return (Py_ssize_t)cim->size(); \
+        return static_cast<Py_ssize_t>(cim->size()); \
     }
     SAFE_SWITCH_ON_DTYPE(pyim->dtype, -1);
 #undef HANDLE
     }
-    return (Py_ssize_t)0;
+    return static_cast<Py_ssize_t>(0);
 }
 
 static PyObject *PyCImage_GetItem(PyCImage *pyim, register Py_ssize_t idx) {
@@ -516,19 +515,10 @@ static PyBufferProcs PyCImage_Buffer3000Methods = {
     0, /*(readbufferproc)*/
     0, /*(writebufferproc)*/
     0, /*(segcountproc)*/
-    0,
+    0, /*(charbufferproc)*/
     (getbufferproc)PyCImage_GetBuffer,
     (releasebufferproc)PyCImage_ReleaseBuffer,
 };
-
-// static PyBufferProcs PyCImage_AllBufferMethods = {
-//     0, /*(readbufferproc)*/
-//     0, /*(writebufferproc)*/
-//     0, /*(segcountproc)*/
-//     0, /*(charbufferproc)*/
-//     (getbufferproc)PyCImage_GetBuffer,
-//     (releasebufferproc)PyCImage_ReleaseBuffer,
-// };
 
 static PyMethodDef PyCImage_methods[] = {
     {
