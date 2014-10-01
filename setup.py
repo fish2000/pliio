@@ -109,7 +109,7 @@ for pth in (
         library_dirs.append(pth)
 
 extensions = {
-    'PyImgC': ["pliio/ext/PyImgC_CPPSource/pyimgc.cpp"],
+    'PyImgC': ["pliio/ext/PyImgC_CPPSource/pyimgc.mm"],
 }
 
 # the basics
