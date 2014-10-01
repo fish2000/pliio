@@ -20,7 +20,7 @@ CImg(NSBitmapImageRep *bitmap):_width(0),_height(0),_depth(0),_spectrum(0),_is_s
 CImg<T> &assign(NSBitmapImageRep *bitmap) const {
     if (!bitmap) return assign();
     
-    /// N.B. should we be, like, aborting the mission of T*
+    /// N.B. should we be, like, aborting the mission if T*
     /// happens to be something other than some form of char??
     const char *const dataPtrI = const_cast<const char *const>(
         static_cast<char *>([bitmap bitmapData]));
@@ -41,7 +41,6 @@ CImg<T> &assign(NSBitmapImageRep *bitmap) const {
 // CImg-to-NSBitmapImageRep conversion
 //----------------------------
 // z is the z-coordinate of the CImg slice that one wants to copy.
-//Py_buffer get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=true) const {
 NSBitmapImageRep *get_NSBitmapImageRep(const unsigned z=0) {
     if (is_empty()) {
         throw CImgArgumentException(_cimg_instance

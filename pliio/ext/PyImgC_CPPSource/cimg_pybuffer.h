@@ -82,7 +82,6 @@ CImg<T> &assign(const Py_buffer *const pybuffer, const int width = 0, const int 
 // CImg-to-NumPy conversion
 //----------------------------
 // z is the z-coordinate of the CImg slice that one wants to copy.
-//Py_buffer get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=true) const {
 void get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=true) const {
     const char *structcode_char = structcode();
     if (!structcode_char) {
@@ -110,6 +109,8 @@ void get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=t
     
     Py_ssize_t raw_buffer_size = static_cast<Py_ssize_t>(datasize());
     
+    /// see N.B. below as to why we are calculating all of this shit by hand,
+    /// rather than using a call to PyBuffer_FillContiguousStrides()
     pybuffer->buf = static_cast<T*>(_data);
     pybuffer->format = const_cast<char *>(structcode_char);  /// for now (do we give fucks re:byte order?)s
     
@@ -130,18 +131,17 @@ void get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=t
     /// MEANING EVERY TIME YOU CALL THIS FUNCTION,
     /// A SCHOOL BUS FULL OF CHILDREN GOES OFF A CLIFF INTO A RAVINE,
     /// ERRONEOUSLY.
-    
-    IMGC_COUT("> STRUCTCODE in BUFFER FORMAT: " << pybuffer->format);
-    IMGC_COUT("> RAW BUFFER SIZE: " << raw_buffer_size);
-    IMGC_COUT("> CIMAGE SIZE: " << size());
-    IMGC_COUT("> CIMAGE SIZE*sizeof(T): " << size()*sizeof(T));
-    IMGC_COUT("> SHAPE ARRAY: " << shape());
-    
     // PyBuffer_FillContiguousStrides(
     //     pybuffer->ndim,
     //     pybuffer->shape,
     //     pybuffer->strides,
     //     pybuffer->itemsize, 'C');
+    
+    // IMGC_COUT("> STRUCTCODE in BUFFER FORMAT: "     << pybuffer->format);
+    // IMGC_COUT("> RAW BUFFER SIZE: "                 << raw_buffer_size);
+    // IMGC_COUT("> CIMAGE SIZE: "                     << size());
+    // IMGC_COUT("> CIMAGE SIZE*sizeof(T): "           << size()*sizeof(T));
+    // IMGC_COUT("> SHAPE ARRAY: "                     << shape());
 }
 
 #endif /// PyImgC_CIMG_PYBUFFER_PLUGIN_H
