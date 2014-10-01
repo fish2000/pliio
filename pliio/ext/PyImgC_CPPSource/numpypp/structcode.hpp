@@ -249,7 +249,7 @@ namespace structcode {
                         still_digits = isdigit(digit) && digit != '(';
                     }
                     string numstr = string(structcode.substr(0, siz));
-                    itemsize = (size_t)stol(numstr);
+                    itemsize = static_cast<size_t>(stol(numstr));
                     structcode.erase(0, siz);
                     if (!isdigit(numstr.back())) {
                         structcode = string(&numstr.back()) + structcode;

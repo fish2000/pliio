@@ -37,7 +37,7 @@ static PyObject *PyImgC_CImageTest(PyObject *self, PyObject *args, PyObject *kwa
     }
 
     if (PyArray_Check(buffer)) {
-        int tc = (int)dtype->type_num;
+        int tc = static_cast<int>(dtype->type_num);
 #define HANDLE(type) { \
         CImg<type> cim(buffer); \
         return Py_BuildValue("iiiii", tc, cim.typecode(), \

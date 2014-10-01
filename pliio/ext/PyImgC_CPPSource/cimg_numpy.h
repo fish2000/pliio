@@ -116,9 +116,9 @@ PyObject* get_pyarray(const unsigned z=0) const {
     }
   
     npy_intp dims[3] = {
-        (npy_intp)_height,
-        (npy_intp)_width,
-        (npy_intp)_spectrum
+        static_cast<npy_intp>(_height),
+        static_cast<npy_intp>(_width),
+        static_cast<npy_intp>(_spectrum)
     };
     PyObject *pyarray = PyArray_SimpleNewFromData(3, dims, typecode_int, (void *)_data);
     Py_INCREF(pyarray);

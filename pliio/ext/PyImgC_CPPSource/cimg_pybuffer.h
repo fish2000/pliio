@@ -47,7 +47,8 @@ CImg<T> &assign(const Py_buffer *const pybuffer, const int width = 0, const int 
     //pybuffer->len;
     //pybuffer->itemsize;
     
-    const char *const dataPtrI = const_cast<const char *const>(static_cast<char *>(pybuffer->buf));
+    const char *const dataPtrI = const_cast<const char *const>(
+        static_cast<char *>(pybuffer->buf));
     int nChannels = 1, W, H, WH;
     
     // for (int idx = 0; idx < (int)buf->ndim; idx++) {
@@ -56,13 +57,13 @@ CImg<T> &assign(const Py_buffer *const pybuffer, const int width = 0, const int 
     //     pybuffer->suboffsets[idx];
     // }
     
-    if (pybuffer->ndim > 2) { nChannels = (int)pybuffer->shape[2]; }
+    if (pybuffer->ndim > 2) { nChannels = static_cast<int>(pybuffer->shape[2]); }
     if (pybuffer->ndim > 1) {
-        W = width ? width : (int)pybuffer->shape[1];
-        H = height ? height : (int)pybuffer->shape[0];
+        W = width ? width : static_cast<int>(pybuffer->shape[1]);
+        H = height ? height : static_cast<int>(pybuffer->shape[0]);
     } else {
         /// fuck
-        WH = (int)lrint(sqrt(pybuffer->len / pybuffer->itemsize));
+        WH = static_cast<int>(lrint(sqrt(pybuffer->len / pybuffer->itemsize)));
         W = width ? width : WH;
         H = height ? height : WH;
     }
