@@ -135,7 +135,6 @@ namespace structcode {
     };
 
     vector<int> parse_shape(string shapecode) {
-        //cerr << "Shape string: " << shapecode << "\n";
         string segment;
         vector<int> shape_elems;
         while (shapecode.find(",", 0) != string::npos) {
