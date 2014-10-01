@@ -157,7 +157,7 @@ namespace structcode {
         vector<int> shape = {0};
         const vector<int> noshape = shape;
     
-        IMGC_CERR("Structcode string: " << structcode);
+        //IMGC_CERR("Structcode string: " << structcode);
     
         while (true) {
             if (structcode.size() == 0) { break; }
@@ -192,7 +192,7 @@ namespace structcode {
                     string shapestr = structcode.substr(0, siz-1);
                     shape = parse_shape(shapestr);
                     structcode.erase(0, siz);
-                    IMGC_CERR("Typecode after shape erasure: " << structcode);
+                    //IMGC_CERR("Typecode after shape erasure: " << structcode);
                 }
                 break;
                 case '*':
@@ -254,7 +254,7 @@ namespace structcode {
                     if (!isdigit(numstr.back())) {
                         structcode = string(&numstr.back()) + structcode;
                     }
-                    IMGC_CERR("Typecode after number erasure: " << structcode);
+                    //IMGC_CERR("Typecode after number erasure: " << structcode);
                 }
                 break;
                 default:
