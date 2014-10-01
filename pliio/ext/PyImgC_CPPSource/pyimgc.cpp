@@ -110,6 +110,7 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
         }
         GIL.~gil_ensure();
     }
+    Py_INCREF(self);
     return reinterpret_cast<PyObject *>(self); /// all is well, return self
 }
 
