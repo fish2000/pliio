@@ -210,8 +210,7 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
                     "CImg failed to load from path: %s",
                     PyString_AS_STRING(buffer));
                 return -1;
-            } else { /// warnings? dunno
-            }
+            } else { /* warnings? dunno */ }
         }
         return 0;
     }
@@ -224,7 +223,6 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
     }
     SAFE_SWITCH_ON_DTYPE(self->dtype, -1);
 #undef HANDLE
-        IMGC_CERR("> REPR:" << PyString_AS_STRING(PyCImage_Repr(self)));
         return 0;
     }
     
