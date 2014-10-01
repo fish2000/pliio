@@ -4,7 +4,6 @@
 #ifndef PyImgC_CIMG_NSBITMAPIMAGEREP_PLUGIN_H
 #define PyImgC_CIMG_NSBITMAPIMAGEREP_PLUGIN_H
 
-
 //----------------------------
 // NSBitmapImageRep-to-CImg conversion
 //----------------------------

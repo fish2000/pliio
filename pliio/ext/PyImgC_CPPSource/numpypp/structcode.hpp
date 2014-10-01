@@ -351,7 +351,8 @@ namespace structcode {
                 break;
             }
         }
-    
+        
+        /*
         if (toplevel) {
             IMGC_COUT(      "> BYTE ORDER: "    << byteorder);
             for (size_t idx = 0; idx < fields.size(); idx++) {
@@ -359,7 +360,8 @@ namespace structcode {
                         <<  " -> "              << fields[idx].second);
             }
         }
-    
+        */
+        
         return fields;
     }
 
