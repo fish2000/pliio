@@ -253,7 +253,7 @@ ext_modules = [
             '-O2',
             '-std=c++11',
             '-stdlib=libc++',
-            '-Wno-error=unused-command-line-argument-hard-error-in-future',
+            '-Werror=unused-command-line-argument',
             '-Wno-unused-function',
             '-Wno-overloaded-virtual', # WARNING WARNING WARNING
             '-Wno-dynamic-class-memaccess', # WARNING WARNING etc
