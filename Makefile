@@ -31,9 +31,9 @@ test:
 	DEBUG=3 NOSE_REDNOSE=1 python runtests.py
 	#DEBUG=3 NOSE_REDNOSE=1 nosetests --verbose
 
-#IMG = "/Users/fish/Downloads/tumblr_mgq73sTl6z1qb9r7fo1_r1_500.jpg"
+IMG = "/Users/fish/Downloads/tumblr_mgq73sTl6z1qb9r7fo1_r1_500.jpg"
 #IMG = "/Users/fish/Downloads/___17ZYXH2.jpg"
-IMG = "/Users/fish/Downloads/__1n68Pmd.jpg"
+#IMG = "/Users/fish/Downloads/__1n68Pmd.jpg"
 
 checkext:
 	py 'print(clint.textui.colored.red("%(s)s TESTS: %(s)s" % dict(s="*"*65)))'
