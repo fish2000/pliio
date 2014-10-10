@@ -16,7 +16,7 @@ clean-all-pyc:
 	find . -name \*.pyc -print -delete
 
 clean-so:
-	rm -f pliio/_*.so
+	rm -f pliio/*.so
 
 clean-build-artifacts:
 	rm -rf build dist pliio.egg-info
