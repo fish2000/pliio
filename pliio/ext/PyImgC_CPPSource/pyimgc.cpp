@@ -114,6 +114,7 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
     return reinterpret_cast<PyObject *>(self); /// all is well, return self
 }
 
+/// ALLOCATE / __new__ implementation
 static PyObject *PyCImage_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyCImage *self;
     self = reinterpret_cast<PyCImage *>(type->tp_alloc(type, 0));
@@ -128,6 +129,7 @@ static PyObject *PyCImage_new(PyTypeObject *type, PyObject *args, PyObject *kwar
 /// -- TODO: Fix the fundamental need for this fucking shit
 static PyObject *PyCImage_Repr(PyCImage *pyim);
 
+/// __init__ implementation
 static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffer = NULL;
     Py_ssize_t nin = -1, offset = 0, raise_errors = 1;
@@ -232,12 +234,14 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
     return -1;
 }
 
+/// DEALLOCATE
 static void PyCImage_dealloc(PyCImage *self) {
     Py_XDECREF(self->dtype);
     self->ob_type->tp_free((PyObject *)self);
     self->cleanup();
 }
 
+/// pycimage.dtype getter/setter
 static PyObject     *PyCImage_GET_dtype(PyCImage *self, void *closure) {
     BAIL_WITHOUT(self->dtype);
     Py_INCREF(self->dtype);
@@ -259,6 +263,7 @@ static PyGetSetDef PyCImage_getset[] = {
     SENTINEL
 };
 
+/// __repr__ implementation
 static PyObject *PyCImage_Repr(PyCImage *pyim) {
     if (!pyim->cimage) { PyString_FromString("<PyCImage (empty backing stores)>"); }
     int tc = static_cast<int>(pyim->typecode());
@@ -277,6 +282,7 @@ static PyObject *PyCImage_Repr(PyCImage *pyim) {
     return PyString_FromString("<PyCImage (unmatched type)>");
 }
 
+/// __str__ implementation
 static PyObject *PyCImage_Str(PyCImage *pyim) {
     if (pyim->cimage && pyim->dtype) {
 #define HANDLE(type) { \
@@ -290,6 +296,7 @@ static PyObject *PyCImage_Str(PyCImage *pyim) {
     return PyString_FromString("");
 }
 
+/// __len__ implementation
 static Py_ssize_t PyCImage_Len(PyCImage *pyim) {
     if (pyim->cimage && pyim->dtype) {
 #define HANDLE(type) { \
@@ -302,6 +309,7 @@ static Py_ssize_t PyCImage_Len(PyCImage *pyim) {
     return static_cast<Py_ssize_t>(0);
 }
 
+/// __getitem__ implementation
 static PyObject *PyCImage_GetItem(PyCImage *pyim, register Py_ssize_t idx) {
     if (pyim->cimage && pyim->dtype) {
         int tc = static_cast<int>(pyim->dtype->type_num);
