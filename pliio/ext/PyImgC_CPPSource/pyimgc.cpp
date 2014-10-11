@@ -376,8 +376,30 @@ static int PyCImage_Compare(PyObject *smelf, PyObject *smother) {
     return result;
 }
 
+/// BINARY OP MACROS -- Here's how these work:
+/// PyCImage_BINARY_OP(OP_NAME, opcode) is a macro.
+/// Invoking this macro will declare an in-place function,
+/// named after its first argument, e.g.:
+///     PyCImage_BINARY_OP(ADD, BinaryOp::ADD)
+/// ... will wind up declaring something named:
+///     PyCImage_ADD(PyCObject *self, PyCObject *other);
+/// ... This newly-declared function is, itself,
+/// a relatively simplistic wrapper around another macro:
+///     SAFE_SWITCH_ON_DTYPE_FOR_BINARY_OP(
+///         dtype, error_return_value, ADD, BinaryOp::ADD)
+/// ... which goes through the Rube Goldberg-esque type-switch when invoked,
+/// as defined in numpypp/dispatch.hpp -- eventually handing off
+/// to a handler macro:
+///     HANDLE_BINARY_OP(T, ADD, BinaryOp::ADD)
+/// ... which FINALLY has enough type information to call the real function:
+///     binary_op<T>(self, other, BinaryOp::ADD);
+/// ... but wait, THERE IS MORE: binary_op<T>() has to call binary_op_LHS<T>()
+/// (it's another simple wrapper) which then has to do one last type-switch
+/// to obtain the RHS type before it is able to call binary_op_RHS<otherT>().
+/// This then invokes the final step in the process: a call to the BINARY_OP() macro,
+/// which executes a switch on the actual opcode (in this case, BinaryOp::ADD)
+/// and does the actual fucking operation math. In a nutshell.
 
-/// Binary Op Macros
 PyCImage_BINARY_OP(ADD, BinaryOp::ADD)
 PyCImage_BINARY_OP(SUBTRACT, BinaryOp::SUBTRACT)
 PyCImage_BINARY_OP(MULTIPLY, BinaryOp::MULTIPLY)
