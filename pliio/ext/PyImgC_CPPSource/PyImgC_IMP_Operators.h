@@ -186,7 +186,7 @@ CImg<rT> binary_op(PyCImage *self, PyCImage *other, BinaryOp op) {
         return reinterpret_cast<PyObject *>(self); \
     }
 
-#define PyCImage_UNARY_OP(opname, op) \
+#define PyCImage_UNARY_OP(opname) \
 static PyObject *PyCImage_##opname(PyObject *smelf) { \
     if (!smelf) { \
         PyErr_SetString(PyExc_ValueError, \
@@ -195,7 +195,7 @@ static PyObject *PyCImage_##opname(PyObject *smelf) { \
     } \
     PyCImage *self = reinterpret_cast<PyCImage *>(smelf); \
     Py_INCREF(self); \
-    SAFE_SWITCH_ON_DTYPE_FOR_UNARY_OP(self->dtype, NULL, opname, op); \
+    SAFE_SWITCH_ON_DTYPE_FOR_UNARY_OP(self->dtype, NULL, opname, UnaryOp::opname); \
     return NULL; \
 }
 
@@ -205,7 +205,7 @@ static PyObject *PyCImage_##opname(PyObject *smelf) { \
         return reinterpret_cast<PyObject *>(self); \
     }
 
-#define PyCImage_BINARY_OP(opname, op) \
+#define PyCImage_BINARY_OP(opname) \
 static PyObject *PyCImage_##opname(PyObject *smelf, PyObject *smother) { \
     if (!smelf || !smother) { \
         PyErr_SetString(PyExc_ValueError, \
@@ -216,7 +216,7 @@ static PyObject *PyCImage_##opname(PyObject *smelf, PyObject *smother) { \
     PyCImage *other = reinterpret_cast<PyCImage *>(smother); \
     Py_INCREF(self); \
     Py_INCREF(other); \
-    SAFE_SWITCH_ON_DTYPE_FOR_BINARY_OP(self->dtype, NULL, opname, op); \
+    SAFE_SWITCH_ON_DTYPE_FOR_BINARY_OP(self->dtype, NULL, opname, BinaryOp::opname); \
     return NULL; \
 }
 

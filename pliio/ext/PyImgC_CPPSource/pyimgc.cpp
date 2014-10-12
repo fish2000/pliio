@@ -375,14 +375,16 @@ static int PyCImage_Compare(PyObject *smelf, PyObject *smother) {
 }
 
 /// BINARY OP MACROS -- Here's how these work:
-/// PyCImage_BINARY_OP(OP_NAME, opcode) is a macro.
+/// PyCImage_BINARY_OP(OP_NAME) is a macro.
 /// Invoking this macro will declare an in-place function,
 /// named after its first argument, e.g.:
-///     PyCImage_BINARY_OP(ADD, BinaryOp::ADD)
+///     PyCImage_BINARY_OP(ADD)
 /// ... will wind up declaring something named:
 ///     PyCImage_ADD(PyCObject *self, PyCObject *other);
 /// ... This newly-declared function is, itself,
-/// a relatively simplistic wrapper around another macro:
+/// a relatively simplistic wrapper around another macro, which
+/// uses the OP_NAME from PyCImage_BINARY_OP(OP_NAME) to reference
+/// an opcode in the BinaryOp enum:
 ///     SAFE_SWITCH_ON_DTYPE_FOR_BINARY_OP(
 ///         dtype, error_return_value, ADD, BinaryOp::ADD)
 /// ... which goes through the Rube Goldberg-esque type-switch when invoked,
@@ -398,45 +400,45 @@ static int PyCImage_Compare(PyObject *smelf, PyObject *smother) {
 /// which executes a switch on the actual opcode (in this case, BinaryOp::ADD)
 /// and does the actual fucking operation math. In a nutshell.
 
-PyCImage_BINARY_OP(ADD, BinaryOp::ADD)
-PyCImage_BINARY_OP(SUBTRACT, BinaryOp::SUBTRACT)
-PyCImage_BINARY_OP(MULTIPLY, BinaryOp::MULTIPLY)
-PyCImage_BINARY_OP(DIVIDE, BinaryOp::DIVIDE)
-PyCImage_BINARY_OP(REMAINDER, BinaryOp::REMAINDER)
-/*PyCImage_BINARY_OP(DIVMOD, BinaryOp::DIVMOD)*/
-PyCImage_BINARY_OP(POWER, BinaryOp::POWER)
-PyCImage_BINARY_OP(LSHIFT, BinaryOp::LSHIFT)
-PyCImage_BINARY_OP(RSHIFT, BinaryOp::RSHIFT)
-PyCImage_BINARY_OP(AND, BinaryOp::AND)
-PyCImage_BINARY_OP(XOR, BinaryOp::XOR)
-PyCImage_BINARY_OP(OR, BinaryOp::OR)
+PyCImage_BINARY_OP(ADD)
+PyCImage_BINARY_OP(SUBTRACT)
+PyCImage_BINARY_OP(MULTIPLY)
+PyCImage_BINARY_OP(DIVIDE)
+PyCImage_BINARY_OP(REMAINDER)
+/*PyCImage_BINARY_OP(DIVMOD)*/
+PyCImage_BINARY_OP(POWER)
+PyCImage_BINARY_OP(LSHIFT)
+PyCImage_BINARY_OP(RSHIFT)
+PyCImage_BINARY_OP(AND)
+PyCImage_BINARY_OP(XOR)
+PyCImage_BINARY_OP(OR)
 
-PyCImage_BINARY_OP(INPLACE_ADD, BinaryOp::INPLACE_ADD)
-PyCImage_BINARY_OP(INPLACE_SUBTRACT, BinaryOp::INPLACE_SUBTRACT)
-PyCImage_BINARY_OP(INPLACE_MULTIPLY, BinaryOp::INPLACE_MULTIPLY)
-PyCImage_BINARY_OP(INPLACE_DIVIDE, BinaryOp::INPLACE_DIVIDE)
-PyCImage_BINARY_OP(INPLACE_REMAINDER, BinaryOp::INPLACE_REMAINDER)
-PyCImage_BINARY_OP(INPLACE_POWER, BinaryOp::INPLACE_POWER)
-PyCImage_BINARY_OP(INPLACE_LSHIFT, BinaryOp::INPLACE_LSHIFT)
-PyCImage_BINARY_OP(INPLACE_RSHIFT, BinaryOp::INPLACE_RSHIFT)
-PyCImage_BINARY_OP(INPLACE_AND, BinaryOp::INPLACE_AND)
-PyCImage_BINARY_OP(INPLACE_XOR, BinaryOp::INPLACE_XOR)
-PyCImage_BINARY_OP(INPLACE_OR, BinaryOp::INPLACE_OR)
+PyCImage_BINARY_OP(INPLACE_ADD)
+PyCImage_BINARY_OP(INPLACE_SUBTRACT)
+PyCImage_BINARY_OP(INPLACE_MULTIPLY)
+PyCImage_BINARY_OP(INPLACE_DIVIDE)
+PyCImage_BINARY_OP(INPLACE_REMAINDER)
+PyCImage_BINARY_OP(INPLACE_POWER)
+PyCImage_BINARY_OP(INPLACE_LSHIFT)
+PyCImage_BINARY_OP(INPLACE_RSHIFT)
+PyCImage_BINARY_OP(INPLACE_AND)
+PyCImage_BINARY_OP(INPLACE_XOR)
+PyCImage_BINARY_OP(INPLACE_OR)
 
-PyCImage_BINARY_OP(FLOOR_DIVIDE, BinaryOp::FLOOR_DIVIDE)
-PyCImage_BINARY_OP(TRUE_DIVIDE, BinaryOp::TRUE_DIVIDE)
-PyCImage_BINARY_OP(INPLACE_FLOOR_DIVIDE, BinaryOp::INPLACE_FLOOR_DIVIDE)
-PyCImage_BINARY_OP(INPLACE_TRUE_DIVIDE, BinaryOp::INPLACE_TRUE_DIVIDE)
+PyCImage_BINARY_OP(FLOOR_DIVIDE)
+PyCImage_BINARY_OP(TRUE_DIVIDE)
+PyCImage_BINARY_OP(INPLACE_FLOOR_DIVIDE)
+PyCImage_BINARY_OP(INPLACE_TRUE_DIVIDE)
 
 /// Unary Op Macros
-PyCImage_UNARY_OP(NEGATIVE, UnaryOp::NEGATIVE)
-PyCImage_UNARY_OP(POSITIVE, UnaryOp::POSITIVE)
-PyCImage_UNARY_OP(INVERT, UnaryOp::INVERT)
-PyCImage_UNARY_OP(ABSOLUTE, UnaryOp::ABSOLUTE)
-PyCImage_UNARY_OP(INT, UnaryOp::INT)
-PyCImage_UNARY_OP(LONG, UnaryOp::LONG)
-PyCImage_UNARY_OP(FLOAT, UnaryOp::FLOAT)
-PyCImage_UNARY_OP(INDEX, UnaryOp::INDEX)
+PyCImage_UNARY_OP(NEGATIVE)
+PyCImage_UNARY_OP(POSITIVE)
+PyCImage_UNARY_OP(INVERT)
+PyCImage_UNARY_OP(ABSOLUTE)
+PyCImage_UNARY_OP(INT)
+PyCImage_UNARY_OP(LONG)
+PyCImage_UNARY_OP(FLOAT)
+PyCImage_UNARY_OP(INDEX)
 
 static PyNumberMethods PyCImage_NumberMethods = {
     (binaryfunc)PyCImage_ADD,                   /* nb_add */
