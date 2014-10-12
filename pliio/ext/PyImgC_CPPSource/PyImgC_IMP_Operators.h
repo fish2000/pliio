@@ -110,7 +110,7 @@ template <typename selfT>
     #else
         #define HANDLE(selfT) { \
             auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
-            return UNARY_OP(cm_self, op); \
+            UNARY_OP(cm_self, op); \
         }
         SAFE_SWITCH_ON_DTYPE(self->dtype, selfT());
         #undef HANDLE
@@ -149,7 +149,7 @@ selfT binary_op_RHS(PyCImage *self, PyCImage *other, BinaryOp op) {
     #define HANDLE(otherT) { \
         auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
         auto cm_other = *dynamic_cast<CImg<unsigned char>*>((other->cimage).get()); \
-        return BINARY_OP(cm_self, cm_other, op); \
+        BINARY_OP(cm_self, cm_other, op); \
     }
     SAFE_SWITCH_ON_DTYPE(other->dtype, selfT());
     #undef HANDLE
