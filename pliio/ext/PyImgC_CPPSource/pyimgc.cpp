@@ -261,7 +261,7 @@ static PyGetSetDef PyCImage_getset[] = {
     SENTINEL
 };
 
-/// __repr__ implementation
+/// __repr__ implementations
 static PyObject *PyCImage_Repr(PyCImage *pyim) {
     if (!pyim->cimage) { PyString_FromString("<PyCImage (empty backing stores)>"); }
     int tc = static_cast<int>(pyim->typecode());
@@ -278,6 +278,12 @@ static PyObject *PyCImage_Repr(PyCImage *pyim) {
     SAFE_SWITCH_ON_TYPECODE(tc, PyString_FromString("<PyCImage (unknown typecode)>"));
 #undef HANDLE
     return PyString_FromString("<PyCImage (unmatched type)>");
+}
+static const char *PyCImage_ReprCString(PyCImage *pyim) {
+    return PyString_AS_STRING(PyCImage_Repr(pyim));
+}
+static string PyCImage_ReprString(PyCImage *pyim) {
+    return string(PyCImage_ReprCString(pyim));
 }
 
 /// __str__ implementation

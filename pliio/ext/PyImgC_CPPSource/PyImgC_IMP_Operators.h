@@ -88,7 +88,7 @@ enum class UnaryOp : unsigned int {
          << " \ttypeid(another) = " << typeid(another).name() << "\n"; \
     BINARY_OP(self, another, op)
 
-static PyObject *PyCImage_Repr(PyCImage *pyim);
+static string PyCImage_ReprString(PyCImage *pyim);
 
 template <typename selfT>
     selfT unary_op_LHS(PyCImage *self, UnaryOp op) {
@@ -99,7 +99,7 @@ template <typename selfT>
         }
     #ifdef IMGC_DEBUG
         #define HANDLE(selfT) { \
-            cout << PyString_AS_STRING(PyCImage_Repr(self)) << "\n"; \
+            cout << PyCImage_ReprString(self) << "\n"; \
             auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
             cout << "{CImg self} -> " \
                  << static_cast<const char *>( \
