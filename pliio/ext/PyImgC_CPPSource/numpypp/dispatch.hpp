@@ -73,7 +73,7 @@ typedef unsigned short ushort;
 #define SAFE_SWITCH_ON_TYPECODE(typecode, error_value) \
     try { \
         switch(typecode) { \
-            HANDLE_TYPES();\
+            HANDLE_TYPES(); \
             default: \
                             HANDLE_ERROR(typecode); \
                             return error_value; \
@@ -84,7 +84,7 @@ typedef unsigned short ushort;
 #define SAFE_SWITCH_ON_DTYPE(dtype, error_value) \
     try { \
         switch(dtype->type_num) { \
-            HANDLE_TYPES();\
+            HANDLE_TYPES(); \
             default: \
                             HANDLE_ERROR(dtype->type_num); \
                             return error_value; \
@@ -95,7 +95,7 @@ typedef unsigned short ushort;
 #define SAFE_SWITCH_ON_DTYPE_FOR_BINARY_OP(dtype, error_value, opname, op) \
     try { \
         switch(dtype->type_num) { \
-            HANDLE_TYPES_FOR_BINARY_OP(opname, op);\
+            HANDLE_TYPES_FOR_BINARY_OP(opname, op); \
             default: \
                             HANDLE_ERROR(dtype->type_num); \
                             return error_value; \
@@ -106,7 +106,7 @@ typedef unsigned short ushort;
 #define SAFE_SWITCH_ON_DTYPE_FOR_UNARY_OP(dtype, error_value, opname, op) \
     try { \
         switch(dtype->type_num) { \
-            HANDLE_TYPES_FOR_UNARY_OP(opname, op);\
+            HANDLE_TYPES_FOR_UNARY_OP(opname, op); \
             default: \
                             HANDLE_ERROR(dtype->type_num); \
                             return error_value; \
@@ -117,7 +117,7 @@ typedef unsigned short ushort;
 #define SAFE_SWITCH_ON_TYPES_OF(array) \
     try { \
         switch(PyArray_TYPE(array)) { \
-                HANDLE_TYPES();\
+                HANDLE_TYPES(); \
                 default: \
                 PyErr_SetString(PyExc_RuntimeError, "Dispatch on all real types failed!"); \
                 return NULL; \
@@ -128,7 +128,7 @@ typedef unsigned short ushort;
 #define SAFE_SWITCH_ON_INTEGER_TYPES_OF(array) \
     try { \
         switch(PyArray_TYPE(array)) { \
-                HANDLE_INTEGER_TYPES();\
+                HANDLE_INTEGER_TYPES(); \
                 default: \
                 PyErr_SetString(PyExc_RuntimeError, "Dispatch on integer types failed!"); \
                 return NULL; \
@@ -139,7 +139,7 @@ typedef unsigned short ushort;
 #define SAFE_SWITCH_ON_FLOAT_TYPES_OF(array) \
     try { \
         switch(PyArray_TYPE(array)) { \
-                HANDLE_FLOAT_TYPES();\
+                HANDLE_FLOAT_TYPES(); \
                 default: \
                 PyErr_SetString(PyExc_RuntimeError, "Dispatch on float types failed!"); \
                 return NULL; \
@@ -150,7 +150,7 @@ typedef unsigned short ushort;
 #define SAFE_SWITCH_ON_COMPLEX_TYPES_OF(array) \
     try { \
         switch(PyArray_TYPE(array)) { \
-                HANDLE_COMPLEX_TYPES();\
+                HANDLE_COMPLEX_TYPES(); \
                 default: \
                 PyErr_SetString(PyExc_RuntimeError, "Dispatch on complex types failed!"); \
                 return NULL; \

@@ -377,7 +377,7 @@ static int PyCImage_Compare(PyObject *smelf, PyObject *smother) {
 /// BINARY OP MACROS -- Here's how these work:
 /// PyCImage_BINARY_OP(OP_NAME) is a macro.
 /// Invoking this macro will declare an in-place function,
-/// named after its first argument, e.g.:
+/// named after its argument, e.g.:
 ///     PyCImage_BINARY_OP(ADD)
 /// ... will wind up declaring something named:
 ///     PyCImage_ADD(PyCObject *self, PyCObject *other);
