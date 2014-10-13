@@ -123,9 +123,44 @@ static PyObject *PyCImage_new(PyTypeObject *type, PyObject *args, PyObject *kwar
     return reinterpret_cast<PyObject *>(self); /// all is well, return self
 }
 
-/// forward declaration (for debugging)
-/// -- TODO: Fix the fundamental need for this fucking shit
-static PyObject *PyCImage_Repr(PyCImage *pyim);
+/// __repr__ implementations
+static PyObject *PyCImage_Repr(PyCImage *pyim) {
+    if (!pyim->cimage) { PyString_FromString("<PyCImage (empty backing stores)>"); }
+    int tc = static_cast<int>(pyim->typecode());
+    if (pyim->dtype) {
+        tc = static_cast<int>(pyim->dtype->type_num);
+    }
+#define HANDLE(type) { \
+    CImg<type> cim = *pyim->recast<type>(); \
+    return PyString_FromFormat("<PyCImage (%s|%s) [%ix%i, %ix%lubpp] @ %p>", \
+        cim.pixel_type(), typeid(*cim.data()).name(), \
+        cim.width(), cim.height(), cim.spectrum(), sizeof(type), \
+        pyim); \
+    }
+    SAFE_SWITCH_ON_TYPECODE(tc, PyString_FromString("<PyCImage (unknown typecode)>"));
+#undef HANDLE
+    return PyString_FromString("<PyCImage (unmatched type)>");
+}
+static const char *PyCImage_ReprCString(PyCImage *pyim) {
+    return PyString_AS_STRING(PyCImage_Repr(pyim));
+}
+static string PyCImage_ReprString(PyCImage *pyim) {
+    return string(PyCImage_ReprCString(pyim));
+}
+
+/// __str__ implementation
+static PyObject *PyCImage_Str(PyCImage *pyim) {
+    if (pyim->cimage && pyim->dtype) {
+#define HANDLE(type) { \
+        auto cim = pyim->recast<type>(); \
+        auto value_string = cim->value_string(); \
+        return PyString_FromString((const char *)value_string.data()); \
+    }
+    SAFE_SWITCH_ON_DTYPE(pyim->dtype, NULL);
+#undef HANDLE
+    }
+    return PyString_FromString("");
+}
 
 /// __init__ implementation
 static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
@@ -260,45 +295,6 @@ static PyGetSetDef PyCImage_getset[] = {
             "Data Type (numpy.dtype)", None },
     SENTINEL
 };
-
-/// __repr__ implementations
-static PyObject *PyCImage_Repr(PyCImage *pyim) {
-    if (!pyim->cimage) { PyString_FromString("<PyCImage (empty backing stores)>"); }
-    int tc = static_cast<int>(pyim->typecode());
-    if (pyim->dtype) {
-        tc = static_cast<int>(pyim->dtype->type_num);
-    }
-#define HANDLE(type) {\
-    CImg<type> cim = *pyim->recast<type>(); \
-    return PyString_FromFormat("<PyCImage (%s|%s) [%ix%i, %ix%lubpp] @ %p>", \
-        cim.pixel_type(), typeid(*cim.data()).name(), \
-        cim.width(), cim.height(), cim.spectrum(), sizeof(type), \
-        pyim); \
-    }
-    SAFE_SWITCH_ON_TYPECODE(tc, PyString_FromString("<PyCImage (unknown typecode)>"));
-#undef HANDLE
-    return PyString_FromString("<PyCImage (unmatched type)>");
-}
-static const char *PyCImage_ReprCString(PyCImage *pyim) {
-    return PyString_AS_STRING(PyCImage_Repr(pyim));
-}
-static string PyCImage_ReprString(PyCImage *pyim) {
-    return string(PyCImage_ReprCString(pyim));
-}
-
-/// __str__ implementation
-static PyObject *PyCImage_Str(PyCImage *pyim) {
-    if (pyim->cimage && pyim->dtype) {
-#define HANDLE(type) { \
-        auto cim = pyim->recast<type>(); \
-        auto value_string = cim->value_string(); \
-        return PyString_FromString((const char *)value_string.data()); \
-    }
-    SAFE_SWITCH_ON_DTYPE(pyim->dtype, NULL);
-#undef HANDLE
-    }
-    return PyString_FromString("");
-}
 
 /// __len__ implementation
 static Py_ssize_t PyCImage_Len(PyCImage *pyim) {
