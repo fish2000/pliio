@@ -102,7 +102,8 @@ template <typename selfT>
             cout << PyString_AS_STRING(PyCImage_Repr(self)) << "\n"; \
             auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
             cout << "{CImg self} -> " \
-                 << (const char *)cm_self.value_string('/', 100).data() << "\n"; \
+                 << static_cast<const char *>( \
+                     cm_self.value_string('/', 100).data()) << "\n"; \
             UNARY_OP_TRACE(cm_self, op); \
         }
         SAFE_SWITCH_ON_DTYPE(self->dtype, selfT());
@@ -138,9 +139,11 @@ selfT binary_op_RHS(PyCImage *self, PyCImage *other, BinaryOp op) {
         auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
         auto cm_other = *dynamic_cast<CImg<unsigned char>*>((other->cimage).get()); \
         cout << "{CImg self} -> " \
-             << (const char *)cm_self.value_string('/', 100).data() << "\n"; \
+             << static_cast<const char *>( \
+                 cm_self.value_string('/', 100).data()) << "\n"; \
         cout << "{CImg other} -> " \
-             << (const char *)cm_other.value_string('/', 100).data() << "\n"; \
+             << static_cast<const char *>( \
+                cm_other.value_string('/', 100).data()) << "\n"; \
         BINARY_OP_TRACE(cm_self, cm_other, op); \
     }
     SAFE_SWITCH_ON_DTYPE(other->dtype, selfT());
