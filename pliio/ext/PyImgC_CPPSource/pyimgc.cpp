@@ -385,7 +385,7 @@ static int PyCImage_NonZero(PyObject *smelf) {
     }
     
     PyCImage *self = reinterpret_cast<PyCImage *>(smelf);
-    return self->is_empty() ? 1 : 0;
+    return self->is_empty() ? 0 : 1; /// NON-zero, so this is backwards-looking
 }
 
 /// BINARY OP MACROS -- Here's how these work:
