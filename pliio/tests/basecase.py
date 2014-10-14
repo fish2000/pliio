@@ -13,7 +13,7 @@ class BaseCase(TestCase):
     
     def setUp(self):
         self.image_paths = map(
-            lambda nm: expanduser(join('~fish', 'Downloads', nm)), filter(
+            lambda nm: join(expanduser('~fish'), 'Downloads', nm), filter(
                 lambda nm: nm.lower().endswith('jpg'),
                     listdir(abspath(expanduser(join('~fish', 'Downloads'))))))[:10]
         self.imgc = map(

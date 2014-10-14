@@ -3,8 +3,6 @@ from __future__ import print_function
 
 from basecase import BaseCase
 
-#import sys
-#from imread import imread
 from pliio import PyImgC as imgc
 import numpy
 
