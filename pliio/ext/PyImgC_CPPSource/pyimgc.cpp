@@ -376,6 +376,18 @@ static int PyCImage_Compare(PyObject *smelf, PyObject *smother) {
     return result;
 }
 
+
+static int PyCImage_NonZero(PyObject *smelf) {
+    if (!smelf) {
+        PyErr_SetString(PyExc_ValueError,
+            "Bad nonzero argument");
+        return -1;
+    }
+    
+    PyCImage *self = reinterpret_cast<PyCImage *>(smelf);
+    return self->is_empty() ? 1 : 0;
+}
+
 /// BINARY OP MACROS -- Here's how these work:
 /// PyCImage_BINARY_OP(OP_NAME) is a macro.
 /// Invoking this macro will declare an in-place function,
@@ -453,7 +465,9 @@ static PyNumberMethods PyCImage_NumberMethods = {
     (unaryfunc)PyCImage_NEGATIVE,               /* nb_negative */
     (unaryfunc)PyCImage_POSITIVE,               /* nb_positive */
     (unaryfunc)PyCImage_ABSOLUTE,               /* nb_absolute */
-    0,                                          /* nb_nonzero */
+    
+    (inquiry)PyCImage_NonZero,                  /* nb_nonzero */
+    
     (unaryfunc)PyCImage_INVERT,                 /* nb_invert */
     (binaryfunc)PyCImage_LSHIFT,                /* nb_lshift */
     (binaryfunc)PyCImage_RSHIFT,                /* nb_rshift */

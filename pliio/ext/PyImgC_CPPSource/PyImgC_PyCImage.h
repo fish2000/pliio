@@ -78,6 +78,13 @@ public:
         if (checkptr()) { cimage.reset(); }
     }
     
+    inline bool is_empty() {
+#define HANDLE(type) return recast<type>()->is_empty();
+        SAFE_SWITCH_ON_DTYPE(dtype, true);
+#undef HANDLE
+        return true;
+    }
+    
     inline bool checkptr() { return cimage.get() != nullptr; }
     inline bool checkdtype() { return dtype != NULL && PyArray_DescrCheck(dtype); }
     inline unsigned int typecode() {
