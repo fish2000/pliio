@@ -53,3 +53,7 @@ class StructCodeTests(BaseCase):
     def test_subscript(self):
         for im in self.imgc:
             self.assertIsNotNone(im[66])
+    
+    def test_len(self):
+        for im in self.imgc:
+            self.assertIsNotNone(len(im))
