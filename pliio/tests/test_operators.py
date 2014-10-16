@@ -42,3 +42,10 @@ class StructCodeTests(BaseCase):
         self.assertIsNotNone(im & im2)
         self.assertIsNotNone(im ^ im2)
         self.assertIsNotNone(im | im2)
+    
+    def test_comparison(self):
+        if len(self.imgc) < 2:
+            raise ValueError(
+                "Need more than %s images to test binary ops!" % len(self.imgc))
+        im, im2 = self.imgc[0:2]
+        self.assertFalse(im == im2)
