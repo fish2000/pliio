@@ -49,3 +49,7 @@ class StructCodeTests(BaseCase):
                 "Need more than %s images to test binary ops!" % len(self.imgc))
         im, im2 = self.imgc[0:2]
         self.assertFalse(im == im2)
+    
+    def test_subscript(self):
+        for im in self.imgc:
+            self.assertIsNotNone(im[66])
