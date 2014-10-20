@@ -6,6 +6,9 @@
 #include "numpypp/utils.hpp"
 using namespace std;
 
+/// forward declaration
+static string PyCImage_ReprString(PyCImage *pyim);
+
 #define OP(nm) nm
 
 enum class BinaryOp : unsigned int {
@@ -75,20 +78,28 @@ enum class UnaryOp : unsigned int {
     } \
     return self;
 
-#define UNARY_OP_TRACE(self, op) \
-    cout << "> UNARY_OP_TRACE:\n" \
+#define UNARY_OP_TRACE(self, cm_self, op) \
+    cout << PyCImage_ReprString(self) << "\n" \
+         << "> UNARY_OP_TRACE:\n" \
          << " \tOP = " << static_cast<unsigned int>(op) << "\n" \
-         << " \ttypeid(self) = " << typeid(self).name() << "\n"; \
-    UNARY_OP(self, op)
+         << " \ttypeid(self) = " << typeid(self).name() << "\n" \
+         << "{CImg self} -> " \
+         << static_cast<const char *>( \
+            cm_self.value_string('/', 100).data()) << "\n"; \
+    UNARY_OP(cm_self, op)
 
-#define BINARY_OP_TRACE(self, another, op) \
-    cout << "> BINARY_OP_TRACE:\n" \
+#define BINARY_OP_TRACE(self, cm_self, another, cm_other, op) \
+    cout << "{CImg self} -> " \
+         << static_cast<const char *>( \
+            cm_self.value_string('/', 100).data()) << "\n" \
+         << "{CImg other} -> " \
+         << static_cast<const char *>( \
+            cm_other.value_string('/', 100).data()) << "\n" \
+         << "> BINARY_OP_TRACE:\n" \
          << " \tOP = " << static_cast<unsigned int>(op) << "\n" \
          << " \ttypeid(self) = " << typeid(self).name() << "\n" \
          << " \ttypeid(another) = " << typeid(another).name() << "\n"; \
-    BINARY_OP(self, another, op)
-
-static string PyCImage_ReprString(PyCImage *pyim);
+    BINARY_OP(cm_self, cm_other, op)
 
 template <typename selfT>
     selfT unary_op_LHS(PyCImage *self, UnaryOp op) {
@@ -99,12 +110,8 @@ template <typename selfT>
         }
     #ifdef IMGC_DEBUG
         #define HANDLE(selfT) { \
-            cout << PyCImage_ReprString(self) << "\n"; \
             auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
-            cout << "{CImg self} -> " \
-                 << static_cast<const char *>( \
-                     cm_self.value_string('/', 100).data()) << "\n"; \
-            UNARY_OP_TRACE(cm_self, op); \
+            UNARY_OP_TRACE(self, cm_self, op); \
         }
         SAFE_SWITCH_ON_DTYPE(self->dtype, selfT());
         #undef HANDLE
@@ -138,13 +145,7 @@ selfT binary_op_RHS(PyCImage *self, PyCImage *other, BinaryOp op) {
     #define HANDLE(otherT) { \
         auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
         auto cm_other = *dynamic_cast<CImg<unsigned char>*>((other->cimage).get()); \
-        cout << "{CImg self} -> " \
-             << static_cast<const char *>( \
-                 cm_self.value_string('/', 100).data()) << "\n"; \
-        cout << "{CImg other} -> " \
-             << static_cast<const char *>( \
-                cm_other.value_string('/', 100).data()) << "\n"; \
-        BINARY_OP_TRACE(cm_self, cm_other, op); \
+        BINARY_OP_TRACE(self, cm_self, other, cm_other, op); \
     }
     SAFE_SWITCH_ON_DTYPE(other->dtype, selfT());
     #undef HANDLE
