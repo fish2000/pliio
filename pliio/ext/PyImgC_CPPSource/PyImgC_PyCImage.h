@@ -110,10 +110,10 @@ public:
                 return -1;
         }
 #define HANDLE(type) return compare_with<type>(other);
-    SAFE_SWITCH_ON_DTYPE(dtype, -2);
+        SAFE_SWITCH_ON_DTYPE(dtype, -2);
 #undef HANDLE
-    PyErr_SetString(PyExc_ValueError,
-        "Comparison failure in PyCImage.compare()");
+        PyErr_SetString(PyExc_ValueError,
+            "Comparison failure in PyCImage.compare()");
         return -1;
     }
     
