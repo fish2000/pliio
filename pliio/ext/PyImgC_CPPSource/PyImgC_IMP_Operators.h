@@ -110,14 +110,14 @@ template <typename selfT>
         }
     #ifdef IMGC_DEBUG
         #define HANDLE(selfT) { \
-            auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
+            auto cm_self = *dynamic_cast<CImg<selfT>*>((self->cimage).get()); \
             UNARY_OP_TRACE(self, cm_self, op); \
         }
         SAFE_SWITCH_ON_DTYPE(self->dtype, selfT());
         #undef HANDLE
     #else
         #define HANDLE(selfT) { \
-            auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
+            auto cm_self = *dynamic_cast<CImg<selfT>*>((self->cimage).get()); \
             UNARY_OP(cm_self, op); \
         }
         SAFE_SWITCH_ON_DTYPE(self->dtype, selfT());
@@ -143,16 +143,16 @@ selfT binary_op_RHS(PyCImage *self, PyCImage *other, BinaryOp op) {
     }
 #ifdef IMGC_DEBUG
     #define HANDLE(otherT) { \
-        auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
-        auto cm_other = *dynamic_cast<CImg<unsigned char>*>((other->cimage).get()); \
+        auto cm_self = *dynamic_cast<selfT*>((self->cimage).get()); \
+        auto cm_other = *dynamic_cast<CImg<otherT>*>((other->cimage).get()); \
         BINARY_OP_TRACE(self, cm_self, other, cm_other, op); \
     }
     SAFE_SWITCH_ON_DTYPE(other->dtype, selfT());
     #undef HANDLE
 #else
     #define HANDLE(otherT) { \
-        auto cm_self = *dynamic_cast<CImg<unsigned char>*>((self->cimage).get()); \
-        auto cm_other = *dynamic_cast<CImg<unsigned char>*>((other->cimage).get()); \
+        auto cm_self = *dynamic_cast<selfT*>((self->cimage).get()); \
+        auto cm_other = *dynamic_cast<CImg<otherT>*>((other->cimage).get()); \
         BINARY_OP(cm_self, cm_other, op); \
     }
     SAFE_SWITCH_ON_DTYPE(other->dtype, selfT());
