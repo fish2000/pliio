@@ -1,16 +1,15 @@
 
 from __future__ import print_function
 
-import numpy
 from basecase import FilePathCase
 from pliio import PyImgC as imgc
 
 dtypes = (
-    numpy.uint8,
-    numpy.uint32,
-    numpy.uint64,
-    numpy.float32,
-    numpy.float64)
+    imgc.uint8,
+    imgc.uint32,
+    imgc.uint64,
+    imgc.float32,
+    imgc.float64)
 
 class ConstructorTests(FilePathCase):
     
@@ -42,26 +41,26 @@ class ConstructorTests(FilePathCase):
     def test_constructor_file_path_dtype_uint8(self):
         for pth in self.image_paths:
             self.assertIsNotNone(
-                imgc.PyCImage(pth, dtype=numpy.uint8))
+                imgc.PyCImage(pth, dtype=imgc.uint8))
     
     def test_constructor_file_path_dtype_uint32(self):
         for pth in self.image_paths:
             self.assertIsNotNone(
-                imgc.PyCImage(pth, dtype=numpy.uint32))
+                imgc.PyCImage(pth, dtype=imgc.uint32))
     
     def test_constructor_file_path_dtype_float32(self):
         for pth in self.image_paths:
             self.assertIsNotNone(
-                imgc.PyCImage(pth, dtype=numpy.float32))
+                imgc.PyCImage(pth, dtype=imgc.float32))
     
     def test_constructor_file_path_dtype_uint64(self):
         for pth in self.image_paths:
             self.assertIsNotNone(
-                imgc.PyCImage(pth, dtype=numpy.uint64))
+                imgc.PyCImage(pth, dtype=imgc.uint64))
     
     def test_constructor_file_path_dtype_float64(self):
         for pth in self.image_paths:
             self.assertIsNotNone(
-                imgc.PyCImage(pth, dtype=numpy.float64))
+                imgc.PyCImage(pth, dtype=imgc.float64))
     
 

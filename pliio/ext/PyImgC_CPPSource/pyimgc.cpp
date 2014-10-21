@@ -661,6 +661,7 @@ PyMODINIT_FUNC initPyImgC(void) {
     PyModule_AddObject(module, "bool_", numpy::dtype_object<bool>());
     PyModule_AddObject(module, "character", numpy::dtype_object<char>());
     
+    PyModule_AddObject(module, "int8", numpy::dtype_object<char>());
     PyModule_AddObject(module, "short", numpy::dtype_object<short>());
     PyModule_AddObject(module, "int16", numpy::dtype_object<short>());
     PyModule_AddObject(module, "int32", numpy::dtype_object<int>());
@@ -668,6 +669,7 @@ PyMODINIT_FUNC initPyImgC(void) {
     PyModule_AddObject(module, "int64", numpy::dtype_object<long>());
     PyModule_AddObject(module, "int_", numpy::dtype_object<long>());
     
+    PyModule_AddObject(module, "uint8", numpy::dtype_object<unsigned char>());
     PyModule_AddObject(module, "ushort", numpy::dtype_object<unsigned short>());
     PyModule_AddObject(module, "uint16", numpy::dtype_object<unsigned short>());
     PyModule_AddObject(module, "uint32", numpy::dtype_object<unsigned int>());
@@ -677,6 +679,10 @@ PyMODINIT_FUNC initPyImgC(void) {
     
     PyModule_AddObject(module, "float", numpy::dtype_object<float>());
     PyModule_AddObject(module, "float32", numpy::dtype_object<float>());
+    PyModule_AddObject(module, "double", numpy::dtype_object<double>());
+    PyModule_AddObject(module, "float64", numpy::dtype_object<double>());
+    PyModule_AddObject(module, "longdouble", numpy::dtype_object<long double>());
+    PyModule_AddObject(module, "longfloat", numpy::dtype_object<long double>());
     
 }
 

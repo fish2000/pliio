@@ -80,20 +80,17 @@ checkext:
 	
 	# Checking PyCImage file loading...
 	bpython -c "$(shell echo "'';\
-		import numpy;\
 		from pliio import PyImgC as imgc; \
-		im = imgc.PyCImage('$(IMG)', dtype=numpy.uint8); \
+		im = imgc.PyCImage('$(IMG)', dtype=imgc.uint8); \
 		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
 	
 	bpython -c "$(shell echo "'';\
-		import numpy;\
 		from pliio import PyImgC as imgc; \
-		im = imgc.PyCImage(dtype=numpy.uint8); \
+		im = imgc.PyCImage(dtype=imgc.uint8); \
 		im.cimg_load('${IMG}'); \
 		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
 		
 	bpython -c "$(shell echo "'';\
-		import numpy;\
 		from pliio import PyImgC as imgc; \
 		im = imgc.PyCImage(); \
 		im.cimg_load('${IMG}'); \
@@ -101,10 +98,9 @@ checkext:
 	
 	# Checking comparison function...
 	bpython -c "$(shell echo "'';\
-		import numpy;\
 		from pliio import PyImgC as imgc; \
-		im = imgc.PyCImage(dtype=numpy.uint8); \
-		im2 = imgc.PyCImage(dtype=numpy.int32); \
+		im = imgc.PyCImage(dtype=imgc.uint8); \
+		im2 = imgc.PyCImage(dtype=imgc.int32); \
 		im.cimg_load('${IMG}'); \
 		im2.cimg_load('${IMG}'); \
 		print 'im : %s' % repr(im); \
@@ -113,10 +109,9 @@ checkext:
 	
 	# Checking BINARY_OP() implementations... WORKS:
 	bpython -c "$(shell echo "'';\
-		import numpy;\
 		from pliio import PyImgC as imgc; \
-		im = imgc.PyCImage('$(IMG)', dtype=numpy.int32); \
-		im2 = imgc.PyCImage('$(IMG)', dtype=numpy.int32); \
+		im = imgc.PyCImage('$(IMG)', dtype=imgc.int32); \
+		im2 = imgc.PyCImage('$(IMG)', dtype=imgc.int32); \
 		print 'im : %s' % repr(im); \
 		print 'im2: %s' % repr(im2); \
 		print 'im + im2 = %s' % repr(im + im2); \
