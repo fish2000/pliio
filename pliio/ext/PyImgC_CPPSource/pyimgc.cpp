@@ -684,6 +684,10 @@ PyMODINIT_FUNC initPyImgC(void) {
     PyModule_AddObject(module, "longdouble", numpy::dtype_object<long double>());
     PyModule_AddObject(module, "longfloat", numpy::dtype_object<long double>());
     
+    PyModule_AddObject(module, "complex64", numpy::dtype_object<complex<float>>());
+    PyModule_AddObject(module, "complex_", numpy::dtype_object<complex<double>>());
+    PyModule_AddObject(module, "complex128", numpy::dtype_object<complex<double>>());
+    PyModule_AddObject(module, "complex256", numpy::dtype_object<complex<long double>>());
 }
 
 
