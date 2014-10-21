@@ -638,7 +638,7 @@ static PyMethodDef PyImgC_methods[] = {
 };
 
 PyMODINIT_FUNC initPyImgC(void) {
-    PyObject* module;
+    PyObject *module;
     
     PyEval_InitThreads();
     if (PyType_Ready(&PyCImage_Type) < 0) { return; }
@@ -656,6 +656,28 @@ PyMODINIT_FUNC initPyImgC(void) {
     PyModule_AddObject(module,
         "PyCImage",
         (PyObject *)&PyCImage_Type);
+    
+    /// Add dtype object references
+    PyModule_AddObject(module, "bool_", numpy::dtype_object<bool>());
+    PyModule_AddObject(module, "character", numpy::dtype_object<char>());
+    
+    PyModule_AddObject(module, "short", numpy::dtype_object<short>());
+    PyModule_AddObject(module, "int16", numpy::dtype_object<short>());
+    PyModule_AddObject(module, "int32", numpy::dtype_object<int>());
+    PyModule_AddObject(module, "long", numpy::dtype_object<long>());
+    PyModule_AddObject(module, "int64", numpy::dtype_object<long>());
+    PyModule_AddObject(module, "int_", numpy::dtype_object<long>());
+    
+    PyModule_AddObject(module, "ushort", numpy::dtype_object<unsigned short>());
+    PyModule_AddObject(module, "uint16", numpy::dtype_object<unsigned short>());
+    PyModule_AddObject(module, "uint32", numpy::dtype_object<unsigned int>());
+    PyModule_AddObject(module, "uint", numpy::dtype_object<unsigned long>());
+    PyModule_AddObject(module, "ulonglong", numpy::dtype_object<unsigned long>());
+    PyModule_AddObject(module, "uint64", numpy::dtype_object<unsigned long>());
+    
+    PyModule_AddObject(module, "float", numpy::dtype_object<float>());
+    PyModule_AddObject(module, "float32", numpy::dtype_object<float>());
+    
 }
 
 
