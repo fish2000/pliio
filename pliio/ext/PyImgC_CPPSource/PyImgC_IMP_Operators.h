@@ -102,31 +102,31 @@ enum class UnaryOp : unsigned int {
     BINARY_OP(cm_self, cm_other, op)
 
 template <typename selfT>
-    selfT unary_op_LHS(PyCImage *self, UnaryOp op) {
-        if (!self->dtype) {
-            PyErr_Format(PyExc_ValueError,
-                "Binary op %i LHS has no dtype", op);
-            return selfT();
-        }
-    #ifdef IMGC_DEBUG
-        #define HANDLE(selfT) { \
-            auto cm_self = *dynamic_cast<CImg<selfT>*>((self->cimage).get()); \
-            UNARY_OP_TRACE(self, cm_self, op); \
-        }
-        SAFE_SWITCH_ON_DTYPE(self->dtype, selfT());
-        #undef HANDLE
-    #else
-        #define HANDLE(selfT) { \
-            auto cm_self = *dynamic_cast<CImg<selfT>*>((self->cimage).get()); \
-            UNARY_OP(cm_self, op); \
-        }
-        SAFE_SWITCH_ON_DTYPE(self->dtype, selfT());
-        #undef HANDLE
-    #endif
+selfT unary_op_LHS(PyCImage *self, UnaryOp op) {
+    if (!self->dtype) {
         PyErr_Format(PyExc_ValueError,
-            "Failure in unary_op_LHS<T>() with op: %i", op);
+            "Binary op %i LHS has no dtype", op);
         return selfT();
     }
+#ifdef IMGC_DEBUG_
+    #define HANDLE(selfT) { \
+        auto cm_self = *dynamic_cast<CImg<selfT>*>((self->cimage).get()); \
+        UNARY_OP_TRACE(self, cm_self, op); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, selfT());
+    #undef HANDLE
+#else
+    #define HANDLE(selfT) { \
+        auto cm_self = *dynamic_cast<CImg<selfT>*>((self->cimage).get()); \
+        UNARY_OP(cm_self, op); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, selfT());
+    #undef HANDLE
+#endif
+    PyErr_Format(PyExc_ValueError,
+        "Failure in unary_op_LHS<T>() with op: %i", op);
+    return selfT();
+}
 
 template <typename rT>
 CImg<rT> unary_op(PyCImage *self, UnaryOp op) {
@@ -141,7 +141,7 @@ selfT binary_op_RHS(PyCImage *self, PyCImage *other, BinaryOp op) {
             "Binary op %i RHS has no dtype", op);
         return selfT();
     }
-#ifdef IMGC_DEBUG
+#ifdef IMGC_DEBUG_
     #define HANDLE(otherT) { \
         auto cm_self = *dynamic_cast<selfT*>((self->cimage).get()); \
         auto cm_other = *dynamic_cast<CImg<otherT>*>((other->cimage).get()); \
