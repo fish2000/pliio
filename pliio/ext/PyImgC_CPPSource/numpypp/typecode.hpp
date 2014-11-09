@@ -159,7 +159,7 @@ namespace typecode {
         return typecode::typechar(static_cast<NPY_TYPES>(typecode));
     }
     
-    static inline string typecode_name(NPY_TYPES typecode) {
+    static inline string name(NPY_TYPES typecode) {
         try {
             return typecodemaps::literal.at(typecode);
         } catch (const out_of_range &err) {
@@ -169,8 +169,8 @@ namespace typecode {
             return typecodemaps::literal.at(NPY_USERDEF);
         }
     }
-    static inline string typecode_name(unsigned int typecode) {
-        return typecode::typecode_name(static_cast<NPY_TYPES>(typecode));
+    static inline string name(unsigned int typecode) {
+        return typecode::name(static_cast<NPY_TYPES>(typecode));
     }
 }
 

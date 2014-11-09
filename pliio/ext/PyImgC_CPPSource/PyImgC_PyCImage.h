@@ -96,7 +96,7 @@ public:
         return '?';
     }
     inline string typecode_name() {
-        if (checkdtype()) { return typecode::typecode_name(typecode()); }
+        if (checkdtype()) { return typecode::name(typecode()); }
         return string("?");
     }
     
