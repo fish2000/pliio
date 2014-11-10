@@ -147,6 +147,7 @@ checkext:
 		print im.strides; \
 		print im.ndarray.shape; \
 		print im.ndarray.strides; \
+		print im.phash; \
 		print im.buffer_info()" | gsed -e "s/[\\s]+/ /g")"
 		
 	bpython -c "$(shell echo "'';\
@@ -156,6 +157,7 @@ checkext:
 		print im.strides; \
 		print im.ndarray.shape; \
 		print im.ndarray.strides; \
+		print im.phash; \
 		print imgc.buffer_info(im)" | gsed -e "s/[\\s]+/ /g")"
 
 upload:

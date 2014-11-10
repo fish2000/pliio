@@ -255,6 +255,7 @@ ext_modules = [
             '-stdlib=libc++',
             '-Werror=unused-command-line-argument',
             '-Wno-unused-function',
+            '-Wno-delete-non-virtual-dtor',
             '-Wno-overloaded-virtual', # WARNING WARNING WARNING
             '-Wno-dynamic-class-memaccess', # WARNING WARNING etc
             '-Wno-deprecated-register', # CImg w/OpenEXR throws these

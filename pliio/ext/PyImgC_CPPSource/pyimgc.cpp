@@ -21,6 +21,7 @@
 #include "PyImgC_IMP_PyBufferDict.h"
 #include "PyImgC_IMP_CImageTest.h"
 #include "PyImgC_IMP_Utils.h"
+#include "PyImgC_IMP_PHash.h"
 
 using namespace cimg_library;
 using namespace std;
@@ -383,6 +384,12 @@ static PyObject     *PyCImage_GET_ndarray(PyCImage *self, void *closure) {
     return Py_BuildValue("");
 }
 
+/// pycimage.phash getter
+static PyObject     *PyCImage_GET_phash(PyCImage *self, void *closure) {
+    return PyLong_FromUnsignedLongLong(
+        ph_dct_imagehash(*self->recast<uint8_t>()));
+}
+
 static PyGetSetDef PyCImage_getset[] = {
     {
         "dtype",
@@ -429,6 +436,11 @@ static PyGetSetDef PyCImage_getset[] = {
             (getter)PyCImage_GET_ndarray,
             None,
             "Numpy Array Object", None },
+    {
+        "phash",
+            (getter)PyCImage_GET_phash,
+            None,
+            "Perceptual Image Hash (phash)", None },
     SENTINEL
 };
 
