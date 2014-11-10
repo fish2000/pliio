@@ -12,9 +12,11 @@ static string PyCImage_ReprString(PyCImage *pyim);
 #define OP(nm) nm
 
 enum class BinaryOp : unsigned int {
-    OP(ADD), OP(SUBTRACT), OP(MULTIPLY), OP(DIVIDE), OP(REMAINDER),
+    OP(ADD), OP(SUBTRACT), OP(MULTIPLY), OP(DIVIDE),
+    OP(REMAINDER),
     //OP(DIVMOD),
-    OP(POWER), OP(LSHIFT), OP(RSHIFT),
+    OP(POWER),
+    OP(LSHIFT), OP(RSHIFT),
     OP(AND), OP(XOR), OP(OR),
     
     OP(INPLACE_ADD), OP(INPLACE_SUBTRACT),
@@ -143,16 +145,16 @@ selfT binary_op_RHS(PyCImage *self, PyCImage *other, BinaryOp op) {
     }
 #ifdef IMGC_DEBUG_
     #define HANDLE(otherT) { \
-        auto cm_self = *dynamic_cast<selfT*>((self->cimage).get()); \
-        auto cm_other = *dynamic_cast<CImg<otherT>*>((other->cimage).get()); \
+        auto cm_self = *dynamic_cast<selfT *>((self->cimage).get()); \
+        auto cm_other = *dynamic_cast<CImg<otherT> *>((other->cimage).get()); \
         BINARY_OP_TRACE(self, cm_self, other, cm_other, op); \
     }
     SAFE_SWITCH_ON_DTYPE(other->dtype, selfT());
     #undef HANDLE
 #else
     #define HANDLE(otherT) { \
-        auto cm_self = *dynamic_cast<selfT*>((self->cimage).get()); \
-        auto cm_other = *dynamic_cast<CImg<otherT>*>((other->cimage).get()); \
+        auto cm_self = *dynamic_cast<selfT *>((self->cimage).get()); \
+        auto cm_other = *dynamic_cast<CImg<otherT> *>((other->cimage).get()); \
         BINARY_OP(cm_self, cm_other, op); \
     }
     SAFE_SWITCH_ON_DTYPE(other->dtype, selfT());
@@ -184,8 +186,8 @@ CImg<rT> binary_op(PyCImage *self, PyCImage *other, BinaryOp op) {
     return binary_op_LHS<CImg<rT>>(self, other, op);
 }
 
-#define HANDLE_UNARY_OP(type, opname, op) { \
-        auto out_img = unary_op<type>(self, op); \
+#define HANDLE_UNARY_OP(type, opname) { \
+        auto out_img = unary_op<type>(self, UnaryOp::opname); \
         self->assign(out_img); \
         return reinterpret_cast<PyObject *>(self); \
     }
@@ -199,12 +201,12 @@ static PyObject *PyCImage_##opname(PyObject *smelf) { \
     } \
     PyCImage *self = reinterpret_cast<PyCImage *>(smelf); \
     Py_INCREF(self); \
-    SAFE_SWITCH_ON_DTYPE_FOR_UNARY_OP(self->dtype, NULL, opname, UnaryOp::opname); \
+    SAFE_SWITCH_ON_DTYPE_FOR_UNARY_OP(self->dtype, NULL, opname); \
     return NULL; \
 }
 
-#define HANDLE_BINARY_OP(type, opname, op) { \
-        auto out_img = binary_op<type>(self, other, op); \
+#define HANDLE_BINARY_OP(type, opname) { \
+        auto out_img = binary_op<type>(self, other, BinaryOp::opname); \
         self->assign(out_img); \
         return reinterpret_cast<PyObject *>(self); \
     }
@@ -220,7 +222,7 @@ static PyObject *PyCImage_##opname(PyObject *smelf, PyObject *smother) { \
     PyCImage *other = reinterpret_cast<PyCImage *>(smother); \
     Py_INCREF(self); \
     Py_INCREF(other); \
-    SAFE_SWITCH_ON_DTYPE_FOR_BINARY_OP(self->dtype, NULL, opname, BinaryOp::opname); \
+    SAFE_SWITCH_ON_DTYPE_FOR_BINARY_OP(self->dtype, NULL, opname); \
     return NULL; \
 }
 

@@ -4,8 +4,6 @@
 
 #include <Python.h>
 
-static PyObject *structcode_to_dtype_code(const char *code); /// FOREWARD!
-
 static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffer_dict = PyDict_New();
     PyObject *buffer = NULL,
@@ -24,6 +22,7 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
     if (PyObject_CheckBuffer(buffer)) {
         /// buffer3000
         Py_buffer buf;
+        int idx;
         if (PyObject_GetBuffer(buffer, &buf, PyBUF_FORMAT) == -1) {
             if (PyObject_GetBuffer(buffer, &buf, PyBUF_SIMPLE) == -1) {
                 PyErr_Format(PyExc_ValueError,
@@ -43,7 +42,7 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
 
         if (buf.readonly) {
             PyDict_SetItemString(buffer_dict, "readonly",
-                PyBool_FromLong(static_cast<long>(buf.readonly)));
+                PyBool_FromLong(buf.readonly));
         } else {
             PyDict_SetItemString(buffer_dict, "readonly", PyGetNone);
         }
@@ -62,15 +61,13 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
 
         if (buf.ndim) {
             PyDict_SetItemString(buffer_dict, "ndim",
-                PyInt_FromLong(static_cast<long>(buf.ndim)));
+                PyInt_FromLong(buf.ndim));
 
             if (buf.shape) {
-                PyObject *shape = PyTuple_New(
-                    static_cast<Py_ssize_t>(buf.ndim));
-                for (int idx = 0; idx < static_cast<int>(buf.ndim); idx++) {
-                    PyTuple_SET_ITEM(shape,
-                        static_cast<Py_ssize_t>(idx),
-                        PyInt_FromSsize_t(buf.shape[idx]));
+                PyObject *shape = PyTuple_New(buf.ndim);
+                for (idx = 0; idx < buf.ndim; ++idx) {
+                    PyTuple_SET_ITEM(shape, idx,
+                        PyInt_FromLong(buf.shape[idx]));
                 }
                 PyDict_SetItemString(buffer_dict, "shape", shape);
             } else {
@@ -78,11 +75,10 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
             }
 
             if (buf.strides) {
-                PyObject *strides = PyTuple_New(static_cast<Py_ssize_t>(buf.ndim));
-                for (int idx = 0; idx < static_cast<int>(buf.ndim); idx++) {
-                    PyTuple_SET_ITEM(strides,
-                        static_cast<Py_ssize_t>(idx),
-                        PyInt_FromSsize_t(buf.strides[idx]));
+                PyObject *strides = PyTuple_New(buf.ndim);
+                for (idx = 0; idx < buf.ndim; ++idx) {
+                    PyTuple_SET_ITEM(strides, idx,
+                        PyInt_FromLong(buf.strides[idx]));
                 }
                 PyDict_SetItemString(buffer_dict, "strides", strides);
             } else {
@@ -90,11 +86,10 @@ static PyObject *PyImgC_PyBufferDict(PyObject *self, PyObject *args, PyObject *k
             }
 
             if (buf.suboffsets) {
-                PyObject *suboffsets = PyTuple_New(static_cast<Py_ssize_t>(buf.ndim));
-                for (int idx = 0; idx < static_cast<int>(buf.ndim); idx++) {
-                    PyTuple_SET_ITEM(suboffsets,
-                        static_cast<Py_ssize_t>(idx),
-                        PyInt_FromSsize_t(buf.suboffsets[idx]));
+                PyObject *suboffsets = PyTuple_New(buf.ndim);
+                for (idx = 0; idx < buf.ndim; ++idx) {
+                    PyTuple_SET_ITEM(suboffsets, idx,
+                        PyInt_FromLong(buf.suboffsets[idx]));
                 }
                 PyDict_SetItemString(buffer_dict, "suboffsets", suboffsets);
             } else {

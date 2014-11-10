@@ -31,7 +31,7 @@ CImg(Py_buffer *pybuffer, int width = 0, int height = 0):_depth(0),_spectrum(0),
     assign(
         const_cast<Py_buffer *>(pybuffer),
         const_cast<int&>(width),
-        const_cast<int&>(width));
+        const_cast<int&>(height));
 }
 
 // In-place constructor
@@ -73,8 +73,10 @@ CImg<T> &assign(const Py_buffer *const pybuffer, const int width = 0, const int 
         const_cast<int&>(H), 1,
         const_cast<int&>(nChannels), true);
     
+    /*
     PyBuffer_Release(
         const_cast<Py_buffer *>(pybuffer));
+    */
     
     return *this;
 }
@@ -113,14 +115,19 @@ void get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=t
     /// see N.B. below as to why we are calculating all of this shit by hand,
     /// rather than using a call to PyBuffer_FillContiguousStrides()
     pybuffer->buf = static_cast<T*>(_data);
-    pybuffer->format = const_cast<char *>(structcode_char);  /// for now (do we give fucks re:byte order?)s
+    pybuffer->format = const_cast<char *>(structcode_char);  /// for now (do we give fucks re:byte order?)
     
     pybuffer->ndim = 3;                                      /// for now
     pybuffer->len = raw_buffer_size;
-    pybuffer->shape = shape();                               /// that'll work without a NULL terminator, right?
+    
+    pybuffer->shape = (Py_ssize_t *)malloc(sizeof(Py_ssize_t) * 3);
+    pybuffer->shape[0] = (Py_ssize_t)height();
+    pybuffer->shape[1] = (Py_ssize_t)width();
+    pybuffer->shape[2] = (Py_ssize_t)spectrum();
+    
     pybuffer->itemsize = sizeof(T);
     
-    pybuffer->readonly = 0;
+    pybuffer->readonly = readonly;
     pybuffer->internal = NULL;                               /// for now
     pybuffer->strides = NULL;
     pybuffer->suboffsets = NULL;

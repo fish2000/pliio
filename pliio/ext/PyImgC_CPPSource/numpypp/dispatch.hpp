@@ -34,37 +34,37 @@ typedef unsigned short ushort;
     HANDLE_INTEGER_TYPES() \
     HANDLE_FLOAT_TYPES()
 
-#define HANDLE_TYPES_FOR_BINARY_OP(opname, op) \
-    case NPY_BOOL:          HANDLE_BINARY_OP(bool, opname, op); break; \
-    case NPY_BYTE:          HANDLE_BINARY_OP(char, opname, op); break; \
-    case NPY_SHORT:         HANDLE_BINARY_OP(short, opname, op); break; \
-    case NPY_INT:           HANDLE_BINARY_OP(int, opname, op); break; \
-    case NPY_LONG:          HANDLE_BINARY_OP(long, opname, op); break; \
-    case NPY_LONGLONG:      HANDLE_BINARY_OP(long long, opname, op); break; \
-    case NPY_UBYTE:         HANDLE_BINARY_OP(unsigned char, opname, op); break; \
-    case NPY_USHORT:        HANDLE_BINARY_OP(unsigned short, opname, op); break; \
-    case NPY_UINT:          HANDLE_BINARY_OP(unsigned int, opname, op); break; \
-    case NPY_ULONG:         HANDLE_BINARY_OP(unsigned long, opname, op); break; \
-    case NPY_ULONGLONG:     HANDLE_BINARY_OP(unsigned long long, opname, op); break; \
-    case NPY_FLOAT:         HANDLE_BINARY_OP(float, opname, op); break; \
-    case NPY_DOUBLE:        HANDLE_BINARY_OP(double, opname, op); break; \
-    case NPY_LONGDOUBLE:    HANDLE_BINARY_OP(long double, opname, op); break;
+#define HANDLE_TYPES_FOR_BINARY_OP(opname) \
+    case NPY_BOOL:          HANDLE_BINARY_OP(bool, opname); break; \
+    case NPY_BYTE:          HANDLE_BINARY_OP(char, opname); break; \
+    case NPY_SHORT:         HANDLE_BINARY_OP(short, opname); break; \
+    case NPY_INT:           HANDLE_BINARY_OP(int, opname); break; \
+    case NPY_LONG:          HANDLE_BINARY_OP(long, opname); break; \
+    case NPY_LONGLONG:      HANDLE_BINARY_OP(long long, opname); break; \
+    case NPY_UBYTE:         HANDLE_BINARY_OP(unsigned char, opname); break; \
+    case NPY_USHORT:        HANDLE_BINARY_OP(unsigned short, opname); break; \
+    case NPY_UINT:          HANDLE_BINARY_OP(unsigned int, opname); break; \
+    case NPY_ULONG:         HANDLE_BINARY_OP(unsigned long, opname); break; \
+    case NPY_ULONGLONG:     HANDLE_BINARY_OP(unsigned long long, opname); break; \
+    case NPY_FLOAT:         HANDLE_BINARY_OP(float, opname); break; \
+    case NPY_DOUBLE:        HANDLE_BINARY_OP(double, opname); break; \
+    case NPY_LONGDOUBLE:    HANDLE_BINARY_OP(long double, opname); break;
 
-#define HANDLE_TYPES_FOR_UNARY_OP(opname, op) \
-    case NPY_BOOL:          HANDLE_UNARY_OP(bool, opname, op); break; \
-    case NPY_BYTE:          HANDLE_UNARY_OP(char, opname, op); break; \
-    case NPY_SHORT:         HANDLE_UNARY_OP(short, opname, op); break; \
-    case NPY_INT:           HANDLE_UNARY_OP(int, opname, op); break; \
-    case NPY_LONG:          HANDLE_UNARY_OP(long, opname, op); break; \
-    case NPY_LONGLONG:      HANDLE_UNARY_OP(long long, opname, op); break; \
-    case NPY_UBYTE:         HANDLE_UNARY_OP(unsigned char, opname, op); break; \
-    case NPY_USHORT:        HANDLE_UNARY_OP(unsigned short, opname, op); break; \
-    case NPY_UINT:          HANDLE_UNARY_OP(unsigned int, opname, op); break; \
-    case NPY_ULONG:         HANDLE_UNARY_OP(unsigned long, opname, op); break; \
-    case NPY_ULONGLONG:     HANDLE_UNARY_OP(unsigned long long, opname, op); break; \
-    case NPY_FLOAT:         HANDLE_UNARY_OP(float, opname, op); break; \
-    case NPY_DOUBLE:        HANDLE_UNARY_OP(double, opname, op); break; \
-    case NPY_LONGDOUBLE:    HANDLE_UNARY_OP(long double, opname, op); break;
+#define HANDLE_TYPES_FOR_UNARY_OP(opname) \
+    case NPY_BOOL:          HANDLE_UNARY_OP(bool, opname); break; \
+    case NPY_BYTE:          HANDLE_UNARY_OP(char, opname); break; \
+    case NPY_SHORT:         HANDLE_UNARY_OP(short, opname); break; \
+    case NPY_INT:           HANDLE_UNARY_OP(int, opname); break; \
+    case NPY_LONG:          HANDLE_UNARY_OP(long, opname); break; \
+    case NPY_LONGLONG:      HANDLE_UNARY_OP(long long, opname); break; \
+    case NPY_UBYTE:         HANDLE_UNARY_OP(unsigned char, opname); break; \
+    case NPY_USHORT:        HANDLE_UNARY_OP(unsigned short, opname); break; \
+    case NPY_UINT:          HANDLE_UNARY_OP(unsigned int, opname); break; \
+    case NPY_ULONG:         HANDLE_UNARY_OP(unsigned long, opname); break; \
+    case NPY_ULONGLONG:     HANDLE_UNARY_OP(unsigned long long, opname); break; \
+    case NPY_FLOAT:         HANDLE_UNARY_OP(float, opname); break; \
+    case NPY_DOUBLE:        HANDLE_UNARY_OP(double, opname); break; \
+    case NPY_LONGDOUBLE:    HANDLE_UNARY_OP(long double, opname); break;
 
 
 #define HANDLE_ERROR(typecode) \
@@ -92,10 +92,10 @@ typedef unsigned short ushort;
     } \
     CATCH_PYTHON_EXCEPTIONS(error_value)
 
-#define SAFE_SWITCH_ON_DTYPE_FOR_BINARY_OP(dtype, error_value, opname, op) \
+#define SAFE_SWITCH_ON_DTYPE_FOR_BINARY_OP(dtype, error_value, opname) \
     try { \
         switch(dtype->type_num) { \
-            HANDLE_TYPES_FOR_BINARY_OP(opname, op); \
+            HANDLE_TYPES_FOR_BINARY_OP(opname); \
             default: \
                             HANDLE_ERROR(dtype->type_num); \
                             return error_value; \
@@ -103,10 +103,10 @@ typedef unsigned short ushort;
     } \
     CATCH_PYTHON_EXCEPTIONS(error_value)
 
-#define SAFE_SWITCH_ON_DTYPE_FOR_UNARY_OP(dtype, error_value, opname, op) \
+#define SAFE_SWITCH_ON_DTYPE_FOR_UNARY_OP(dtype, error_value, opname) \
     try { \
         switch(dtype->type_num) { \
-            HANDLE_TYPES_FOR_UNARY_OP(opname, op); \
+            HANDLE_TYPES_FOR_UNARY_OP(opname); \
             default: \
                             HANDLE_ERROR(dtype->type_num); \
                             return error_value; \

@@ -123,11 +123,38 @@ checkext:
 		print 'im | im2 = %s' % repr(im | im2)" | gsed -e "s/[\\s]+/ /g")"
 		
 	bpython -c "$(shell echo "'';\
-		import numpy;\
 		from pliio import PyImgC as imgc; \
-		im = imgc.PyCImage(); \
+		im = imgc.PyCImage(dtype=imgc.uint8); \
 		im.cimg_load('${IMG}'); \
+		print im.height; \
+		print im.width; \
+		print im.spectrum; \
 		print im.buffer_info()" | gsed -e "s/[\\s]+/ /g")"
+		
+	bpython -c "$(shell echo "'';\
+		from pliio import PyImgC as imgc; \
+		im = imgc.PyCImage(dtype=imgc.uint8); \
+		im.cimg_load('${IMG}'); \
+		print im.height; \
+		print im.width; \
+		print im.spectrum; \
+		print imgc.buffer_info(im)" | gsed -e "s/[\\s]+/ /g")"
+		
+	bpython -c "$(shell echo "'';\
+		from pliio import PyImgC as imgc; \
+		im = imgc.PyCImage('${IMG}', dtype=imgc.uint8); \
+		print im.height; \
+		print im.width; \
+		print im.spectrum; \
+		print im.buffer_info()" | gsed -e "s/[\\s]+/ /g")"
+		
+	bpython -c "$(shell echo "'';\
+		from pliio import PyImgC as imgc; \
+		im = imgc.PyCImage('${IMG}', dtype=imgc.uint8); \
+		print im.height; \
+		print im.width; \
+		print im.spectrum; \
+		print imgc.buffer_info(im)" | gsed -e "s/[\\s]+/ /g")"
 
 upload:
 	python setup.py sdist upload

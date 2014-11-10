@@ -79,26 +79,32 @@ int datasize() const {
     return static_cast<int>(size()) * sizeof(T);
 }
 
-std::array<Py_ssize_t, 3> shape2D() const {
+std::array<long, 3> shape2D() const {
+    /*std::cout << "HEIGHT: " << height() << "\n"
+              << "WIDTH: " << width() << "\n"
+              << "SPECTRUM: " << spectrum() << "\n";*/
     return {{
-        static_cast<Py_ssize_t>(_height),
-        static_cast<Py_ssize_t>(_width),
-        static_cast<Py_ssize_t>(_spectrum)
+        (long)height(),
+        (long)width(),
+        (long)spectrum()
     }};
 }
 
-std::array<Py_ssize_t, 4> shape3D() const {
+std::array<long, 4> shape3D() const {
     return {{
-        static_cast<Py_ssize_t>(_height),
-        static_cast<Py_ssize_t>(_width),
-        static_cast<Py_ssize_t>(_depth),
-        static_cast<Py_ssize_t>(_spectrum)
+        (long)height(),
+        (long)width(),
+        (long)depth(),
+        (long)spectrum()
     }};
 }
 
-#ifndef shape
-#define shape() shape2D().data()
-#endif
+long *shape() const {
+    /*std::cout << "shape2D()[0]: " << shape2D().data()[0] << "\n"
+              << "shape2D()[1]: " << shape2D().data()[1] << "\n"
+              << "shape2D()[2]: " << shape2D().data()[2] << "\n";*/
+    return shape2D().data();
+}
 
 /// structcode parser invocation (from pyimgc.cpp)
 const char *structcode_to_dtype(const char *structcode, bool include_byteorder=true) {

@@ -287,12 +287,63 @@ static int           PyCImage_SET_dtype(PyCImage *self, PyObject *value, void *c
     return 0;
 }
 
+/// pycimage.length getter
+static PyObject     *PyCImage_GET_height(PyCImage *self, void *closure) {
+    BAIL_WITHOUT(self->dtype);
+#define HANDLE(type) { \
+        auto cim = self->recast<type>(); \
+        return PyInt_FromLong(cim->height()); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, Py_BuildValue(""));
+#undef HANDLE
+    return Py_BuildValue("");
+}
+
+/// pycimage.width getter
+static PyObject     *PyCImage_GET_width(PyCImage *self, void *closure) {
+    BAIL_WITHOUT(self->dtype);
+#define HANDLE(type) { \
+        auto cim = self->recast<type>(); \
+        return PyInt_FromLong(cim->width()); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, Py_BuildValue(""));
+#undef HANDLE
+    return Py_BuildValue("");
+}
+
+/// pycimage.spectrum getter
+static PyObject     *PyCImage_GET_spectrum(PyCImage *self, void *closure) {
+    BAIL_WITHOUT(self->dtype);
+#define HANDLE(type) { \
+        auto cim = self->recast<type>(); \
+        return PyInt_FromLong(cim->spectrum()); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, Py_BuildValue(""));
+#undef HANDLE
+    return Py_BuildValue("");
+}
+
 static PyGetSetDef PyCImage_getset[] = {
     {
         "dtype",
             (getter)PyCImage_GET_dtype,
             (setter)PyCImage_SET_dtype,
             "Data Type (numpy.dtype)", None },
+    {
+        "height",
+            (getter)PyCImage_GET_height,
+            None,
+            "Image Height", None },
+    {
+        "width",
+            (getter)PyCImage_GET_width,
+            None,
+            "Image Width", None },
+    {
+        "spectrum",
+            (getter)PyCImage_GET_spectrum,
+            None,
+            "Image Spectrum (Color Depth)", None },
     SENTINEL
 };
 
@@ -419,8 +470,8 @@ PyCImage_BINARY_OP(SUBTRACT);
 PyCImage_BINARY_OP(MULTIPLY);
 PyCImage_BINARY_OP(DIVIDE);
 PyCImage_BINARY_OP(REMAINDER);
-/*PyCImage_BINARY_OP(DIVMOD);*/
-PyCImage_BINARY_OP(POWER);
+/* PyCImage_BINARY_OP(DIVMOD); */
+/* PyCImage_BINARY_OP(POWER); */
 PyCImage_BINARY_OP(LSHIFT);
 PyCImage_BINARY_OP(RSHIFT);
 PyCImage_BINARY_OP(AND);
@@ -516,7 +567,7 @@ static PySequenceMethods PyCImage_SequenceMethods = {
 };
 
 static int PyCImage_GetBuffer(PyObject *self, Py_buffer *view, int flags) {
-    gil_release NOGIL;
+    //gil_release NOGIL;
     PyCImage *pyim = reinterpret_cast<PyCImage *>(self);
     if (pyim->cimage && pyim->dtype) {
 #define HANDLE(type) { \
