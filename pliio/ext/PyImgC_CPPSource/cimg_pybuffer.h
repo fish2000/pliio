@@ -44,18 +44,9 @@ CImg<T> &assign(const Py_buffer *const pybuffer, const int width = 0, const int 
     }
     if (!pybuffer->ndim) { return assign(); }
     
-    //pybuffer->len;
-    //pybuffer->itemsize;
-    
     const char *const dataPtrI = const_cast<const char *const>(
         static_cast<char *>(pybuffer->buf));
     int nChannels = 1, W, H, WH;
-    
-    // for (int idx = 0; idx < (int)buf->ndim; idx++) {
-    //     pybuffer->shape[idx];
-    //     pybuffer->strides[idx];
-    //     pybuffer->suboffsets[idx];
-    // }
     
     if (pybuffer->ndim > 2) { nChannels = static_cast<int>(pybuffer->shape[2]); }
     if (pybuffer->ndim > 1) {
@@ -72,11 +63,6 @@ CImg<T> &assign(const Py_buffer *const pybuffer, const int width = 0, const int 
         const_cast<int&>(W),
         const_cast<int&>(H), 1,
         const_cast<int&>(nChannels), true);
-    
-    /*
-    PyBuffer_Release(
-        const_cast<Py_buffer *>(pybuffer));
-    */
     
     return *this;
 }
@@ -112,11 +98,8 @@ void get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=t
     
     Py_ssize_t raw_buffer_size = static_cast<Py_ssize_t>(datasize());
     
-    /// see N.B. below as to why we are calculating all of this shit by hand,
-    /// rather than using a call to PyBuffer_FillContiguousStrides()
     pybuffer->buf = static_cast<T*>(_data);
     pybuffer->format = const_cast<char *>(structcode_char);  /// for now (do we give fucks re:byte order?)
-    
     pybuffer->ndim = 3;                                      /// for now
     pybuffer->len = raw_buffer_size;
     
@@ -136,24 +119,6 @@ void get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=t
     pybuffer->internal = NULL;                               /// for now
     pybuffer->suboffsets = NULL;
     pybuffer->obj = NULL;
-    
-    /// strides = image width * bytes per pixel
-    /// This function (ostensibly) fills the strides array based on the other params.
-    /// ACTUALLY IT JUST CAUSES A "BUS ERROR"
-    /// MEANING EVERY TIME YOU CALL THIS FUNCTION,
-    /// A SCHOOL BUS FULL OF CHILDREN GOES OFF A CLIFF INTO A RAVINE,
-    /// ERRONEOUSLY.
-    // PyBuffer_FillContiguousStrides(
-    //     pybuffer->ndim,
-    //     pybuffer->shape,
-    //     pybuffer->strides,
-    //     pybuffer->itemsize, 'C');
-    
-    // IMGC_COUT("> STRUCTCODE in BUFFER FORMAT: "     << pybuffer->format);
-    // IMGC_COUT("> RAW BUFFER SIZE: "                 << raw_buffer_size);
-    // IMGC_COUT("> CIMAGE SIZE: "                     << size());
-    // IMGC_COUT("> CIMAGE SIZE*sizeof(T): "           << size()*sizeof(T));
-    // IMGC_COUT("> SHAPE ARRAY: "                     << shape());
 }
 
 #endif /// PyImgC_CIMG_PYBUFFER_PLUGIN_H
