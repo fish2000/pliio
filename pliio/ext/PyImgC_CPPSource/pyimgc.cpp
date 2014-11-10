@@ -386,6 +386,7 @@ static PyObject     *PyCImage_GET_ndarray(PyCImage *self, void *closure) {
 
 /// pycimage.phash getter
 static PyObject     *PyCImage_GET_phash(PyCImage *self, void *closure) {
+    gil_release NOGIL;
     return PyLong_FromUnsignedLongLong(
         ph_dct_imagehash(*self->recast<uint8_t>()));
 }
