@@ -125,11 +125,15 @@ void get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=t
     pybuffer->shape[1] = (Py_ssize_t)width();
     pybuffer->shape[2] = (Py_ssize_t)spectrum();
     
+    pybuffer->strides = (Py_ssize_t *)malloc(sizeof(Py_ssize_t) * 3);
+    pybuffer->strides[0] = (Py_ssize_t)(width() * spectrum() * sizeof(T));
+    pybuffer->strides[1] = (Py_ssize_t)(spectrum() * sizeof(T));
+    pybuffer->strides[2] = (Py_ssize_t)sizeof(T);
+    
     pybuffer->itemsize = sizeof(T);
     
     pybuffer->readonly = readonly;
     pybuffer->internal = NULL;                               /// for now
-    pybuffer->strides = NULL;
     pybuffer->suboffsets = NULL;
     pybuffer->obj = NULL;
     

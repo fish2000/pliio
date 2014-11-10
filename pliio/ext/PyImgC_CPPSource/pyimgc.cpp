@@ -323,6 +323,66 @@ static PyObject     *PyCImage_GET_spectrum(PyCImage *self, void *closure) {
     return Py_BuildValue("");
 }
 
+/// pycimage.size getter -- NB This is NOT the same as len(pycimage)
+static PyObject     *PyCImage_GET_size(PyCImage *self, void *closure) {
+    BAIL_WITHOUT(self->dtype);
+#define HANDLE(type) { \
+        auto cim = self->recast<type>(); \
+        return Py_BuildValue("ii", cim->width(), cim->height()); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, Py_BuildValue(""));
+#undef HANDLE
+    return Py_BuildValue("");
+}
+
+/// pycimage.shape getter
+static PyObject     *PyCImage_GET_shape(PyCImage *self, void *closure) {
+    BAIL_WITHOUT(self->dtype);
+#define HANDLE(type) { \
+        auto cim = self->recast<type>(); \
+        return Py_BuildValue("iii", cim->height(), cim->width(), cim->spectrum()); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, Py_BuildValue(""));
+#undef HANDLE
+    return Py_BuildValue("");
+}
+
+/// pycimage.itemsize getter
+static PyObject     *PyCImage_GET_itemsize(PyCImage *self, void *closure) {
+    BAIL_WITHOUT(self->dtype);
+#define HANDLE(type) return PyInt_FromLong(sizeof(type));
+    SAFE_SWITCH_ON_DTYPE(self->dtype, Py_BuildValue(""));
+#undef HANDLE
+    return Py_BuildValue("");
+}
+
+/// pycimage.strides getter
+static PyObject     *PyCImage_GET_strides(PyCImage *self, void *closure) {
+    BAIL_WITHOUT(self->dtype);
+#define HANDLE(type) { \
+        auto cim = self->recast<type>(); \
+        return Py_BuildValue("iii", \
+            cim->width() * cim->spectrum() * sizeof(type), \
+            cim->spectrum() * sizeof(type), \
+            sizeof(type)); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, Py_BuildValue(""));
+#undef HANDLE
+    return Py_BuildValue("");
+}
+
+/// pycimage.__array_struct__ getter (for NumPy array interface)
+static PyObject     *PyCImage_GET___array_struct__(PyCImage *self, void *closure) {
+    BAIL_WITHOUT(self->dtype);
+#define HANDLE(type) { \
+        auto cim = self->recast<type>(); \
+        return Py_BuildValue("iii", cim->height(), cim->width(), cim->spectrum()); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, Py_BuildValue(""));
+#undef HANDLE
+    return Py_BuildValue("");
+}
+
 static PyGetSetDef PyCImage_getset[] = {
     {
         "dtype",
@@ -344,6 +404,26 @@ static PyGetSetDef PyCImage_getset[] = {
             (getter)PyCImage_GET_spectrum,
             None,
             "Image Spectrum (Color Depth)", None },
+    {
+        "size",
+            (getter)PyCImage_GET_size,
+            None,
+            "Image Size (PIL-style size tuple)", None },
+    {
+        "shape",
+            (getter)PyCImage_GET_shape,
+            None,
+            "Image Shape (NumPy-style shape tuple)", None },
+    {
+        "itemsize",
+            (getter)PyCImage_GET_itemsize,
+            None,
+            "Item Size", None },
+    {
+        "strides",
+            (getter)PyCImage_GET_strides,
+            None,
+            "Image Stride Offsets (NumPy-style strides tuple)", None },
     SENTINEL
 };
 
@@ -567,7 +647,7 @@ static PySequenceMethods PyCImage_SequenceMethods = {
 };
 
 static int PyCImage_GetBuffer(PyObject *self, Py_buffer *view, int flags) {
-    //gil_release NOGIL;
+    gil_release NOGIL;
     PyCImage *pyim = reinterpret_cast<PyCImage *>(self);
     if (pyim->cimage && pyim->dtype) {
 #define HANDLE(type) { \
