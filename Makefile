@@ -143,17 +143,19 @@ checkext:
 	bpython -c "$(shell echo "'';\
 		from pliio import PyImgC as imgc; \
 		im = imgc.PyCImage('${IMG}', dtype=imgc.uint8); \
-		print im.height; \
-		print im.width; \
-		print im.spectrum; \
+		print im.shape; \
+		print im.strides; \
+		print im.ndarray.shape; \
+		print im.ndarray.strides; \
 		print im.buffer_info()" | gsed -e "s/[\\s]+/ /g")"
 		
 	bpython -c "$(shell echo "'';\
 		from pliio import PyImgC as imgc; \
 		im = imgc.PyCImage('${IMG}', dtype=imgc.uint8); \
-		print im.height; \
-		print im.width; \
-		print im.spectrum; \
+		print im.shape; \
+		print im.strides; \
+		print im.ndarray.shape; \
+		print im.ndarray.strides; \
 		print imgc.buffer_info(im)" | gsed -e "s/[\\s]+/ /g")"
 
 upload:

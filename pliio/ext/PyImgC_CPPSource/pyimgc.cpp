@@ -371,6 +371,17 @@ static PyObject     *PyCImage_GET_strides(PyCImage *self, void *closure) {
     return Py_BuildValue("");
 }
 
+/// pycimage.ndarray getter
+static PyObject     *PyCImage_GET_ndarray(PyCImage *self, void *closure) {
+    BAIL_WITHOUT(self->dtype);
+#define HANDLE(type) { \
+        auto cim = self->recast<type>(); \
+        return cim->get_pyarray(); \
+    }
+    SAFE_SWITCH_ON_DTYPE(self->dtype, Py_BuildValue(""));
+#undef HANDLE
+    return Py_BuildValue("");
+}
 /// pycimage.__array_struct__ getter (for NumPy array interface)
 static PyObject     *PyCImage_GET___array_struct__(PyCImage *self, void *closure) {
     BAIL_WITHOUT(self->dtype);
@@ -424,6 +435,11 @@ static PyGetSetDef PyCImage_getset[] = {
             (getter)PyCImage_GET_strides,
             None,
             "Image Stride Offsets (NumPy-style strides tuple)", None },
+    {
+        "ndarray",
+            (getter)PyCImage_GET_ndarray,
+            None,
+            "Numpy Array Object", None },
     SENTINEL
 };
 
@@ -506,7 +522,6 @@ static int PyCImage_Compare(PyObject *smelf, PyObject *smother) {
     }
     return result;
 }
-
 
 static int PyCImage_NonZero(PyObject *smelf) {
     if (!smelf) {
