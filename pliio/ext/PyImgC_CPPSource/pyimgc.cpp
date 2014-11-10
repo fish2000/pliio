@@ -382,17 +382,6 @@ static PyObject     *PyCImage_GET_ndarray(PyCImage *self, void *closure) {
 #undef HANDLE
     return Py_BuildValue("");
 }
-/// pycimage.__array_struct__ getter (for NumPy array interface)
-static PyObject     *PyCImage_GET___array_struct__(PyCImage *self, void *closure) {
-    BAIL_WITHOUT(self->dtype);
-#define HANDLE(type) { \
-        auto cim = self->recast<type>(); \
-        return Py_BuildValue("iii", cim->height(), cim->width(), cim->spectrum()); \
-    }
-    SAFE_SWITCH_ON_DTYPE(self->dtype, Py_BuildValue(""));
-#undef HANDLE
-    return Py_BuildValue("");
-}
 
 static PyGetSetDef PyCImage_getset[] = {
     {
