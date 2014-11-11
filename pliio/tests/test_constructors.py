@@ -23,14 +23,14 @@ class ConstructorTests(FilePathCase):
     def test_empty_constructor_subsequent_file_load(self):
         for pth in self.image_paths:
             im = imgc.PyCImage()
-            im.cimg_load(pth)
+            im.load(pth)
             self.assertIsNotNone(im)
     
     def test_constructor_with_dtype_subsequent_file_load(self):
         for pth in self.image_paths:
             for dtype in dtypes:
                 im = imgc.PyCImage(dtype=dtype)
-                im.cimg_load(pth)
+                im.load(pth)
                 self.assertIsNotNone(im)
     
     def test_constructor_file_path(self):

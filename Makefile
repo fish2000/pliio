@@ -87,13 +87,13 @@ checkext:
 	bpython -c "$(shell echo "'';\
 		from pliio import PyImgC as imgc; \
 		im = imgc.PyCImage(dtype=imgc.uint8); \
-		im.cimg_load('${IMG}'); \
+		im.load('${IMG}'); \
 		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
 		
 	bpython -c "$(shell echo "'';\
 		from pliio import PyImgC as imgc; \
 		im = imgc.PyCImage(); \
-		im.cimg_load('${IMG}'); \
+		im.load('${IMG}'); \
 		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking comparison function...
@@ -101,8 +101,8 @@ checkext:
 		from pliio import PyImgC as imgc; \
 		im = imgc.PyCImage(dtype=imgc.uint8); \
 		im2 = imgc.PyCImage(dtype=imgc.int32); \
-		im.cimg_load('${IMG}'); \
-		im2.cimg_load('${IMG}'); \
+		im.load('${IMG}'); \
+		im2.load('${IMG}'); \
 		print 'im : %s' % repr(im); \
 		print 'im2: %s' % repr(im2); \
 		print 'im == im2 -> %s' % str(im == im2)" | gsed -e "s/[\\s]+/ /g")"
@@ -125,7 +125,7 @@ checkext:
 	bpython -c "$(shell echo "'';\
 		from pliio import PyImgC as imgc; \
 		im = imgc.PyCImage(dtype=imgc.uint8); \
-		im.cimg_load('${IMG}'); \
+		im.load('${IMG}'); \
 		print im.height; \
 		print im.width; \
 		print im.spectrum; \
@@ -134,7 +134,7 @@ checkext:
 	bpython -c "$(shell echo "'';\
 		from pliio import PyImgC as imgc; \
 		im = imgc.PyCImage(dtype=imgc.uint8); \
-		im.cimg_load('${IMG}'); \
+		im.load('${IMG}'); \
 		print im.height; \
 		print im.width; \
 		print im.spectrum; \

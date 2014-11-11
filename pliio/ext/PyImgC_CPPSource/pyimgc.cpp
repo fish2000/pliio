@@ -4,9 +4,11 @@
 #include <string>
 #include <typeinfo>
 
+#include <lcms2.h>
 #include <Python.h>
 #include <structmember.h>
 #include <numpy/ndarrayobject.h>
+
 #include "numpypp/numpy.hpp"
 #include "numpypp/structcode.hpp"
 #include "numpypp/typecode.hpp"
@@ -43,7 +45,6 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
     
     /// LOAD THAT SHIT
     if (!PyImgC_PathExists(path)) {
-        Py_XDECREF(dtype);
         Py_XDECREF(path);
         PyErr_SetString(PyExc_ValueError,
             "path does not exist");
@@ -126,7 +127,7 @@ static PyObject *PyCImage_new(PyTypeObject *type, PyObject *args, PyObject *kwar
 
 /// __repr__ implementations
 static PyObject *PyCImage_Repr(PyCImage *pyim) {
-    if (!pyim->cimage) { PyString_FromString("<PyCImage (empty backing stores)>"); }
+    if (!pyim->cimage) { return PyString_FromString("<PyCImage (empty backing store)>"); }
     int tc = static_cast<int>(pyim->typecode());
     if (pyim->dtype) {
         tc = static_cast<int>(pyim->dtype->type_num);
@@ -138,9 +139,9 @@ static PyObject *PyCImage_Repr(PyCImage *pyim) {
         cim.width(), cim.height(), cim.spectrum(), sizeof(type), \
         pyim); \
     }
-    SAFE_SWITCH_ON_TYPECODE(tc, PyString_FromString("<PyCImage (unknown typecode)>"));
+    SAFE_SWITCH_ON_TYPECODE(tc, PyString_FromString("<PyCImage (bad backing store)>"));
 #undef HANDLE
-    return PyString_FromString("<PyCImage (unmatched type)>");
+    return PyString_FromString("<PyCImage (unmatched typecode)>");
 }
 static const char *PyCImage_ReprCString(PyCImage *pyim) {
     return PyString_AS_STRING(PyCImage_Repr(pyim));
@@ -238,7 +239,7 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
         /// it's a path string, load (with CImg.h) -- DISPATCH!!!!
         PyObject *out = PyObject_CallMethodObjArgs(
             reinterpret_cast<PyObject *>(self),
-            PyString_FromString("cimg_load"),
+            PyString_FromString("load"),
             buffer, self->dtype, NULL);
         if (out == NULL) {
             if (raise_errors) {
@@ -282,9 +283,12 @@ static PyObject     *PyCImage_GET_dtype(PyCImage *self, void *closure) {
     return reinterpret_cast<PyObject *>(self->dtype);
 }
 static int           PyCImage_SET_dtype(PyCImage *self, PyObject *value, void *closure) {
+    PyArray_Descr *dtype;
+    PyArray_DescrConverter(value, &dtype);
+    Py_DECREF(value);
     if (self->dtype) { Py_DECREF(self->dtype); }
-    Py_INCREF(value);
-    self->dtype = reinterpret_cast<PyArray_Descr *>(value);
+    self->dtype = dtype;
+    Py_INCREF(dtype);
     return 0;
 }
 
@@ -668,16 +672,24 @@ static int PyCImage_GetBuffer(PyObject *self, Py_buffer *view, int flags) {
     PyCImage *pyim = reinterpret_cast<PyCImage *>(self);
     if (pyim->cimage && pyim->dtype) {
 #define HANDLE(type) { \
-        auto cim = pyim->recast<type>(); \
-        cim->get_pybuffer(view); \
-    }
-    SAFE_SWITCH_ON_DTYPE(pyim->dtype, -1);
+            auto cim = pyim->recast<type>(); \
+            cim->get_pybuffer(view); \
+        }
+        SAFE_SWITCH_ON_DTYPE(pyim->dtype, -1);
 #undef HANDLE
+        Py_INCREF(self);
+        view->obj = self;
     }
     return 0;
 }
 
 static void PyCImage_ReleaseBuffer(PyObject *self, Py_buffer *view) {
+    if (view->shape) { free(view->shape); }
+    if (view->strides) { free(view->strides); }
+    if (view->obj) {
+        Py_DECREF(view->obj);
+        view->obj = NULL;
+    }
     PyBuffer_Release(view);
 }
 
@@ -692,7 +704,7 @@ static PyBufferProcs PyCImage_Buffer3000Methods = {
 
 static PyMethodDef PyCImage_methods[] = {
     {
-        "cimg_load",
+        "load",
             (PyCFunction)PyCImage_LoadFromFileViaCImg,
             METH_VARARGS | METH_KEYWORDS,
             "Load image data (using CImg.h load methods)"},
@@ -703,12 +715,6 @@ static PyMethodDef PyCImage_methods[] = {
             "Get buffer info dict"},
     SENTINEL
 };
-
-// static Py_ssize_t PyCImage_TypeFlags_Buffer = Py_TPFLAGS_DEFAULT |
-//     Py_TPFLAGS_BASETYPE |
-//     Py_TPFLAGS_HAVE_GETCHARBUFFER |
-//     Py_TPFLAGS_HAVE_NEWBUFFER |
-//     Py_TPFLAGS_HAVE_INPLACEOPS;
 
 static Py_ssize_t PyCImage_TypeFlags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_INPLACEOPS | Py_TPFLAGS_HAVE_NEWBUFFER;
 
@@ -785,8 +791,33 @@ static PyMethodDef PyImgC_methods[] = {
     SENTINEL
 };
 
+#define IMGC_CMS_CAPSULE_NAME "PyImgC._cms_context"
+#define IMGC_CMS_CAPSULE(po) (cmsContext)PyCapsule_GetPointer(po, IMGC_CMS_CAPSULE_NAME)
+
+static void PyImgC_CMS_Shutdown(PyObject *pycmx) {
+    cmsContext cmx = IMGC_CMS_CAPSULE(pycmx);
+    cmsDeleteContext(cmx);
+}
+
+static PyObject *PyImgC_CMS_Startup(PyObject *cmxdata) {
+    cmsContext cmx;
+    if (cmxdata) {
+        cmx = cmsCreateContext(NULL, (void *)cmxdata);
+    } else {
+        cmx = cmsCreateContext(NULL, NULL);
+    }
+    return PyCapsule_New(
+        (void *)cmx, IMGC_CMS_CAPSULE_NAME,
+        (PyCapsule_Destructor)PyImgC_CMS_Shutdown);
+}
+
+static void PyImgC_AtExit(void) {
+    /// clean up module-level resources
+}
+
 PyMODINIT_FUNC initPyImgC(void) {
     PyObject *module;
+    PyObject *pycmx;
     
     PyEval_InitThreads();
     if (PyType_Ready(&PyCImage_Type) < 0) { return; }
@@ -795,7 +826,17 @@ PyMODINIT_FUNC initPyImgC(void) {
         "pliio.PyImgC", PyImgC_methods,
         "PyImgC buffer interface module");
     if (module == None) { return; }
-
+    
+    /// Set up cleanup handler on interpreter exit
+    Py_AtExit(PyImgC_AtExit);
+    
+    /// Set up color manager capsule
+    pycmx = PyImgC_CMS_Startup(NULL);
+    if (pycmx != NULL) {
+        Py_INCREF(pycmx);
+        PyModule_AddObject(module, "_cms_context", pycmx);
+    }
+    
     /// Bring in NumPy
     import_array();
 

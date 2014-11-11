@@ -17,7 +17,7 @@ On linux, the package is often called python-setuptools''')
 
 # GOSUB: basicaly `backticks` (cribbed from plotdevice)
 def gosub(cmd, on_err=True):
-    """Run a shell command and return the output"""
+    """ Run a shell command and return the output """
     from subprocess import Popen, PIPE
     shell = isinstance(cmd, basestring)
     proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=shell)
@@ -47,7 +47,6 @@ exec(compile(open('pliio-version.py').read(),
 
 long_description = open('README.md').read()
 
-
 # COMPILATION
 DEBUG = os.environ.get('DEBUG', '1')
 
@@ -56,7 +55,8 @@ USE_PNG = os.environ.get('USE_PNG', '16')
 USE_TIFF = os.environ.get('USE_TIFF', '1')
 USE_MAGICKPP = os.environ.get('USE_MAGICKPP', '1')
 USE_FFTW3 = os.environ.get('USE_FFTW3', '1')
-USE_OPENEXR = os.environ.get('USE_OPENEXR', '0')
+USE_OPENEXR = os.environ.get('USE_OPENEXR', '1')
+USE_LCMS2 = os.environ.get('USE_OPENEXR', '1')
 
 # LIBS: disabled
 USE_OPENCV = os.environ.get('USE_OPENCV', '0') # libtbb won't link
@@ -113,13 +113,12 @@ extensions = {
 }
 
 # the basics
-#libraries = ['png', 'jpeg', 'z', 'm', 'pthread', 'c++']
 libraries = ['png', 'jpeg', 'z', 'm', 'pthread']
-#libraries = ['png', 'm']
-
+PKG_CONFIG = which('pkg-config')
 
 # the addenda
 def parse_config_flags(config, config_flags=None):
+    """ Get compiler/linker flags from pkg-config and similar CLI tools """
     if config_flags is None: # need something in there
         config_flags = ['']
     for config_flag in config_flags:
@@ -150,7 +149,7 @@ def parse_config_flags(config, config_flags=None):
 if int(USE_TIFF):
     print(white(""" CImg: TIFF support enabled """))
     parse_config_flags(
-        which('pkg-config'),
+        PKG_CONFIG,
         ('libtiff-4 --libs', 'libtiff-4 --cflags'))
     define_macros.append(
         ('cimg_use_tiff', '1'))
@@ -163,7 +162,7 @@ if int(USE_PNG):
     elif USE_PNG.strip().endswith('5'):
         libpng_pkg += '15' # use 1.5
     parse_config_flags(
-        which('pkg-config'), (
+        PKG_CONFIG, (
             '%s --libs' % libpng_pkg,
             '%s --cflags' % libpng_pkg))
     define_macros.append(
@@ -183,7 +182,7 @@ if int(USE_MINC2):
     print(white(""" CImg: MINC2 support enabled """))
     # I have no idea what this library does (off by default)
     parse_config_flags(
-        which('pkg-config'),
+        PKG_CONFIG,
         ('minc2 --libs', 'minc2 --cflags'))
     define_macros.append(
         ('cimg_use_minc2', '1'))
@@ -195,7 +194,7 @@ if int(USE_FFTW3):
     # and fftw3f (floats? fuckery? fiber-rich?) --
     # hence this deceptively non-repetitive flag list:
     parse_config_flags(
-        which('pkg-config'), (
+        PKG_CONFIG, (
         'fftw3f --libs-only-l',
         'fftw3l --libs-only-l',
         'fftw3 --libs', 'fftw3 --cflags'))
@@ -207,17 +206,27 @@ if int(USE_OPENEXR):
     # Linking OpenEXR pulls in ilmBase, which includes its own
     # math and threading libraries... WATCH OUT!!
     parse_config_flags(
-        which('pkg-config'),
+        PKG_CONFIG,
         ('OpenEXR --libs', 'OpenEXR --cflags'))
     define_macros.append(
         ('cimg_use_openexr', '1'))
+
+if int(USE_LCMS2):
+    print(white(""" PyImgC: LittleCMS2 support enabled """))
+    # Not used by CImg directly -- LittleCMS2 provides color
+    # management at the PyCImage level
+    parse_config_flags(
+        PKG_CONFIG,
+        ('lcms2 --libs', 'lcms2 --cflags'))
+    define_macros.append(
+        ('IMGC_LCMS2', '1'))
 
 if int(USE_OPENCV):
     print(white(""" CImg: OpenCV support enabled """))
     # Linking OpenCV gets you lots more including TBB and IPL,
     # and also maybe ffmpeg, I think somehow
     parse_config_flags(
-        which('pkg-config'),
+        PKG_CONFIG,
         ('opencv --libs', 'opencv --cflags'))
     out, err, ret = gosub('brew --prefix tbb')
     if out:
