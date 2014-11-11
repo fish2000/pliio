@@ -87,25 +87,23 @@ NSBitmapImageRep *get_bitmap(const unsigned z=0) {
                    "get_bitmap() : NSImage don't really support >4 channels -- higher-order dimensions will be ignored.");
     }
     
-    @autoreleasepool {
-        NSInteger format = 0;
-        format |= std::is_floating_point<T>::value ? NSFloatingPointSamplesBitmapFormat : 0;
-        
-        NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc]
-            initWithBitmapDataPlanes:(unsigned char **)&_data   /// for once no switching on typecode!
-            pixelsWide:(NSInteger)_width
-            pixelsHigh:(NSInteger)_height
-            bitsPerSample:(NSInteger)sizeof(T)
-            samplesPerPixel:(NSInteger)_spectrum
-            hasAlpha:NO
-            isPlanar:NO
-            colorSpaceName:NSDeviceRGBColorSpace    /// for now...
-            bitmapFormat:format
-            bytesPerRow:0                           /// = "you figure it out"
-            bitsPerPixel:0];                        /// == "bitsPerPixel > my pay grade"
-        
-        return bitmap;
-    }
+    NSInteger format = 0;
+    format |= std::is_floating_point<T>::value ? NSFloatingPointSamplesBitmapFormat : 0;
+    
+    NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc]
+        initWithBitmapDataPlanes:(unsigned char **)&_data   /// for once no switching on typecode!
+        pixelsWide:(NSInteger)_width
+        pixelsHigh:(NSInteger)_height
+        bitsPerSample:(NSInteger)sizeof(T)
+        samplesPerPixel:(NSInteger)_spectrum
+        hasAlpha:NO
+        isPlanar:NO
+        colorSpaceName:NSDeviceRGBColorSpace    /// for now...
+        bitmapFormat:format
+        bytesPerRow:0                           /// = "you figure it out"
+        bitsPerPixel:0];                        /// == "bitsPerPixel > my pay grade"
+    
+    return bitmap;
 }
 
 static CImg<T> get_load_quartz(const char *filename) {
