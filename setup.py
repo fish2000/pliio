@@ -59,7 +59,7 @@ USE_OPENEXR = os.environ.get('USE_OPENEXR', '1')
 USE_LCMS2 = os.environ.get('USE_OPENEXR', '1')
 
 # LIBS: disabled
-USE_OPENCV = os.environ.get('USE_OPENCV', '0') # libtbb won't link
+USE_OPENCV = os.environ.get('USE_OPENCV', '1') # libtbb won't link
 
 # 'other, misc'
 USE_MINC2 = os.environ.get('USE_MINC2', '0')

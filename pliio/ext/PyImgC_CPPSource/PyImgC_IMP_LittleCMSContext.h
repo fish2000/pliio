@@ -37,7 +37,7 @@ static void PyImgC_AtExit(void) {
     /// clean up module-level resources
 }
 
-/* re-redefine T_FLOAT by re-including this */
-#include <structmember.h>
+/* re-redefine T_FLOAT from python/includes/structmember.h */
+#define T_FLOAT 3
 
 #endif /// PyImgC_PYIMGC_IMP_LITTLECMSCONTEXT_H
