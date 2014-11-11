@@ -73,6 +73,10 @@ define_macros.append(
     ('PY_ARRAY_UNIQUE_SYMBOL', 'PyImgC_PyArray_API_Symbol'))
 define_macros.append(
     ('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION'))
+define_macros.append(
+    ('__OBJC__', '1'))
+define_macros.append(
+    ('__OBJC2__', '1'))
 
 if DEBUG:
     undef_macros = ['NDEBUG']
@@ -109,8 +113,7 @@ for pth in (
         library_dirs.append(pth)
 
 extensions = {
-    'PyImgC': ["pliio/ext/PyImgC_CPPSource/pyimgc.cpp"],
-    'PyImgCocoa': ["pliio/ext/PyImgC_CPPSource/pyimgcocoa.m"],
+    'PyImgC': ["pliio/ext/PyImgC_CPPSource/pyimgc.m"],
 }
 
 # the basics
@@ -246,57 +249,19 @@ print(cyan(" LINKED LIBRARIES:"))
 print(cyan(" " + ", ".join(libraries)))
 
 from distutils.extension import Extension
-#from distutils.ccompiler import new_compiler
 from distutils.core import setup
-from copy import deepcopy
-
-define_objc_macros = deepcopy(define_macros)
-define_objc_macros.append(
-    ('__OBJC__', '1'))
-define_objc_macros.append(
-    ('__OBJC2__', '1'))
 
 ext_modules = [
-    
-    # Extension("pliio.PyImgC",
-    #     libraries=map(
-    #         lambda lib: lib.endswith('.dylib') and lib.split('.')[0] or lib,
-    #             libraries),
-    #     library_dirs=library_dirs,
-    #     include_dirs=include_dirs,
-    #     sources=["pliio/ext/PyImgC_CPPSource/pyimgc.cpp"],
-    #     language="c++",
-    #     undef_macros=undef_macros,
-    #     define_macros=define_macros,
-    #     extra_link_args=[
-    #         '-framework', 'AppKit',
-    #         '-framework', 'Quartz',
-    #         '-framework', 'CoreFoundation',
-    #         '-framework', 'Foundation'],
-    #     extra_compile_args=[
-    #         '-O2',
-    #         '-std=c++11',
-    #         '-stdlib=libc++',
-    #         '-Werror=unused-command-line-argument',
-    #         '-Wno-unused-function',
-    #         '-Wno-delete-non-virtual-dtor',
-    #         '-Wno-overloaded-virtual', # WARNING WARNING WARNING
-    #         '-Wno-dynamic-class-memaccess', # WARNING WARNING etc
-    #         '-Wno-deprecated-register', # CImg w/OpenEXR throws these
-    #         '-Wno-deprecated-writable-strings',
-    #         '-Qunused-arguments',
-    #     ]),
-        
-        Extension("pliio.PyImgC",
+    Extension("pliio.%s" % key,
         libraries=map(
             lambda lib: lib.endswith('.dylib') and lib.split('.')[0] or lib,
                 libraries),
         library_dirs=library_dirs,
         include_dirs=include_dirs,
-        sources=["pliio/ext/PyImgC_CPPSource/pyimgc.m"],
+        sources=sources,
         language="objc++",
         undef_macros=undef_macros,
-        define_macros=define_objc_macros,
+        define_macros=define_macros,
         extra_link_args=[
             '-framework', 'AppKit',
             '-framework', 'Quartz',
@@ -315,8 +280,7 @@ ext_modules = [
             '-Wno-deprecated-register', # CImg w/OpenEXR throws these
             '-Wno-deprecated-writable-strings',
             '-Qunused-arguments',
-        ])
-]
+        ]) for key, sources in extensions.iteritems()]
 
 packages = setuptools.find_packages()
 package_dir = { 
