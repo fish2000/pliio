@@ -16,7 +16,7 @@ inline bool bitmap_can_load(const char *filename) {
     char *imagetype;
     @autoreleasepool {
         NSEnumerator *imagetypes = [[NSBitmapImageRep imageFileTypes] objectEnumerator];
-        while (imagetype = (char *)[[imagetypes nextObject] UTF8String]) {
+        while ((imagetype = (char *)[[imagetypes nextObject] UTF8String])) {
             if (SUFFIXED(filename, imagetype)) {
                 return true;
             }
@@ -25,10 +25,7 @@ inline bool bitmap_can_load(const char *filename) {
     return false;
 }
 
-inline int bitmap_can_save(const char *filename) {
-    //char *filename;
-    //for ( ; *ucfn; ++ucfn) *filename = tolower(*p);
-    //const char *fn = [[[[NSString alloc] initWithUTF8String:filename] lowercaseString] UTF8String];
+inline NSBitmapImageFileType bitmap_can_save(const char *filename) {
     if (SUFFIXED(filename, "jpg") || SUFFIXED(filename, "jpeg")) { return NSJPEGFileType; }
     if (SUFFIXED(filename, "png"))                               { return NSPNGFileType; }
     if (SUFFIXED(filename, "tif") || SUFFIXED(filename, "tiff")) { return NSTIFFFileType; }
@@ -36,14 +33,14 @@ inline int bitmap_can_save(const char *filename) {
     if (SUFFIXED(filename, "bmp")) { return NSBMPFileType; }
     if (SUFFIXED(filename, "jpe") || SUFFIXED(filename, "jpe2")) { return NSJPEG2000FileType; }
     if (SUFFIXED(filename, "jp2") || SUFFIXED(filename, "jpg2")) { return NSJPEG2000FileType; }
-    return -1;
+    return static_cast<NSBitmapImageFileType>(-1);
 }
 
 //---------------------------------------
 // NSBitmapImageRep-to-CImg conversion
 //---------------------------------------
 /// Copy constructor
-CImg(const NSBitmapImageRep *const bitmap):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
+CImg<T>(const NSBitmapImageRep *bitmap):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
     assign(bitmap);
 }
 CImg(NSBitmapImageRep *bitmap):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(false),_data(0) {
@@ -51,8 +48,8 @@ CImg(NSBitmapImageRep *bitmap):_width(0),_height(0),_depth(0),_spectrum(0),_is_s
 }
 
 // In-place constructor
-CImg<T> &assign(NSBitmapImageRep *bitmap) const {
-    if (!bitmap) return assign();
+CImg<T> &assign(const NSBitmapImageRep *bitmap) {
+    if (!bitmap) return *this;
     
     /// N.B. should we be, like, aborting the mission if T*
     /// happens to be something other than some form of char??
@@ -77,20 +74,17 @@ CImg<T> &assign(NSBitmapImageRep *bitmap) const {
 NSBitmapImageRep *get_bitmap(const unsigned z=0) {
     if (is_empty()) {
         throw CImgArgumentException(_cimg_instance
-                                    "get_bitmap() : Empty CImg instance.",
-                                    cimg_instance);
+                                    "get_bitmap() : Empty CImg instance.");
     }
     
     if (z >= _depth) {
         throw CImgInstanceException(_cimg_instance
                                     "get_bitmap() : Instance has not Z-dimension %u.",
-                                    cimg_instance,
                                     z);
     }
     if (_spectrum > 4) {
         cimg::warn(_cimg_instance
-                   "get_bitmap() : NSImage don't really support >4 channels -- higher-order dimensions will be ignored.",
-                   cimg_instance);
+                   "get_bitmap() : NSImage don't really support >4 channels -- higher-order dimensions will be ignored.");
     }
     
     @autoreleasepool {
@@ -98,11 +92,11 @@ NSBitmapImageRep *get_bitmap(const unsigned z=0) {
         format |= std::is_floating_point<T>::value ? NSFloatingPointSamplesBitmapFormat : 0;
         
         NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc]
-            initWithBitmapDataPlanes:(unsigned char **)&data()   /// for once no switching on typecode!
-            pixelsWide:(NSInteger)width()
-            pixelsHigh:(NSInteger)height()
+            initWithBitmapDataPlanes:(unsigned char **)&_data   /// for once no switching on typecode!
+            pixelsWide:(NSInteger)_width
+            pixelsHigh:(NSInteger)_height
             bitsPerSample:(NSInteger)sizeof(T)
-            samplesPerPixel:(NSInteger)spectrum()
+            samplesPerPixel:(NSInteger)_spectrum
             hasAlpha:NO
             isPlanar:NO
             colorSpaceName:NSDeviceRGBColorSpace    /// for now...
@@ -114,13 +108,11 @@ NSBitmapImageRep *get_bitmap(const unsigned z=0) {
     }
 }
 
-static CImg<T> get_load_quartz(const char *filename) const {
-    @autoreleasepool {
-        const NSBitmapImageRep *const bitmap = [
-            NSBitmapImageRep imageRepWithContentsOfFile:[
-                [NSString alloc] initWithUTF8String:filename]];
-        return CImg<T>(bitmap);
-    }
+static CImg<T> get_load_quartz(const char *filename) {
+    const NSBitmapImageRep *bitmap = [
+        NSBitmapImageRep imageRepWithContentsOfFile:[
+            [NSString alloc] initWithUTF8String:filename]];
+    return CImg<T>(bitmap);
 }
 
 CImg& load_quartz(const char *filename) {
@@ -128,10 +120,10 @@ CImg& load_quartz(const char *filename) {
 }
 
 const CImg& save_quartz(const char *filename,
-                        NSInteger format=NSJPEGFileType) const {
+                        NSBitmapImageFileType filetype=NSJPEGFileType) const {
     @autoreleasepool {
         const NSBitmapImageRep *bitmap = get_bitmap();
-        const NSData *out = [bitmap representationUsingType:format properties:nil];
+        const NSData *out = [bitmap representationUsingType:filetype properties:nil];
         [out writeToFile:[[NSString alloc] initWithUTF8String:filename] atomically:NO];
     }
     return *this;
@@ -144,8 +136,8 @@ const CImg& save_quartz(const char *filename,
     
 #ifndef cimg_save_plugin4
 #define cimg_save_plugin4(filename) \
-    NSInteger bitmap_format = bitmap_can_save(filename);
-    if (bitmap_save != -1) { return save_quartz(filename, bitmap_format); }
+    NSBitmapImageFileType bitmap_format = bitmap_can_save(filename); \
+    if (bitmap_format > 0) { return save_quartz(filename, bitmap_format); }
 #endif
 
 #endif /// PyImgC_CIMG_NSBITMAPIMAGEREP_PLUGIN_H
