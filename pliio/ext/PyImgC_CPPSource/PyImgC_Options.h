@@ -23,6 +23,12 @@
 #define cimg_plugin1 "../cimg_common.h"
 #define cimg_plugin2 "../cimg_numpy.h"
 #define cimg_plugin3 "../cimg_pybuffer.h"
-#define cimg_plugin4 "../cimg_NSBitmapImageRep.h"
+#define cimg_plugin4 "../cimg_bitmap_imagerep.h"
+
+#define cimg_plugin5 "plugins/cimg_ipl.h"
+//#define cimg_plugin6 "plugins/chlpca.h"
+//#define cimg_plugin7 "plugins/nlmeans.h"
+//#define cimg_plugin7 "plugins/patchmatch.h"
+
 
 #endif /// PyImgC_OPTIONS_H
