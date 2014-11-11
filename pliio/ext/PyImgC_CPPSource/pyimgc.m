@@ -1,4 +1,8 @@
 
+#import <Cocoa/Cocoa.h>
+#import <AppKit/AppKit.h>
+#import <Quartz/Quartz.h>
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -22,9 +26,11 @@
 #include "PyImgC_IMP_CImageTest.h"
 #include "PyImgC_IMP_ObjProtocol.h"
 #include "PyImgC_IMP_GetSet.h"
+#include "PyImgC_IMP_Imaging.h"
 #include "PyImgC_IMP_SequenceProtocol.h"
 #include "PyImgC_IMP_NumberProtocol.h"
 #include "PyImgC_IMP_BufferProtocol.h"
+#include "PyImgC_IMP_LittleCMSContext.h"
 
 using namespace cimg_library;
 using namespace std;
@@ -34,7 +40,7 @@ static PyMethodDef PyCImage_methods[] = {
         "load",
             (PyCFunction)PyCImage_LoadFromFileViaCImg,
             METH_VARARGS | METH_KEYWORDS,
-            "Load image data (using CImg.h load methods)"},
+            "Load image data (via CImg)"},
     {
         "buffer_info",
             (PyCFunction)PyCImage_PyBufferDict,
@@ -89,7 +95,7 @@ static PyTypeObject PyCImage_Type = {
 
 #define PyCImage_Check(op) PyObject_TypeCheck(op, &PyCImage_Type)
 
-static PyMethodDef PyImgC_methods[] = {
+static PyMethodDef PyImgC_module_functions[] = {
     {
         "buffer_info",
             (PyCFunction)PyImgC_PyBufferDict,
@@ -118,32 +124,6 @@ static PyMethodDef PyImgC_methods[] = {
     SENTINEL
 };
 
-#include <lcms2.h>
-
-#define IMGC_CMS_CAPSULE_NAME "PyImgC._cms_context"
-#define IMGC_CMS_CAPSULE(po) (cmsContext)PyCapsule_GetPointer(po, IMGC_CMS_CAPSULE_NAME)
-
-static void PyImgC_CMS_Shutdown(PyObject *pycmx) {
-    cmsContext cmx = IMGC_CMS_CAPSULE(pycmx);
-    cmsDeleteContext(cmx);
-}
-
-static PyObject *PyImgC_CMS_Startup(PyObject *cmxdata) {
-    cmsContext cmx;
-    if (cmxdata) {
-        cmx = cmsCreateContext(NULL, (void *)cmxdata);
-    } else {
-        cmx = cmsCreateContext(NULL, NULL);
-    }
-    return PyCapsule_New(
-        (void *)cmx, IMGC_CMS_CAPSULE_NAME,
-        (PyCapsule_Destructor)PyImgC_CMS_Shutdown);
-}
-
-static void PyImgC_AtExit(void) {
-    /// clean up module-level resources
-}
-
 PyMODINIT_FUNC initPyImgC(void) {
     PyObject *module;
     PyObject *pycmx;
@@ -152,7 +132,7 @@ PyMODINIT_FUNC initPyImgC(void) {
     if (PyType_Ready(&PyCImage_Type) < 0) { return; }
 
     module = Py_InitModule3(
-        "pliio.PyImgC", PyImgC_methods,
+        "pliio.PyImgC", PyImgC_module_functions,
         "PyImgC buffer interface module");
     if (module == None) { return; }
     
@@ -163,7 +143,7 @@ PyMODINIT_FUNC initPyImgC(void) {
     pycmx = PyImgC_CMS_Startup(NULL);
     if (pycmx != NULL) {
         Py_INCREF(pycmx);
-        PyModule_AddObject(module, "_cms_context", pycmx);
+        PyModule_AddObject(module, "_pycmx", pycmx);
     }
     
     /// Bring in NumPy

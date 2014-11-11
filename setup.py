@@ -110,6 +110,7 @@ for pth in (
 
 extensions = {
     'PyImgC': ["pliio/ext/PyImgC_CPPSource/pyimgc.cpp"],
+    'PyImgCocoa': ["pliio/ext/PyImgC_CPPSource/pyimgcocoa.m"],
 }
 
 # the basics
@@ -244,22 +245,66 @@ print(cyan(pformat(define_macros)))
 print(cyan(" LINKED LIBRARIES:"))
 print(cyan(" " + ", ".join(libraries)))
 
+from distutils.extension import Extension
+#from distutils.ccompiler import new_compiler
+from distutils.core import setup
+from copy import deepcopy
+
+define_objc_macros = deepcopy(define_macros)
+define_objc_macros.append(
+    ('__OBJC__', '1'))
+define_objc_macros.append(
+    ('__OBJC2__', '1'))
+
 ext_modules = [
-    setuptools.Extension("pliio.%s" % key,
+    
+    # Extension("pliio.PyImgC",
+    #     libraries=map(
+    #         lambda lib: lib.endswith('.dylib') and lib.split('.')[0] or lib,
+    #             libraries),
+    #     library_dirs=library_dirs,
+    #     include_dirs=include_dirs,
+    #     sources=["pliio/ext/PyImgC_CPPSource/pyimgc.cpp"],
+    #     language="c++",
+    #     undef_macros=undef_macros,
+    #     define_macros=define_macros,
+    #     extra_link_args=[
+    #         '-framework', 'AppKit',
+    #         '-framework', 'Quartz',
+    #         '-framework', 'CoreFoundation',
+    #         '-framework', 'Foundation'],
+    #     extra_compile_args=[
+    #         '-O2',
+    #         '-std=c++11',
+    #         '-stdlib=libc++',
+    #         '-Werror=unused-command-line-argument',
+    #         '-Wno-unused-function',
+    #         '-Wno-delete-non-virtual-dtor',
+    #         '-Wno-overloaded-virtual', # WARNING WARNING WARNING
+    #         '-Wno-dynamic-class-memaccess', # WARNING WARNING etc
+    #         '-Wno-deprecated-register', # CImg w/OpenEXR throws these
+    #         '-Wno-deprecated-writable-strings',
+    #         '-Qunused-arguments',
+    #     ]),
+        
+        Extension("pliio.PyImgC",
         libraries=map(
             lambda lib: lib.endswith('.dylib') and lib.split('.')[0] or lib,
                 libraries),
         library_dirs=library_dirs,
         include_dirs=include_dirs,
-        sources=sources,
+        sources=["pliio/ext/PyImgC_CPPSource/pyimgc.m"],
+        language="objc++",
         undef_macros=undef_macros,
-        define_macros=define_macros,
-        language='c++',
+        define_macros=define_objc_macros,
         extra_link_args=[
             '-framework', 'AppKit',
+            '-framework', 'Quartz',
+            '-framework', 'CoreFoundation',
             '-framework', 'Foundation'],
         extra_compile_args=[
             '-O2',
+            '-ObjC++',
             '-std=c++11',
             '-stdlib=libc++',
             '-Werror=unused-command-line-argument',
@@ -270,7 +315,8 @@ ext_modules = [
             '-Wno-deprecated-register', # CImg w/OpenEXR throws these
             '-Wno-deprecated-writable-strings',
             '-Qunused-arguments',
-        ]) for key, sources in extensions.items()]
+        ])
+]
 
 packages = setuptools.find_packages()
 package_dir = { 
@@ -292,7 +338,7 @@ classifiers = [
     'Programming Language :: C++',
     'License :: OSI Approved :: MIT License']
 
-setuptools.setup(name='imread',
+setup(name='imread',
     version=__version__,
     description='PyImgC: CImg bridge library',
     long_description=long_description,

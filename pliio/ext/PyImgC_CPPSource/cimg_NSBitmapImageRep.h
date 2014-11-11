@@ -21,8 +21,8 @@ CImg<T> &assign(NSBitmapImageRep *bitmap) const {
     
     /// N.B. should we be, like, aborting the mission if T*
     /// happens to be something other than some form of char??
-    const char *const dataPtrI = const_cast<const char *const>(
-        static_cast<char *>([bitmap bitmapData]));
+    const unsigned char *const dataPtrI = const_cast<const unsigned char *const>(
+        static_cast<unsigned char *>([bitmap bitmapData]));
     
     int nChannels = [bitmap samplesPerPixel],
         W = [bitmap pixelsWide],
@@ -40,22 +40,22 @@ CImg<T> &assign(NSBitmapImageRep *bitmap) const {
 // CImg-to-NSBitmapImageRep conversion
 //----------------------------
 // z is the z-coordinate of the CImg slice that one wants to copy.
-NSBitmapImageRep *get_NSBitmapImageRep(const unsigned z=0) {
+NSBitmapImageRep *getBitmapImageRep(const unsigned z=0) {
     if (is_empty()) {
         throw CImgArgumentException(_cimg_instance
-                                    "get_NSBitmapImageRep() : Empty CImg instance.",
+                                    "getBitmapImageRep() : Empty CImg instance.",
                                     cimg_instance);
     }
     
     if (z >= _depth) {
         throw CImgInstanceException(_cimg_instance
-                                    "get_NSBitmapImageRep() : Instance has not Z-dimension %u.",
+                                    "getBitmapImageRep() : Instance has not Z-dimension %u.",
                                     cimg_instance,
                                     z);
     }
     if (_spectrum > 4) {
         cimg::warn(_cimg_instance
-                   "get_NSBitmapImageRep() : Cocoa/NSImage don't really support >4 channels -- higher-order dimensions will be ignored.",
+                   "getBitmapImageRep() : NSImage don't really support >4 channels -- higher-order dimensions will be ignored.",
                    cimg_instance);
     }
     
