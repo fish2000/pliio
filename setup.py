@@ -264,6 +264,7 @@ ext_modules = [
         define_macros=define_macros,
         extra_link_args=[
             '-framework', 'AppKit',
+            '-framework', 'Accelerate',
             '-framework', 'Quartz',
             '-framework', 'CoreFoundation',
             '-framework', 'Foundation'],

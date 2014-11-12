@@ -1,63 +1,45 @@
 
-#ifndef PyImgC_CIMG_PYBUFFER_PLUGIN_H
-#define PyImgC_CIMG_PYBUFFER_PLUGIN_H
+#ifdef __OBJC__
+#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
+#import <Accelerate/Accelerate.h>
 
-// Check if this CImg<T> instance and a given Py_buffer* have identical pixel types.
-bool not_structcode_of(const Py_buffer *const pybuffer) const {
-    if (pybuffer->format) {
-        unsigned int typecode = structcode_to_typecode(pybuffer->format);
-        return TYPECODE_NOT(typecode);
-    }
-    return false;
-}
+#ifndef PyImgC_CIMG_VIMAGEBUFFER_PLUGIN_H
+#define PyImgC_CIMG_VIMAGEBUFFER_PLUGIN_H
 
 //----------------------------
-// Py_buffer-to-CImg conversion
+// vImage_Buffer-to-CImg conversion
 //----------------------------
 /// Copy constructor
-CImg(const Py_buffer *const pybuffer):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(true),_data(0) {
-    assign(pybuffer);
+CImg(const vImage_Buffer, *const vbuf):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(true),_data(0) {
+    assign(vbuf);
 }
 /// Copy constructor with width and height specified
-CImg(const Py_buffer *const pybuffer, const int width = 0, const int height = 0):_depth(0),_spectrum(0),_is_shared(true),_data(0) {
-    assign(pybuffer, width, height);
+CImg(const vImage_Buffer *const vbuf, const int width=0, const int height=0):_depth(0),_spectrum(0),_is_shared(true),_data(0) {
+    assign(vbuf, width, height);
 }
 
-CImg(Py_buffer *pybuffer):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(true),_data(0) {
-    assign(const_cast<Py_buffer *>(pybuffer));
+CImg(vImage_Buffer *vbuf):_width(0),_height(0),_depth(0),_spectrum(0),_is_shared(true),_data(0) {
+    assign(const_cast<vImage_Buffer *>(vbuf));
 }
 /// Copy constructor with width and height specified
-CImg(Py_buffer *pybuffer, int width=0, int height=0):_depth(0),_spectrum(0),_is_shared(true),_data(0) {
+CImg(vImage_Buffer *vbuf, int width=0, int height=0):_depth(0),_spectrum(0),_is_shared(true),_data(0) {
     assign(
-        const_cast<Py_buffer *>(pybuffer),
-        const_cast<int&>(width),
-        const_cast<int&>(height));
+        const_cast<vImage_Buffer *>(vbuf),
+        const_cast<vImagePixelCount &>(width),
+        const_cast<vImagePixelCount &>(height));
 }
 
 // In-place constructor
-CImg<T> &assign(const Py_buffer *const pybuffer, const int width=0, const int height=0) {
-    if (!pybuffer) return assign();
-    if (not_structcode_of(pybuffer)) {
-        throw CImgInstanceException(_cimg_instance
-                                    "assign(const Py_buffer*) : Buffer structcode has no corresponding pixel type.",
-                                    cimg_instance);
-    }
-    if (!pybuffer->ndim) { return assign(); }
+CImg<T> &assign(const vImage_Buffer *const vbuf, const vImagePixelCount width=0, const vImagePixelCount height=0) {
+    if (!vbuf) { return assign(); }
     
     const char *const dataPtrI = const_cast<const char *const>(
-        static_cast<char *>(pybuffer->buf));
-    int nChannels = 1, W, H, WH;
+        static_cast<char *>(vbuf->data));
     
-    if (pybuffer->ndim > 2) { nChannels = static_cast<int>(pybuffer->shape[2]); }
-    if (pybuffer->ndim > 1) {
-        W = width ? width : static_cast<int>(pybuffer->shape[1]);
-        H = height ? height : static_cast<int>(pybuffer->shape[0]);
-    } else {
-        /// fuck
-        WH = static_cast<int>(lrint(sqrt(pybuffer->len / pybuffer->itemsize)));
-        W = width ? width : WH;
-        H = height ? height : WH;
-    }
+    vImagePixelCount nChannels = 4L,
+        W = width ? width : vbuf->width,
+        H = height ? height : vbuf->height;
 
     assign(dataPtrI,
         const_cast<int&>(W),
@@ -71,8 +53,8 @@ CImg<T> &assign(const Py_buffer *const pybuffer, const int width=0, const int he
 // CImg-to-NumPy conversion
 //----------------------------
 // z is the z-coordinate of the CImg slice that one wants to copy.
-void get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=true) const {
-    const char *structcode_char = structcode();
+void get_pybuffer(Py_buffer *vbuf, const unsigned z=0, const bool readonly=true) const {
+    //const char *structcode_char = structcode();
     if (!structcode_char) {
         throw CImgInstanceException(_cimg_instance
                                   "get_pybuffer() : no corresponding structcode for CImg type.",
@@ -121,4 +103,6 @@ void get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=t
     pybuffer->obj = NULL;
 }
 
-#endif /// PyImgC_CIMG_PYBUFFER_PLUGIN_H
+#endif /// PyImgC_CIMG_VIMAGEBUFFER_PLUGIN_H
+
+#endif

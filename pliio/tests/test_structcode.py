@@ -27,6 +27,14 @@ class StructCodeTests(BaseCase):
         imgc.structcode_parse('OxOxO')
         imgc.structcode_parse('>??i')
         imgc.structcode_parse('efZfZd')
+    
+    def test_structcode_labels(self):
+        imgc.structcode_parse('B:r: B:g: B:b:')             # RGB 888
+        imgc.structcode_parse('X:d: Y:d: Z:d:')             # XYZ triple-dub
+        imgc.structcode_parse('4f')                         # CMYK (unlabled)
+        imgc.structcode_parse('xfxfxfxf')                   # CMYK (padded)
+        imgc.structcode_parse('xf:C: xf:M: xf:Y: xf:K:')    # CMYK (everything)
+        imgc.structcode_parse('efZfZd')
         imgc.structcode_parse('!IIIIiiii')
     
     def test_memoryview_from_pycimage(self):
