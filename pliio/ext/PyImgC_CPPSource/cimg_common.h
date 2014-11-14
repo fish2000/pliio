@@ -2,6 +2,18 @@
 #ifndef PyImgC_CIMG_COMMON_PLUGIN_H
 #define PyImgC_CIMG_COMMON_PLUGIN_H
 
+/*
+#ifdef __OBJC__
+CImg<T>& load(NSString *filename) { return load([filename UTF8String]); }
+static CImg<T> get_load(NSString *filename) { return get_load([filename UTF8String]); }
+const CImg<T>& save(NSString *filename,
+                    const int number=-1,
+                    const unsigned int digits=6) const {
+                        return save([filename UTF8String], number, digits);
+                    }
+#endif
+*/
+
 #define TYPECODE_NOT(typecode) \
        ((typecode == NPY_BOOL         && typeid(T) != typeid(bool)) || \
         (typecode == NPY_BYTE         && typeid(T) != typeid(char)) || \
@@ -75,14 +87,88 @@ PyArray_Descr *typestruct() const {
     return numpy::dtype_struct<T>();
 }
 
+int itemsize() const {
+    return sizeof(T) * 8;
+}
+
+int bytesperpixel() const {
+    return sizeof(T) * spectrum();
+}
+
+int bytesperrow() const {
+    return (width() * itemsize() * bytesperpixel() + 7) / 8;
+}
+
 int datasize() const {
-    return static_cast<int>(size()) * sizeof(T);
+    return bytesperrow() * height();
+}
+
+int buffersize() const {
+    return static_cast<int>(size()) * itemsize();
 }
 
 int rowbytes() const {
     return static_cast<int>(width() * spectrum()) * sizeof(T);
 }
 
+bool isFloat() const {
+    return std::is_floating_point<T>::value;
+}
+
+#ifdef __OBJC__
+
+CGColorSpaceRef _colorspace = nil;
+CGContextRef _context = nil;
+
+CGColorSpaceRef &cgColorSpace() const {
+    if (_colorspace == nil) {
+        _colorspace = CGColorSpaceCreateDeviceRGB();
+    }
+    return &_colorspace;
+}
+
+CGSize cgSize() const {
+    return CGSizeMake(width(), height());
+}
+CGFloat cgWidth() const {
+    return static_cast<CGFloat>(width());
+}
+CGFloat cgHeight() const {
+    return static_cast<CGFloat>(height());
+}
+
+CGContextRef &cgContext() const {
+    if (_context == nil) {
+        CGBitmapInfo bitmapInfo = isFloat() ? kCGBitmapFloatComponents : kCGBitmapByteOrderDefault;
+        _context = CGBitmapContextCreate(_data,
+            cgWidth(), cgHeight(),
+            itemsize(), bytesperrow(),
+            cgColorSpace(),
+            kCGImageAlphaNone | bitmapInfo);
+    }
+    return &_context;
+}
+
+CGImageRef cgImageRef() const {
+    return CGBitmapContextCreateImage(cgContext());
+}
+
+NSURL pathToURL(const char *path) {
+    NSString *pth = [[NSString stringWithUTF8String:path] autorelease];
+    return [[NSURL alloc] initFileURLWithPath:pth];
+}
+NSURL pathToURL(NSString *pth) {
+    return [[NSURL alloc] initFileURLWithPath:pth];
+}
+
+CFURLRef pathToURLRef(const char *path) {
+    return (CFURLRef)pathToURL(path);
+}
+CFURLRef pathToURLRef(NSString *pth) {
+    return (CFURLRef)pathToURL(pth);
+}
+
+#endif
 
 std::array<long, 3> shape() const {
     return {{

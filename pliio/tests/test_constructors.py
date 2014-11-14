@@ -1,6 +1,7 @@
 
 from __future__ import print_function
 
+import sys
 from basecase import FilePathCase
 from pliio import PyImgC as imgc
 
@@ -34,9 +35,15 @@ class ConstructorTests(FilePathCase):
                 self.assertIsNotNone(im)
     
     def test_constructor_file_path(self):
+        i = 0
         for pth in self.image_paths:
-            self.assertIsNotNone(
-                imgc.PyCImage(pth))
+            im = imgc.PyCImage(pth)
+            self.assertIsNotNone(im)
+            #nupth = "%s.jpg" % imgc.temporary_path()
+            nupth = "/tmp/000%s.jpg" % i
+            print(nupth, file=sys.stderr)
+            im.save(nupth, overwrite=True)
+            i += 1
     
     def test_constructor_file_path_dtype_uint8(self):
         for pth in self.image_paths:

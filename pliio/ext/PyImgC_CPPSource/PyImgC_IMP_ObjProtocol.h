@@ -2,6 +2,7 @@
 #ifndef PyImgC_PYIMGC_IMP_OBJPROTOCOL_H
 #define PyImgC_PYIMGC_IMP_OBJPROTOCOL_H
 
+#include <stdio.h>
 #include <Python.h>
 #include <numpy/ndarrayobject.h>
 #include "numpypp/numpy.hpp"
@@ -96,6 +97,62 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
     }
     Py_INCREF(self);
     return reinterpret_cast<PyObject *>(self); /// all is well, return self
+}
+
+static PyObject *PyCImage_SaveToFileViaCImg(PyObject *smelf, PyObject *args, PyObject *kwargs) {
+    PyCImage *self = reinterpret_cast<PyCImage *>(smelf);
+    PyObject *path, *pyoverwrite;
+    bool overwrite = false;
+    bool exists = false;
+    static char *keywords[] = { "path", "overwrite", NULL };
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
+                "S|O", keywords,
+                &path, &pyoverwrite)) {
+        PyErr_SetString(PyExc_ValueError,
+            "cannot save image (bad argument tuple passed to PyCImage_SaveToFileViaCImg)");
+        return NULL;
+    }
+    
+    overwrite = PyObject_IsTrue(pyoverwrite);
+    exists = PyImgC_PathExists(path);
+    
+    /// SAVE THAT SHIT
+    if (exists && !overwrite) {
+        /// DON'T OVERWRITE
+        Py_XDECREF(path);
+        PyErr_SetString(PyExc_NameError,
+            "path already exists");
+        return NULL;
+    }
+    if (exists && overwrite) {
+        /// PLEASE DO OVERWRITE
+        if (remove(PyString_AS_STRING(path))) {
+            if (self->save(PyString_AS_STRING(path))) {
+                return reinterpret_cast<PyObject *>(self); /// all is well, return self
+            } else {
+                Py_XDECREF(path);
+                PyErr_SetString(PyExc_OSError,
+                    "could not save file");
+                return NULL;
+            }
+        } else {
+            Py_XDECREF(path);
+            PyErr_SetString(PyExc_SystemError,
+                "could not overwrite existing file");
+            return NULL;
+        }
+    }
+    
+    if (self->save(PyString_AS_STRING(path))) {
+        return reinterpret_cast<PyObject *>(self); /// all is well, return self
+    }
+    
+    /// we got here, something must be wrong by now
+    Py_XDECREF(path);
+    PyErr_SetString(PyExc_OSError,
+        "could not save file (out of options)");
+    return NULL;
 }
 
 /// ALLOCATE / __new__ implementation

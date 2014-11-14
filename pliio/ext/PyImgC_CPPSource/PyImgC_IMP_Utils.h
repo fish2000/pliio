@@ -17,4 +17,27 @@ static bool PyImgC_PathExists(PyObject *path) {
          PyObject_CallFunctionObjArgs(exists, putative, NULL));
 }
 
+static PyObject *PyImgC_TemporaryPath(PyObject *self, PyObject *args) {
+    /// call to cimg::temporary_path()
+    return PyString_FromString(cimg::temporary_path());
+}
+
+static PyObject *PyImgC_GuessType(PyObject *self, PyObject *args) {
+    /// call to cimg::file_type()
+    PyObject *path;
+    if (!PyArg_ParseTuple(args, "S", &path)) {
+        PyErr_SetString(PyExc_ValueError,
+            "bad arguments to guess_type");
+        return NULL;
+    }
+    if (!PyImgC_PathExists(path)) {
+        PyErr_SetString(PyExc_NameError,
+            "path does not exist");
+        return NULL;
+    }
+    return PyString_FromString(
+        cimg::file_type(NULL,
+            PyString_AS_STRING(path)));
+}
+
 #endif /// PyImgC_IMP_UTILS_H

@@ -53,13 +53,13 @@ DEBUG = os.environ.get('DEBUG', '1')
 # LIBS: ENABLED BY DEFAULT
 USE_PNG = os.environ.get('USE_PNG', '16')
 USE_TIFF = os.environ.get('USE_TIFF', '1')
-USE_MAGICKPP = os.environ.get('USE_MAGICKPP', '1')
+USE_MAGICKPP = os.environ.get('USE_MAGICKPP', '0')
 USE_FFTW3 = os.environ.get('USE_FFTW3', '1')
-USE_OPENEXR = os.environ.get('USE_OPENEXR', '1')
-USE_LCMS2 = os.environ.get('USE_OPENEXR', '1')
+USE_OPENEXR = os.environ.get('USE_OPENEXR', '0')
+USE_LCMS2 = os.environ.get('USE_LCMS2', '1')
 
 # LIBS: disabled
-USE_OPENCV = os.environ.get('USE_OPENCV', '1') # libtbb won't link
+USE_OPENCV = os.environ.get('USE_OPENCV', '0') # libtbb won't link
 
 # 'other, misc'
 USE_MINC2 = os.environ.get('USE_MINC2', '0')
@@ -113,7 +113,11 @@ for pth in (
         library_dirs.append(pth)
 
 extensions = {
-    'PyImgC': ["pliio/ext/PyImgC_CPPSource/pyimgc.m"],
+    'PyImgC': [
+        "pliio/ext/PyImgC_CPPSource/pyimgc.m",
+        "pliio/ext/PyImgC_CPPSource/UTI/UTI.m",
+        "pliio/ext/PyImgC_CPPSource/ICC/Profile.m",
+    ],
 }
 
 # the basics
@@ -251,8 +255,9 @@ print(cyan(" " + ", ".join(libraries)))
 from distutils.extension import Extension
 from distutils.core import setup
 
-ext_modules = [
-    Extension("pliio.%s" % key,
+ext_modules = []
+for key, sources in extensions.iteritems():
+    ext_modules.append(Extension("pliio.%s" % key,
         libraries=map(
             lambda lib: lib.endswith('.dylib') and lib.split('.')[0] or lib,
                 libraries),
@@ -281,7 +286,7 @@ ext_modules = [
             '-Wno-deprecated-register', # CImg w/OpenEXR throws these
             '-Wno-deprecated-writable-strings',
             '-Qunused-arguments',
-        ]) for key, sources in extensions.iteritems()]
+        ]))
 
 packages = setuptools.find_packages()
 package_dir = { 
@@ -312,7 +317,7 @@ setup(name='imread',
     license='MIT',
     platforms=['Any'],
     classifiers=classifiers,
-    url='http://github.com/fish2000/instakit',
+    url='http://github.com/fish2000/pliio',
     packages=packages,
     ext_modules=ext_modules,
     package_dir=package_dir,

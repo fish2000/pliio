@@ -31,6 +31,7 @@
 #include "PyImgC_IMP_NumberProtocol.h"
 #include "PyImgC_IMP_BufferProtocol.h"
 #include "PyImgC_IMP_LittleCMSContext.h"
+#include "PyImgC_IMP_Utils.h"
 
 using namespace cimg_library;
 using namespace std;
@@ -40,12 +41,17 @@ static PyMethodDef PyCImage_methods[] = {
         "load",
             (PyCFunction)PyCImage_LoadFromFileViaCImg,
             METH_VARARGS | METH_KEYWORDS,
-            "Load image data (via CImg)"},
+            "Load image data from file" },
+    {
+        "save",
+            (PyCFunction)PyCImage_SaveToFileViaCImg,
+            METH_VARARGS | METH_KEYWORDS,
+            "Save image data to file" },
     {
         "buffer_info",
             (PyCFunction)PyCImage_PyBufferDict,
             METH_VARARGS | METH_KEYWORDS,
-            "Get buffer info dict"},
+            "Get buffer info dict" },
     SENTINEL
 };
 
@@ -100,27 +106,37 @@ static PyMethodDef PyImgC_module_functions[] = {
         "buffer_info",
             (PyCFunction)PyImgC_PyBufferDict,
             METH_VARARGS | METH_KEYWORDS,
-            "Get Py_buffer info dict for an object"},
+            "Get Py_buffer info dict for an object" },
+    {
+        "temporary_path",
+            (PyCFunction)PyImgC_TemporaryPath,
+            METH_NOARGS,
+            "Generate a path for a temporary file" },
+    {
+        "guess_type",
+            (PyCFunction)PyImgC_GuessType,
+            METH_VARARGS,
+            "Guess the file type based on header data" },
     {
         "cimage_test",
             (PyCFunction)PyImgC_CImageTest,
             METH_VARARGS | METH_KEYWORDS,
-            "<<<<< TEST CIMG CALLS >>>>>"},
+            "<<<<< TEST CIMG CALLS >>>>>" },
     {
         "structcode_parse",
             (PyCFunction)PyImgC_ParseStructCode,
             METH_VARARGS,
-            "Parse struct code into list of dtype-string tuples"},
+            "Parse struct code into list of dtype-string tuples" },
     {
         "structcode_parse_one",
             (PyCFunction)PyImgC_ParseSingleStructAtom,
             METH_VARARGS,
-            "Parse unary struct code into a singular dtype string"},
+            "Parse unary struct code into a singular dtype string" },
     {
         "structcode_to_numpy_typenum",
             (PyCFunction)PyImgC_NumpyCodeFromStructAtom,
             METH_VARARGS,
-            "Parse unary struct code into a NumPy typenum"},
+            "Parse unary struct code into a NumPy typenum" },
     SENTINEL
 };
 

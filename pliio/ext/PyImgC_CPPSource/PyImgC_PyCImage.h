@@ -74,6 +74,17 @@ public:
         dtype = recast<T>()->typestruct();
     }
     
+    bool save(const char *path) {
+        if (!path) { return false; }
+#define HANDLE(type) { \
+            recast<type>()->save(path); \
+            return true; \
+        }
+        SAFE_SWITCH_ON_DTYPE(dtype, false);
+#undef HANDLE
+        return false;
+    }
+    
     void cleanup() {
         if (checkptr()) { cimage.reset(); }
     }
@@ -143,7 +154,7 @@ public:
         return dynamic_cast<CImg<T>*>(cimage.get());
     }
     
-    operator PyArray_Descr*() {
+    operator PyArray_Descr*() const {
         if (checkdtype()) { Py_INCREF(dtype); return dtype; }
         return 0;
     }
