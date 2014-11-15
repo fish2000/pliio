@@ -153,11 +153,11 @@ CGImageRef cgImageRef() const {
     return CGBitmapContextCreateImage(cgContext());
 }
 
-NSURL pathToURL(const char *path) {
+NSURL *pathToURL(const char *path) {
     NSString *pth = [[NSString stringWithUTF8String:path] autorelease];
     return [[NSURL alloc] initFileURLWithPath:pth];
 }
-NSURL pathToURL(NSString *pth) {
+NSURL *pathToURL(NSString *pth) {
     return [[NSURL alloc] initFileURLWithPath:pth];
 }
 

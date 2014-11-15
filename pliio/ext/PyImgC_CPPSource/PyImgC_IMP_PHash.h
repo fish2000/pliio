@@ -47,7 +47,7 @@ int ph_radon_projections(const CImg<uint8_t> &img, int N, Projections &projs) {
     projs.R = new CImg<uint8_t>(N, D, 1, 1, 0);
     projs.nb_pix_perline = (int *)calloc(N, sizeof(int));
 
-    if (!projs.R || !projs.nb_pix_perline) { return EXIT_FAILURE };
+    if (!projs.R || !projs.nb_pix_perline) { return EXIT_FAILURE; }
 
     projs.size = N;
 
@@ -346,7 +346,7 @@ CImg<float> *ph_mh_kernel(float alpha, float level) {
     return pkernel;
 }
 
-uint8_t *ph_mh_imagehash(CImg<uint8_t> src, float alpha=2.0f, float lvl = 1.0f) {
+uint8_t *ph_mh_imagehash(CImg<uint8_t> src, float alpha=2.0f, float lvl=1.0f) {
 
     uint8_t *hash = (unsigned char *)malloc(72 * sizeof(uint8_t));
     CImg<uint8_t> img;
@@ -363,8 +363,7 @@ uint8_t *ph_mh_imagehash(CImg<uint8_t> src, float alpha=2.0f, float lvl = 1.0f) 
                   .resize(512, 512, 1, 1, 5)
                   .get_equalize(256);
     }
-    src.clear();
-
+    
     CImg<float> *pkernel = ph_mh_kernel(alpha, lvl);
     CImg<float> fresp = img.get_correlate(*pkernel);
     img.clear();

@@ -2,7 +2,6 @@
 #ifndef PyImgC_PYIMGC_IMP_OBJPROTOCOL_H
 #define PyImgC_PYIMGC_IMP_OBJPROTOCOL_H
 
-#include <stdio.h>
 #include <Python.h>
 #include <numpy/ndarrayobject.h>
 #include "numpypp/numpy.hpp"
@@ -102,7 +101,7 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
 static PyObject *PyCImage_SaveToFileViaCImg(PyObject *smelf, PyObject *args, PyObject *kwargs) {
     PyCImage *self = reinterpret_cast<PyCImage *>(smelf);
     PyObject *path, *pyoverwrite;
-    bool overwrite = false;
+    bool overwrite = true;
     bool exists = false;
     static char *keywords[] = { "path", "overwrite", NULL };
 

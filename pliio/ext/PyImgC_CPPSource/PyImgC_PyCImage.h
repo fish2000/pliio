@@ -154,7 +154,7 @@ public:
         return dynamic_cast<CImg<T>*>(cimage.get());
     }
     
-    operator PyArray_Descr*() const {
+    operator PyArray_Descr*() {
         if (checkdtype()) { Py_INCREF(dtype); return dtype; }
         return 0;
     }

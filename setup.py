@@ -69,8 +69,8 @@ USE_LAPACK = os.environ.get('USE_LAPACK', '0') # HOW U MAEK LINKED
 undef_macros = []
 auxilliary_macros = []
 define_macros = []
-define_macros.append(
-    ('PY_ARRAY_UNIQUE_SYMBOL', 'PyImgC_PyArray_API_Symbol'))
+# define_macros.append(
+#     ('PY_ARRAY_UNIQUE_SYMBOL', 'PyImgC_PyArray_API_Symbol'))
 define_macros.append(
     ('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION'))
 define_macros.append(
@@ -117,6 +117,11 @@ extensions = {
         "pliio/ext/PyImgC_CPPSource/pyimgc.m",
         "pliio/ext/PyImgC_CPPSource/UTI/UTI.m",
         "pliio/ext/PyImgC_CPPSource/ICC/Profile.m",
+    ],
+    'hashtree': [
+        "pliio/ext/PyImgC_CPPSource/hashtree.m",
+        "pliio/ext/PyImgC_CPPSource/hashtree/fmemopen/open_memstream.c",
+        "pliio/ext/PyImgC_CPPSource/hashtree/mvptree/mvptree.c",
     ],
 }
 
