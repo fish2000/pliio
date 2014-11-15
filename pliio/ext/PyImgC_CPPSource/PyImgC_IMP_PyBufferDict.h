@@ -140,7 +140,7 @@ static PyObject *PyCImage_PyBufferDict(PyObject *self, PyObject *args, PyObject 
             return NULL;
     }
     
-    PyObject *imgc = PyImport_ImportModuleNoBlock("pliio.PyImgC");
+    PyObject *imgc = PyImport_ImportModuleNoBlock("pliio.imgc");
     PyObject *buffer_info = PyObject_GetAttrString(imgc, "buffer_info");
     return PyObject_CallFunction(buffer_info, "(OO)",
                                  self, parse_format_arg, NULL);

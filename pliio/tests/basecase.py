@@ -4,7 +4,7 @@ from unittest2 import TestCase
 import numpy, sys
 #from pprint import pprint
 from imread import imread
-from pliio import PyImgC as imgc
+from pliio import imgc
 
 from os import listdir
 from os.path import join, abspath, expanduser

@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import sys
 from basecase import FilePathCase
-from pliio import PyImgC as imgc
+from pliio import imgc
 
 dtypes = (
     imgc.uint8,

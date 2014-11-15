@@ -3,11 +3,11 @@
 #include <Python.h>
 #include <structmember.h>
 
-#include "hashtree/PyHashTree_Constants.h"
-#include "hashtree/PyHashTree_PyHashTree.h"
-#include "hashtree/PyHashTree_ObjProtocol.h"
-#include "hashtree/PyHashTree_PrintFunctions.h"
-#include "hashtree/PyHashTree_GetSet.h"
+#include "PyHashTree_Constants.h"
+#include "PyHashTree_PyHashTree.h"
+#include "PyHashTree_ObjProtocol.h"
+#include "PyHashTree_PrintFunctions.h"
+#include "PyHashTree_GetSet.h"
 
 static PyMethodDef PyHashTree_methods[] = {
     {
@@ -46,7 +46,7 @@ static PyTypeObject PyHashTree_Type = {
     (getattrofunc)PyObject_GenericGetAttr,                      /* tp_getattro */
     (setattrofunc)PyObject_GenericSetAttr,                      /* tp_setattro */
     0,                                                          /* tp_as_buffer */
-    PyHashTree_TypeFlags,                                       /* tp_flags*/
+    PyHashTree_TypeFlags,                                       /* tp_flags */
     "Python bindings for MVP hash trees",                       /* tp_doc */
     0,                                                          /* tp_traverse */
     0,                                                          /* tp_clear */

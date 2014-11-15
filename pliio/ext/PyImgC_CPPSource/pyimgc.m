@@ -60,7 +60,7 @@ static Py_ssize_t PyCImage_TypeFlags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE 
 static PyTypeObject PyCImage_Type = {
     PyObject_HEAD_INIT(NULL)
     0,                                                          /* ob_size */
-    "PyImgC.PyCImage",                                          /* tp_name */
+    "imgc.PyCImage",                                            /* tp_name */
     sizeof(PyCImage),                                           /* tp_basicsize */
     0,                                                          /* tp_itemsize */
     (destructor)PyCImage_dealloc,                               /* tp_dealloc */
@@ -140,7 +140,7 @@ static PyMethodDef PyImgC_module_functions[] = {
     SENTINEL
 };
 
-PyMODINIT_FUNC initPyImgC(void) {
+PyMODINIT_FUNC initimgc(void) {
     PyObject *module;
     PyObject *pycmx;
     
@@ -148,7 +148,7 @@ PyMODINIT_FUNC initPyImgC(void) {
     if (PyType_Ready(&PyCImage_Type) < 0) { return; }
 
     module = Py_InitModule3(
-        "pliio.PyImgC", PyImgC_module_functions,
+        "pliio.imgc", PyImgC_module_functions,
         "PyImgC buffer interface module");
     if (module == None) { return; }
     

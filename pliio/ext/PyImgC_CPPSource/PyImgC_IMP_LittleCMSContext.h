@@ -13,7 +13,7 @@
 using namespace cimg_library;
 using namespace std;
 
-#define IMGC_CMS_NAME "PyImgC._pycmx"
+#define IMGC_CMS_NAME "imgc._pycmx"
 #define IMGC_CMS_CONTEXT(po) (cmsContext)PyCapsule_GetPointer(po, IMGC_CMS_NAME)
 
 static void PyImgC_CMS_Shutdown(PyObject *pycmx) {

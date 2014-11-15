@@ -111,13 +111,13 @@ for pth in (
         library_dirs.append(pth)
 
 extensions = {
-    'PyImgC': [
+    'imgc': [
         "pliio/ext/PyImgC_CPPSource/pyimgc.m",
         "pliio/ext/PyImgC_CPPSource/UTI/UTI.m",
         "pliio/ext/PyImgC_CPPSource/ICC/Profile.m",
     ],
     'hashtree': [
-        "pliio/ext/PyImgC_CPPSource/hashtree.m",
+        "pliio/ext/PyImgC_CPPSource/hashtree/hashtree.m",
         "pliio/ext/PyImgC_CPPSource/hashtree/fmemopen/open_memstream.c",
         "pliio/ext/PyImgC_CPPSource/hashtree/mvptree/mvptree.c",
     ],

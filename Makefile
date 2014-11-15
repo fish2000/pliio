@@ -39,66 +39,66 @@ checkext:
 	py 'print(clint.textui.colored.red("%(s)s TESTS: %(s)s" % dict(s="*"*65)))'
 	
 	# Checking structcode parser
-	py 'pliio.PyImgC.structcode_parse(">BBBB")'
+	py 'pliio.imgc.structcode_parse(">BBBB")'
 	
 	# Checking _PyImgC
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import PyImgC; \
-		print PyImgC.cimage_test(imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
+		from pliio import imgc; \
+		print imgc.cimage_test(imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking type constructor and PyCImage.__repr__
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import PyImgC; \
-		print repr(PyImgC.PyCImage(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
+		from pliio import imgc; \
+		print repr(imgc.PyCImage(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking PyCImage.__str__
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import PyImgC; \
-		print str(PyImgC.PyCImage(imread('$(IMG)')))[:500]" | gsed -e "s/[\\s]+/ /g")"
+		from pliio import imgc; \
+		print str(imgc.PyCImage(imread('$(IMG)')))[:500]" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking PyCImage.__len__
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import PyImgC; \
-		print 'len(PyCImage) = %s' % len(PyImgC.PyCImage(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
+		from pliio import imgc; \
+		print 'len(PyCImage) = %s' % len(imgc.PyCImage(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking PyCImage[idx]
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import PyImgC; \
-		print 'PyCImage[66] = %s' % PyImgC.PyCImage(imread('$(IMG)'))[66]" | gsed -e "s/[\\s]+/ /g")"
+		from pliio import imgc; \
+		print 'PyCImage[66] = %s' % imgc.PyCImage(imread('$(IMG)'))[66]" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking buffer_info
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \
-		from pliio import PyImgC as imgc; \
+		from pliio import imgc; \
 		from pprint import pformat; \
 		print pformat(imgc.buffer_info(imread('$(IMG)')))" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking PyCImage file loading...
 	bpython -c "$(shell echo "'';\
-		from pliio import PyImgC as imgc; \
+		from pliio import imgc; \
 		im = imgc.PyCImage('$(IMG)', dtype=imgc.uint8); \
 		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
 	
 	bpython -c "$(shell echo "'';\
-		from pliio import PyImgC as imgc; \
+		from pliio import imgc; \
 		im = imgc.PyCImage(dtype=imgc.uint8); \
 		im.load('${IMG}'); \
 		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
 		
 	bpython -c "$(shell echo "'';\
-		from pliio import PyImgC as imgc; \
+		from pliio import imgc; \
 		im = imgc.PyCImage(); \
 		im.load('${IMG}'); \
 		print repr(im)" | gsed -e "s/[\\s]+/ /g")"
 	
 	# Checking comparison function...
 	bpython -c "$(shell echo "'';\
-		from pliio import PyImgC as imgc; \
+		from pliio import imgc; \
 		im = imgc.PyCImage(dtype=imgc.uint8); \
 		im2 = imgc.PyCImage(dtype=imgc.int32); \
 		im.load('${IMG}'); \
@@ -109,7 +109,7 @@ checkext:
 	
 	# Checking BINARY_OP() implementations... WORKS:
 	bpython -c "$(shell echo "'';\
-		from pliio import PyImgC as imgc; \
+		from pliio import imgc; \
 		im = imgc.PyCImage('$(IMG)', dtype=imgc.int32); \
 		im2 = imgc.PyCImage('$(IMG)', dtype=imgc.int32); \
 		print 'im : %s' % repr(im); \
@@ -123,19 +123,19 @@ checkext:
 		print 'im | im2 = %s' % repr(im | im2)" | gsed -e "s/[\\s]+/ /g")"
 		
 	bpython -c "$(shell echo "'';\
-		from pliio import PyImgC as imgc; \
+		from pliio import imgc; \
 		im = imgc.PyCImage(dtype=imgc.uint8); \
 		im.load('${IMG}'); \
 		print im.buffer_info()" | gsed -e "s/[\\s]+/ /g")"
 		
 	bpython -c "$(shell echo "'';\
-		from pliio import PyImgC as imgc; \
+		from pliio import imgc; \
 		im = imgc.PyCImage(dtype=imgc.uint8); \
 		im.load('${IMG}'); \
 		print imgc.buffer_info(im)" | gsed -e "s/[\\s]+/ /g")"
 		
 	bpython -c "$(shell echo "'';\
-		from pliio import PyImgC as imgc; \
+		from pliio import imgc; \
 		im = imgc.PyCImage('${IMG}', dtype=imgc.uint8); \
 		print im.shape; \
 		print im.strides; \
@@ -146,7 +146,7 @@ checkext:
 		print im.buffer_info()" | gsed -e "s/[\\s]+/ /g")"
 		
 	bpython -c "$(shell echo "'';\
-		from pliio import PyImgC as imgc; \
+		from pliio import imgc; \
 		im = imgc.PyCImage('${IMG}', dtype=imgc.uint8); \
 		print im.shape; \
 		print im.strides; \
