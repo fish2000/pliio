@@ -124,11 +124,21 @@ static PyObject     *PyCImage_GET_ndarray(PyCImage *self, void *closure) {
     return Py_BuildValue("");
 }
 
-/// pycimage.phash getter
-static PyObject     *PyCImage_GET_phash(PyCImage *self, void *closure) {
+/// pycimage.dct_phash getter
+static PyObject     *PyCImage_GET_dct_phash(PyCImage *self, void *closure) {
     gil_release NOGIL;
     return PyLong_FromUnsignedLongLong(
         ph_dct_imagehash(*self->recast<uint8_t>()));
+}
+
+/// pycimage.mh_phash getter
+static PyObject     *PyCImage_GET_mh_phash(PyCImage *self, void *closure) {
+    gil_release NOGIL;
+    uint8_t *mh_hash = ph_mh_imagehash(*self->recast<uint8_t>());
+    npy_intp dims[] = { 1 };
+    return PyArray_SimpleNewFromData(1, dims,
+        numpy::dtype_code<unsigned char>(),
+        static_cast<unsigned char *>(mh_hash));
 }
 
 static PyGetSetDef PyCImage_getset[] = {
@@ -178,10 +188,15 @@ static PyGetSetDef PyCImage_getset[] = {
             None,
             "Numpy Array Object", None },
     {
-        "phash",
-            (getter)PyCImage_GET_phash,
+        "dct_phash",
+            (getter)PyCImage_GET_dct_phash,
             None,
-            "Perceptual Image Hash (phash)", None },
+            "Perceptual Image DCT Hash", None },
+    {
+        "mh_phash",
+            (getter)PyCImage_GET_mh_phash,
+            None,
+            "Perceptual Image Mexican-Hat Hash", None },
     SENTINEL
 };
 

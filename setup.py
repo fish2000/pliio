@@ -69,8 +69,6 @@ USE_LAPACK = os.environ.get('USE_LAPACK', '0') # HOW U MAEK LINKED
 undef_macros = []
 auxilliary_macros = []
 define_macros = []
-# define_macros.append(
-#     ('PY_ARRAY_UNIQUE_SYMBOL', 'PyImgC_PyArray_API_Symbol'))
 define_macros.append(
     ('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION'))
 define_macros.append(
