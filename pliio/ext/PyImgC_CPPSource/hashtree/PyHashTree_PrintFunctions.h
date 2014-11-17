@@ -74,11 +74,13 @@ static int PyHashTree_Print(PyObject *self, FILE *outstream, int flags) {
             PyErr_Format(PyExc_ValueError,
                 "Error printing hash tree: %s",
                 mvp_errstr(error));
-            return 0;
+            return -1;
         }
+        fprintf(outstream, "%s", PyHashTree_ReprCString(tree));
         return 0;
     }
-    return fprintf(outstream, "%s", PyHashTree_ReprCString(tree));
+    fprintf(outstream, "%s", PyString_AS_STRING(PyHashTree_Str(tree)));
+    return 0;
 }
 
 

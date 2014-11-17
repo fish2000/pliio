@@ -32,9 +32,6 @@ class HashTreeTests(FilePathCase):
         tree.save(tf)
     
     def test_hashtree_build_tree(self):
-        tf = tempfile.mktemp(
-            suffix='.mvp',
-            prefix='pliio-hashtree-test-')
         tree = hashtree.PyHashTree()
         
         for pth in self.image_paths:
@@ -44,16 +41,18 @@ class HashTreeTests(FilePathCase):
                 name=pth, tree=tree)
             self.assertIsNotNone(dp)
             err(dp)
+        #err(tree)
         
-        #saveto = "/tmp/hashtree-%i.mvp" % random.randint(0, 100000)
-        #tree.save(saveto)
-        
-        err(tree)
-        tree.save("/tmp/hash-tree.mvp")
-        err(tree)
-        #tree.save(tf)
+        tree.save(path="/Users/fish/Desktop/hash-tree.mvp")
+        #newtree = hashtree.PyHashTree()
+        #newtree.load("/Users/fish/Desktop/hash-tree.mvp")
+        #err(str(newtree))
+    
+    def test_hashtree_read_tree(self):
         newtree = hashtree.PyHashTree()
+        #newtree = hashtree.PyHashTree(tree="/Users/fish/Desktop/hash-tree.mvp")
+        newtree.load("/Users/fish/Desktop/hash-tree.mvp")
+        #newtree.load()
         err(newtree)
-        #newtree.load(path="/tmp/hash-tree.mvp")
-        #self.assertIsNotNone(repr(newtree))
+        self.assertIsNotNone(repr(newtree))
 

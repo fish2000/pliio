@@ -14,8 +14,8 @@ struct PyHashTree {
     unsigned int leafnode_capacity;
     
     void cleanup() {
-        //mvptree_clear(tree, PyMem_Free);
-        //PyMem_Free(tree);
+        mvptree_clear(tree, PyMem_Free);
+        PyMem_Free(tree);
     }
     
     ~PyHashTree() {

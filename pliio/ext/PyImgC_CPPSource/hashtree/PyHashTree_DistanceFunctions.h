@@ -2,8 +2,6 @@
 #ifndef PyHashTree_PYHASHTREE_IMP_DISTANCEFUNCTIONS_H
 #define PyHashTree_PYHASHTREE_IMP_DISTANCEFUNCTIONS_H
 
-#include "PyHashTree_GIL.h"
-
 static unsigned long long nbcalcs = 0;
 
 /// hamming distance function

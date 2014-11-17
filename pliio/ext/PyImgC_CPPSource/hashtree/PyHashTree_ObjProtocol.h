@@ -5,77 +5,73 @@
 #include <Python.h>
 #include "mvptree/mvptree.h"
 #include "PyHashTree_Constants.h"
-#include "PyHashTree_GIL.h"
+//#include "PyHashTree_GIL.h"
 #include "PyHashTree_DistanceFunctions.h"
 
 #define DEFAULT_BRANCH_FACTOR       2
 #define DEFAULT_PATH_LENGTH         5 
 #define DEFAULT_LEAFNODE_CAPACITY   25
 
-//extern PyTypeObject PyHashTree_Type;
-
-#define PyHashTree_Check(object) \
-    PyObject_IsInstance(object, reinterpret_cast<PyObject *>(&PyHashTree_Type))
-
 /// path check
+static bool PyHashTree_PathExists(char *path) {
+    struct stat buffer;
+    stat(path, &buffer);
+    return S_ISREG(buffer.st_mode);
+}
+static bool PyHashTree_PathExists(const char *path) {
+    return PyHashTree_PathExists(const_cast<char *>(path));
+}
 static bool PyHashTree_PathExists(PyObject *path) {
-    PyStringObject *putative = reinterpret_cast<PyStringObject *>(path);
-    if (!PyString_Check(putative)) {
-        PyErr_SetString(PyExc_ValueError, "Bad path string");
-        return false;
-    }
-    PyObject *ospath = PyImport_ImportModule("os.path");
-    PyObject *exists = PyObject_GetAttrString(ospath, "exists");
-    bool out = (bool)PyObject_IsTrue(
-        PyObject_CallFunctionObjArgs(exists, putative, NULL));
-    Py_DECREF(exists);
-    Py_DECREF(ospath);
-    return out;
+    return PyHashTree_PathExists(PyString_AS_STRING(path));
+}
+static bool PyHashTree_PathExists(string path) {
+    return PyHashTree_PathExists(path.c_str());
 }
 
 /// SMELF ALERT!!!
-static int PyHashTree_LoadFromMVPFile(PyObject *smelf, PyObject *args, PyObject *kwargs) {
+static void PyHashTree_LoadFromMVPFile(PyObject *smelf, PyObject *args, PyObject *kwargs) {
     PyHashTree *self = reinterpret_cast<PyHashTree *>(smelf);
     CmpFunc comparator = PyHashTree_DF_HammingDistance;
     static char *keywords[] = { "path", NULL };
-    PyObject *path;
+    char *cpath;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                "O", keywords, &path)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s", keywords, &cpath)) {
         PyErr_SetString(PyExc_ValueError,
-            "cannot load hash tree (bad argument tuple passed to PyHashTree_LoadFromMVPFile)");
-        return -1;
+            "cannot load hash tree");
+        return;
     }
     
-    // if (!PyHashTree_PathExists(path)) {
-    //     Py_XDECREF(path);
-    //     PyErr_SetString(PyExc_ValueError,
-    //         "path does not exist");
+    if (!PyHashTree_PathExists(cpath)) {
+        PyErr_SetString(PyExc_ValueError,
+            "path does not exist");
+        return;
+    }
+    
+    /// LOAD THAT SHIT
+    //int fd;
+    //char *cpath = PyString_AsString(pth);
+    MVPError error;
+    // PyFileObject *mvpfile = reinterpret_cast<PyFileObject *>(PyFile_FromString(cpath, "r+x"));
+    // if (!mvpfile) {
+    //     PyErr_Format(PyExc_ValueError,
+    //         "Error opening PyFileObject %s", cpath);
     //     return -1;
     // }
     
-    /// LOAD THAT SHIT
-    int fd;
-    char *cpath = PyString_AsString(path);
-    MVPError error;
-    PyFileObject *mvpfile = reinterpret_cast<PyFileObject *>(PyFile_FromString(cpath, "r+x"));
-    if (!mvpfile) {
-        PyErr_Format(PyExc_ValueError,
-            "Error opening PyFileObject %s", cpath);
-        return -1;
-    }
-    
-    FILE *fh = PyFile_AsFile(reinterpret_cast<PyObject *>(mvpfile));
-    PyFile_IncUseCount(mvpfile);
+    //FILE *fh = PyFile_AsFile(reinterpret_cast<PyObject *>(mvpfile));
+    //PyFile_IncUseCount(mvpfile);
     //gil_release NOGIL;
-    fd = fileno(fh);
-    MVPTree *tree = mvptree_read_fd(fd,
+    //fd = fileno(fh);
+    // MVPTree *tree = mvptree_read_fd(fd,
+    //     comparator, self->branch_factor, self->path_length,
+    //     self->leafnode_capacity, &error);
+    MVPTree *tree = mvptree_read(cpath,
         comparator, self->branch_factor, self->path_length,
         self->leafnode_capacity, &error);
     //NOGIL.~gil_release();
-    PyFile_DecUseCount(mvpfile);
-    fclose(fh);
-    fd = 0;
+    //PyFile_DecUseCount(mvpfile);
+    //fclose(fh);
+    //fd = 0;
     
     // if (error != MVP_SUCCESS) {
     //     PyErr_Format(PyExc_ValueError,
@@ -88,7 +84,7 @@ static int PyHashTree_LoadFromMVPFile(PyObject *smelf, PyObject *args, PyObject 
     
     /// set up the new tree
     self->tree = tree;
-    return 0;
+    return;
     //return reinterpret_cast<PyObject *>(self); /// all is well, return self
 }
 
@@ -196,10 +192,10 @@ static int PyHashTree_init(PyHashTree *self, PyObject *args, PyObject *kwargs) {
     PyObject *tree = NULL;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                "|OIII:PyHashTree.__init__", kwlist, &tree,
+                "|OIII", kwlist, &tree,
                 &branch_factor, &path_length, &leafnode_capacity)) {
-            PyErr_SetString(PyExc_ValueError,
-                "cannot initialize PyHashTree (bad argument tuple)");
+        PyErr_SetString(PyExc_ValueError,
+            "cannot initialize PyHashTree (bad argument tuple)");
         return -1;
     }
     
@@ -207,6 +203,11 @@ static int PyHashTree_init(PyHashTree *self, PyObject *args, PyObject *kwargs) {
     self->branch_factor = branch_factor;
     self->path_length = path_length;
     self->leafnode_capacity = leafnode_capacity;
+    
+    // if (PyUnicode_Check(tree)) {
+    //     /// Fuck, it's unicode... let's de-UTF8 it
+    //     tree = PyUnicode_AsUTF8String(tree);
+    // }
     
     if (!tree) {
         /// nothing was passed in for a tree,
@@ -226,10 +227,6 @@ static int PyHashTree_init(PyHashTree *self, PyObject *args, PyObject *kwargs) {
         return 0;
     }
     
-    // if (PyUnicode_Check(tree)) {
-    //     /// Fuck, it's unicode... let's de-UTF8 it
-    //     tree = PyUnicode_AsUTF8String(tree);
-    // }
     
     if (PyString_Check(tree)) {
         /// tree is a file path
@@ -246,21 +243,23 @@ static int PyHashTree_init(PyHashTree *self, PyObject *args, PyObject *kwargs) {
         return 0;
     }
     
+    return 0;
+    
     //if (PyHashTree_Check(tree)) {
-    if (true) {
-        /// tree is a PyHashTree instance
-        PyHashTree *pyhashtree = reinterpret_cast<PyHashTree *>(tree);
-        if (!pyhashtree->tree) {
-            PyErr_SetString(PyExc_ValueError,
-                "Invalid PyHashTree: can't construct new instance");
-            return -1;
-        }
-        self->tree = pyhashtree->tree;
-        self->branch_factor = pyhashtree->branch_factor;
-        self->path_length = pyhashtree->path_length;
-        self->leafnode_capacity = pyhashtree->leafnode_capacity;
-        return 0;
-    }
+    // if (true) {
+    //     /// tree is a PyHashTree instance
+    //     PyHashTree *pyhashtree = reinterpret_cast<PyHashTree *>(tree);
+    //     if (!pyhashtree->tree) {
+    //         PyErr_SetString(PyExc_ValueError,
+    //             "Invalid PyHashTree: can't construct new instance");
+    //         return -1;
+    //     }
+    //     self->tree = pyhashtree->tree;
+    //     self->branch_factor = pyhashtree->branch_factor;
+    //     self->path_length = pyhashtree->path_length;
+    //     self->leafnode_capacity = pyhashtree->leafnode_capacity;
+    //     return 0;
+    // }
     
     /// I DONT KNOW WHAT THE FUCK MAN
     PyErr_SetString(PyExc_ValueError,

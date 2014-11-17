@@ -966,6 +966,7 @@ static off_t _mvptree_write(MVPTree *tree,Node *node,MVPError *error,int lvl){
 
 
 MVPError mvptree_write(MVPTree *tree, const char *filename, int mode){
+    
     if (!tree || !tree->dist || !tree->node || !filename){
     return MVP_ARGERR;
     }
@@ -1138,6 +1139,7 @@ static Node* _mvptree_read_node(MVPTree *tree, MVPError *error, int lvl){
 MVPTree* mvptree_read_fd(int fd, CmpFunc fnc,
                       int branchfactor, int pathlength,
                       int leafcapacity, MVPError *error) {
+    
     
     if (!error) { return NULL; }
     *error = MVP_SUCCESS;

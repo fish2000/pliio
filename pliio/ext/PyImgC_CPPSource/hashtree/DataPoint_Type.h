@@ -66,11 +66,7 @@ struct DataPoint {
                 dp->data)).c_str();
     }
     
-    void cleanup() {
-        //Py_XDECREF(tree);
-        //dp_free(dp, PyMem_Free);
-        //if (dp) { PyMem_Free(dp); }
-    }
+    void cleanup() {}
     
     ~DataPoint() {
         if (dp) { cleanup(); }

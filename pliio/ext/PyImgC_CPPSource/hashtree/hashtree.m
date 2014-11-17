@@ -5,10 +5,10 @@
 
 #include "PyHashTree_Constants.h"
 #include "PyHashTree_PyHashTree.h"
+#include "DataPoint_Type.h"
 #include "PyHashTree_ObjProtocol.h"
 #include "PyHashTree_PrintFunctions.h"
 #include "PyHashTree_GetSet.h"
-#include "DataPoint_Type.h"
 
 static PyMethodDef PyHashTree_methods[] = {
     {
@@ -69,7 +69,7 @@ static PyTypeObject PyHashTree_Type = {
 };
 
 static PyMethodDef PyHashTree_module_functions[] = {
-    SENTINEL
+    { NULL, NULL }
 };
 
 PyMODINIT_FUNC inithashtree(void) {

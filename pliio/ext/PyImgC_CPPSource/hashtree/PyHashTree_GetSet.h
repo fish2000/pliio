@@ -62,17 +62,17 @@ static PyGetSetDef PyHashTree_getset[] = {
         "branch_factor",
             (getter)PyHashTree_GET_branch_factor,
             (setter)PyHashTree_SET_branch_factor,
-            "Branch Factor", None },
+            "Branch Factor", NULL },
     {
         "path_length",
             (getter)PyHashTree_GET_path_length,
             (setter)PyHashTree_SET_path_length,
-            "Path Length", None },
+            "Path Length", NULL },
     {
         "leafnode_capacity",
             (getter)PyHashTree_GET_leafnode_capacity,
             (setter)PyHashTree_SET_leafnode_capacity,
-            "Leafnode Capacity", None },
+            "Leafnode Capacity", NULL },
     SENTINEL
 };
 
