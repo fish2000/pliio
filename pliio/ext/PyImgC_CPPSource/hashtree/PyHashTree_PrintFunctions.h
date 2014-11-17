@@ -36,7 +36,7 @@ static PyObject *PyHashTree_Str(PyHashTree *tree) {
     if (!tree->tree) {
         return PyString_FromFormat("<PyHashTree (NULL) @ %p>", tree);
     }
-    //gil_release NOGIL;
+    gil_release NOGIL;
     char *out;
     size_t siz;
     FILE *outstream;
@@ -45,7 +45,7 @@ static PyObject *PyHashTree_Str(PyHashTree *tree) {
     error = mvptree_print(outstream, tree->tree);
     fflush(outstream);
     fclose(outstream);
-    //NOGIL.~gil_release();
+    NOGIL.~gil_release();
     if (error != MVP_SUCCESS) {
         PyErr_Format(PyExc_ValueError,
             "Error stringifying hash tree: %s",
@@ -53,9 +53,6 @@ static PyObject *PyHashTree_Str(PyHashTree *tree) {
         return NULL;
     }
     return Py_BuildValue("s", out);
-    // return PyString_FromStringAndSize(
-    //     const_cast<char *>(out),
-    //     static_cast<Py_ssize_t>(siz));
 }
 
 static int PyHashTree_Print(PyObject *self, FILE *outstream, int flags) {
@@ -67,19 +64,19 @@ static int PyHashTree_Print(PyObject *self, FILE *outstream, int flags) {
         return -1;
     }
     if (flags == Py_PRINT_RAW) {
-        //gil_release NOGIL;
+        gil_release NOGIL;
         error = mvptree_print(outstream, tree->tree);
-        //NOGIL.~gil_release();
+        NOGIL.~gil_release();
         if (error != MVP_SUCCESS) {
             PyErr_Format(PyExc_ValueError,
                 "Error printing hash tree: %s",
                 mvp_errstr(error));
             return -1;
         }
-        fprintf(outstream, "%s", PyHashTree_ReprCString(tree));
         return 0;
     }
-    fprintf(outstream, "%s", PyString_AS_STRING(PyHashTree_Str(tree)));
+    fprintf(outstream, "%s", PyHashTree_ReprCString(tree));
+    //fprintf(outstream, "%s", PyString_AS_STRING(PyHashTree_Str(tree)));
     return 0;
 }
 

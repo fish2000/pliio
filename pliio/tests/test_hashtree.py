@@ -55,4 +55,10 @@ class HashTreeTests(FilePathCase):
         #newtree.load()
         err(newtree)
         self.assertIsNotNone(repr(newtree))
+    
+    def test_hashtree_nearest(self):
+        newtree = hashtree.PyHashTree()
+        newtree.load("/Users/fish/Desktop/hash-tree.mvp")
+        
+        newtree.nearest()
 

@@ -99,20 +99,18 @@ static int DataPoint_AddToTree(DataPoint *self, PyHashTree *tree) {
         return -1;
     }
     
-    //gil_release NOGIL;
+    gil_release NOGIL;
     MVPDP **points = (MVPDP**)PyMem_Malloc(sizeof(MVPDP*));
     points[0] = self->dp;
     MVPError error = mvptree_add(tree->tree, points, 1);
-    //NOGIL.~gil_release();
+    NOGIL.~gil_release();
     
     if (error != MVP_SUCCESS) {
         PyErr_Format(PyExc_SystemError,
             "Adding point to tree raised an MVP error: %s",
             mvp_errstr(error));
-        //PyMem_Free(points);
         return -1;
     }
-    
     return 0;
 }
 
@@ -145,7 +143,7 @@ static int DataPoint_init(DataPoint *self, PyObject *args, PyObject *kwargs) {
     dp->datalen = datalen;
     memcpy(dp->data, &data, datalen*datatype);
     
-    Py_XINCREF(tree);
+    Py_INCREF(tree);
     self->tree = tree;
     self->dp = dp;
     
@@ -238,7 +236,6 @@ static PyObject *DataPoint_FromDatum(DataPoint *self, MVPDP *datum) {
         self->ob_type->tp_alloc(self->ob_type, 0));
     
     if (!instance) {
-        //Py_XDECREF(instance);
         PyErr_SetString(PyExc_ValueError,
             "DataPoint allocated to NULL value");
         return NULL;
@@ -282,13 +279,12 @@ static PyObject *DataPoint_Nearest(PyObject *smelf, PyObject *args, PyObject *kw
     if (!tree->tree) {
         PyErr_SetString(PyExc_ValueError,
             "DataPoint belongs to an uninitialized PyHashTree");
-        //Py_DECREF(tree);
         return NULL;
     }
     
-    //gil_release NOGIL;
+    gil_release NOGIL;
     results = mvptree_retrieve(tree->tree, self->dp, nearest, radius, &nbresults, &error);
-    //NOGIL.~gil_release();
+    NOGIL.~gil_release();
     
     Py_DECREF(tree);
     tree = NULL;
@@ -302,7 +298,7 @@ static PyObject *DataPoint_Nearest(PyObject *smelf, PyObject *args, PyObject *kw
         PyErr_Format(PyExc_SystemError,
             "MVP error when getting results: %s",
             mvp_errstr(error));
-        //PyMem_Free(results);
+        PyMem_Free(results);
         return NULL;
     }
     
@@ -312,7 +308,7 @@ static PyObject *DataPoint_Nearest(PyObject *smelf, PyObject *args, PyObject *kw
         if (!result) {
             PyErr_SetString(PyExc_ValueError,
                 "DataPoint_FromDatum() returned NULL");
-            //PyMem_Free(results);
+            PyMem_Free(results);
             return NULL;
         }
         PyTuple_SetItem(out, idx, result);

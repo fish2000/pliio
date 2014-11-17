@@ -5,6 +5,7 @@
 #include <Python.h>
 #include <structmember.h>
 #include "mvptree/mvptree.h"
+#include "mvptree/mvpvector.hpp"
 
 struct PyHashTree {
     PyObject_HEAD
@@ -12,6 +13,10 @@ struct PyHashTree {
     unsigned int branch_factor;
     unsigned int path_length;
     unsigned int leafnode_capacity;
+    
+    vector<MVPDP> treevector() {
+        return MVP::mvpvector(tree);
+    }
     
     void cleanup() {
         mvptree_clear(tree, PyMem_Free);
