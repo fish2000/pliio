@@ -51,9 +51,9 @@ namespace MVP {
         return error;
     }
 
-    vector<MVPDP> mvpvector(MVPTree *tree) {
+    vector<MVPDP, DataPointAllocator<MVPDP>> mvpvector(MVPTree *tree) {
         DataPointAllocator<MVPDP> alloc(PyMem_Free, MVP_UINT64ARRAY);
-        vector<MVPDP> treevec(alloc);
+        vector<MVPDP, DataPointAllocator<MVPDP>> treevec(alloc);
         if (tree) {
             MVPError error = _mvpvector(&treevec, tree, tree->node, 0);
             if (error != MVP_SUCCESS) {

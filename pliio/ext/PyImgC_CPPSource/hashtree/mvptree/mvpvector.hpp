@@ -19,16 +19,10 @@ namespace MVP {
         typedef size_t size_type;
         typedef ptrdiff_t difference_type;
         
-        //typedef function<void(void *)> free_function;
-        
         template <typename U>
         struct rebind {
             typedef DataPointAllocator<U> other;
         };
-        /*
-        inline size_type max_size() const {
-            return numeric_limits<size_type>::max / sizeof(T);
-        }*/
         
         inline pointer allocate(size_type n, const void *hint=0) {
             return dp_alloc(datatype);

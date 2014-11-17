@@ -14,7 +14,7 @@ struct PyHashTree {
     unsigned int path_length;
     unsigned int leafnode_capacity;
     
-    vector<MVPDP> treevector() {
+    vector<MVPDP, DataPointAllocator<MVPDP>> treevector() {
         return MVP::mvpvector(tree);
     }
     
