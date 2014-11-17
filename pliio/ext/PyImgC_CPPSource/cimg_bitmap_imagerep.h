@@ -34,8 +34,10 @@ inline bool bitmap_can_load(NSString *filename) const {
     return false;
 }
 
+#define IMGC_NSBITMAP_NOSAVE static_cast<NSBitmapImageFileType>(-666)
+
 inline NSBitmapImageFileType bitmap_can_save(const char *filename) const {
-    //return static_cast<NSBitmapImageFileType>(-666);
+    //return IMGC_NSBITMAP_NOSAVE;
     if (SUFFIXED(filename, "jpg") || SUFFIXED(filename, "jpeg")) { return NSJPEGFileType; }
     if (SUFFIXED(filename, "png"))                               { return NSPNGFileType; }
     if (SUFFIXED(filename, "tif") || SUFFIXED(filename, "tiff")) { return NSTIFFFileType; }
@@ -43,10 +45,10 @@ inline NSBitmapImageFileType bitmap_can_save(const char *filename) const {
     if (SUFFIXED(filename, "bmp"))                               { return NSBMPFileType; }
     if (SUFFIXED(filename, "jpe2"))                              { return NSJPEG2000FileType; }
     if (SUFFIXED(filename, "jp2") || SUFFIXED(filename, "jpg2")) { return NSJPEG2000FileType; }
-    return static_cast<NSBitmapImageFileType>(-666);
+    return IMGC_NSBITMAP_NOSAVE;
 }
 inline NSBitmapImageFileType bitmap_can_save(NSString *filenameMixedCase) const {
-    //return static_cast<NSBitmapImageFileType>(-666);
+    //return IMGC_NSBITMAP_NOSAVE;
     @autoreleasepool {
         NSString *filename = [filenameMixedCase lowercaseString];
         if ([filename hasSuffix:@"jpg"] || [filename hasSuffix:@"jpeg"]) { return NSJPEGFileType; }
@@ -57,7 +59,7 @@ inline NSBitmapImageFileType bitmap_can_save(NSString *filenameMixedCase) const 
         if ([filename hasSuffix:@"jpe2"])                                { return NSJPEG2000FileType; }
         if ([filename hasSuffix:@"jp2"] || [filename hasSuffix:@"jpg2"]) { return NSJPEG2000FileType; }
     }
-    return static_cast<NSBitmapImageFileType>(-666);
+    return IMGC_NSBITMAP_NOSAVE;
 }
 
 //---------------------------------------
@@ -109,15 +111,15 @@ NSBitmapImageRep *get_bitmap(const unsigned z=0) const {
                    "get_bitmap() : NSImage don't really support >4 channels -- higher-order dimensions will be ignored.");
     }
     
-    NSInteger bps = 8 * sizeof(T);
+    // NSInteger bps = 8 * sizeof(T);
     NSInteger format = 0;
     format |= std::is_floating_point<T>::value ? NSFloatingPointSamplesBitmapFormat : 0;
     
-    NSLog(@"Width: %i", _width);
-    NSLog(@"Height: %i", _height);
-    NSLog(@"Spectrum: %i", _spectrum);
-    NSLog(@"Format: %li", (long)format);
-    NSLog(@"BPS: %li", (long)bps);
+    // NSLog(@"Width: %i", _width);
+    // NSLog(@"Height: %i", _height);
+    // NSLog(@"Spectrum: %i", _spectrum);
+    // NSLog(@"Format: %li", (long)format);
+    // NSLog(@"BPS: %li", (long)bps);
     
     NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc]
         initWithBitmapDataPlanes:(unsigned char **)&_data
@@ -148,12 +150,6 @@ NSBitmapImageRep *get_bitmap(const unsigned z=0) const {
     
     return bitmap;
 }
-/*
-const NSBitmapImageRep *get_bitmap(const unsigned z=0) const {
-    return const_cast<NSBitmapImageRep *>(get_bitmap());
-}
-*/
-
 
 static CImg<T> get_load_quartz(const char *filename) {
     NSString *nsfilename = [NSString stringWithUTF8String:filename];
@@ -192,7 +188,7 @@ const CImg& save_quartz(const char *filename, NSBitmapImageFileType filetype=NSJ
 #ifndef cimg_save_plugin4
 #define cimg_save_plugin4(filename) \
     NSBitmapImageFileType filetype = bitmap_can_save(filename); \
-    if (filetype != -666) { return save_quartz(filename, filetype); }
+    if (filetype != IMGC_NSBITMAP_NOSAVE) { return save_quartz(filename, filetype); }
 #endif
 
 #endif /// PyImgC_CIMG_NSBITMAPIMAGEREP_PLUGIN_H

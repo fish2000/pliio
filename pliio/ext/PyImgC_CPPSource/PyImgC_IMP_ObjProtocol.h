@@ -44,6 +44,8 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
         }
     }
     
+    const char *cpath = PyString_AS_STRING(path);
+    
     /// load that shit, dogg
     if (self->dtype) {
         gil_ensure GIL;
@@ -51,7 +53,7 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
         /// on whatever is in the dtype we already have
 #define HANDLE(type) { \
         try { \
-            CImg<IMGC_DEFAULT_T> cim(PyString_AS_STRING(path)); \
+            CImg<IMGC_DEFAULT_T> cim(cpath); \
             self->assign<type>(cim); \
         } catch (CImgArgumentException &err) { \
             Py_XDECREF(dtype); \
@@ -75,10 +77,10 @@ static PyObject *PyCImage_LoadFromFileViaCImg(PyObject *smelf, PyObject *args, P
         /// We'll create a CImg<unsigned char> from the file path
         gil_ensure GIL;
         try {
-            CImg<IMGC_DEFAULT_T> cim(PyString_AS_STRING(path));
+            CImg<IMGC_DEFAULT_T> cim(cpath);
             /// populate our dtype fields and ensconce the new CImg
             self->assign<IMGC_DEFAULT_T>(cim);
-            self->dtype = numpy::dtype_struct<IMGC_DEFAULT_T>();
+            //self->dtype = numpy::dtype_struct<IMGC_DEFAULT_T>();
         } catch (CImgArgumentException &err) {
             Py_XDECREF(dtype);
             Py_XDECREF(path);
@@ -113,7 +115,7 @@ static PyObject *PyCImage_SaveToFileViaCImg(PyObject *smelf, PyObject *args, PyO
         return NULL;
     }
     
-    overwrite = PyObject_IsTrue(pyoverwrite);
+    //if (pyoverwrite != NULL) { overwrite = PyObject_IsTrue(pyoverwrite); }
     exists = PyImgC_PathExists(path);
     
     /// SAVE THAT SHIT
@@ -124,10 +126,17 @@ static PyObject *PyCImage_SaveToFileViaCImg(PyObject *smelf, PyObject *args, PyO
             "path already exists");
         return NULL;
     }
+    
+    const char *cpath = PyString_AS_STRING(path);
+    bool saved = false;
+    
     if (exists && overwrite) {
         /// PLEASE DO OVERWRITE
-        if (remove(PyString_AS_STRING(path))) {
-            if (self->save(PyString_AS_STRING(path))) {
+        if (remove(cpath)) {
+            gil_release NOGIL;
+            saved = self->save(cpath);
+            NOGIL.~gil_release();
+            if (saved) {
                 return reinterpret_cast<PyObject *>(self); /// all is well, return self
             } else {
                 Py_XDECREF(path);
@@ -143,7 +152,11 @@ static PyObject *PyCImage_SaveToFileViaCImg(PyObject *smelf, PyObject *args, PyO
         }
     }
     
-    if (self->save(PyString_AS_STRING(path))) {
+    gil_release NOGIL;
+    saved = self->save(cpath);
+    NOGIL.~gil_release();
+    
+    if (saved) {
         return reinterpret_cast<PyObject *>(self); /// all is well, return self
     }
     
@@ -160,7 +173,7 @@ static PyObject *PyCImage_new(PyTypeObject *type, PyObject *args, PyObject *kwar
     self = reinterpret_cast<PyCImage *>(type->tp_alloc(type, 0));
     if (self != None) {
         self->cimage = shared_ptr<CImg_Base>(nullptr);
-        self->dtype = None;
+        self->dtype = NULL;
     }
     return reinterpret_cast<PyObject *>(self); /// all is well, return self
 }
@@ -207,7 +220,7 @@ static PyObject *PyCImage_Str(PyCImage *pyim) {
 /// __init__ implementation
 static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffer = NULL;
-    Py_ssize_t nin = -1, offset = 0, raise_errors = 1;
+    Py_ssize_t nin = -1, offset = 0, raise_errors = 0;
     static char *kwlist[] = { "buffer", "dtype", "count", "offset", "raise_errors", NULL };
     PyArray_Descr *dtype = PyArray_DescrFromType(IMGC_DEFAULT_TYPECODE);
 
@@ -270,10 +283,10 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
         return 0;
     }
     
-    if (PyUnicode_Check(buffer)) {
-        /// Fuck, it's unicode... let's de-UTF8 it
-        buffer = PyUnicode_AsUTF8String(buffer);
-    }
+    // if (PyUnicode_Check(buffer)) {
+    //     /// Fuck, it's unicode... let's de-UTF8 it
+    //     buffer = PyUnicode_AsUTF8String(buffer);
+    // }
     
     if (PyString_Check(buffer)) {
         /// it's a path string, load (with CImg.h) -- DISPATCH!!!!
@@ -294,7 +307,6 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
     
     if (PyArray_Check(buffer)) {
         /// it's a numpy array
-        gil_release NOGIL;
 #define HANDLE(type) { \
         self->assign(CImg<type>(buffer)); \
     }

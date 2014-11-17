@@ -8,6 +8,7 @@
 #include "PyHashTree_ObjProtocol.h"
 #include "PyHashTree_PrintFunctions.h"
 #include "PyHashTree_GetSet.h"
+#include "DataPoint_Type.h"
 
 static PyMethodDef PyHashTree_methods[] = {
     {
@@ -76,17 +77,24 @@ PyMODINIT_FUNC inithashtree(void) {
     
     PyEval_InitThreads();
     if (PyType_Ready(&PyHashTree_Type) < 0) { return; }
+    if (PyType_Ready(&DataPoint_Type) < 0) { return; }
 
     module = Py_InitModule3(
         "pliio.hashtree", PyHashTree_module_functions,
         "PyHashTree interface module");
     if (module == None) { return; }
 
-    /// Set up PyCImage object
+    /// Set up PyHashTree type
     Py_INCREF(&PyHashTree_Type);
     PyModule_AddObject(module,
         "PyHashTree",
         (PyObject *)&PyHashTree_Type);
+    
+    /// Set up DataPoint type
+    Py_INCREF(&DataPoint_Type);
+    PyModule_AddObject(module,
+        "DataPoint",
+        (PyObject *)&DataPoint_Type);
 }
 
 

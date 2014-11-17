@@ -5,6 +5,13 @@
 #include <Python.h>
 using namespace std;
 
+void *PyMem_Calloc(size_t num, size_t size) {
+    void *ptr; size_t total = num * size;
+    ptr = PyMem_Malloc(total);
+    if (ptr != NULL) { memset(ptr, 0, total); }
+    return ptr;
+}
+
 static bool PyImgC_PathExists(PyObject *path) {
     PyStringObject *putative = reinterpret_cast<PyStringObject *>(path);
     if (!PyString_Check(putative)) {
@@ -13,13 +20,19 @@ static bool PyImgC_PathExists(PyObject *path) {
      }
      PyObject *ospath = PyImport_ImportModuleNoBlock("os.path");
      PyObject *exists = PyObject_GetAttrString(ospath, "exists");
-     return (bool)PyObject_IsTrue(
+     bool out = (bool)PyObject_IsTrue(
          PyObject_CallFunctionObjArgs(exists, putative, NULL));
+     Py_DECREF(exists);
+     Py_DECREF(ospath);
+     return out;
 }
 
 static PyObject *PyImgC_TemporaryPath(PyObject *self, PyObject *args) {
     /// call to cimg::temporary_path()
-    return PyString_FromString(cimg::temporary_path());
+    gil_release NOGIL;
+    const char *cpath = cimg::temporary_path();
+    NOGIL.~gil_release();
+    return Py_BuildValue("s", cpath);
 }
 
 static PyObject *PyImgC_GuessType(PyObject *self, PyObject *args) {
@@ -35,9 +48,12 @@ static PyObject *PyImgC_GuessType(PyObject *self, PyObject *args) {
             "path does not exist");
         return NULL;
     }
-    return PyString_FromString(
-        cimg::file_type(NULL,
-            PyString_AS_STRING(path)));
+    const char *cpath = PyString_AS_STRING(path);
+    Py_DECREF(path);
+    gil_release NOGIL;
+    const char *filetype = cimg::file_type(NULL, cpath);
+    NOGIL.~gil_release();
+    return Py_BuildValue("s", filetype);
 }
 
 #endif /// PyImgC_IMP_UTILS_H

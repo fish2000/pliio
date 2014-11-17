@@ -5,6 +5,7 @@
 #include <Python.h>
 #include "mvptree/mvptree.h"
 #include "PyHashTree_Constants.h"
+#include "PyHashTree_GIL.h"
 #include "PyHashTree_DistanceFunctions.h"
 
 #define DEFAULT_BRANCH_FACTOR       2
@@ -23,14 +24,17 @@ static bool PyHashTree_PathExists(PyObject *path) {
         PyErr_SetString(PyExc_ValueError, "Bad path string");
         return false;
     }
-    PyObject *ospath = PyImport_ImportModuleNoBlock("os.path");
+    PyObject *ospath = PyImport_ImportModule("os.path");
     PyObject *exists = PyObject_GetAttrString(ospath, "exists");
-    return (bool)PyObject_IsTrue(
+    bool out = (bool)PyObject_IsTrue(
         PyObject_CallFunctionObjArgs(exists, putative, NULL));
+    Py_DECREF(exists);
+    Py_DECREF(ospath);
+    return out;
 }
 
 /// SMELF ALERT!!!
-static PyObject *PyHashTree_LoadFromMVPFile(PyObject *smelf, PyObject *args, PyObject *kwargs) {
+static int PyHashTree_LoadFromMVPFile(PyObject *smelf, PyObject *args, PyObject *kwargs) {
     PyHashTree *self = reinterpret_cast<PyHashTree *>(smelf);
     CmpFunc comparator = PyHashTree_DF_HammingDistance;
     static char *keywords[] = { "path", NULL };
@@ -40,41 +44,57 @@ static PyObject *PyHashTree_LoadFromMVPFile(PyObject *smelf, PyObject *args, PyO
                 "O", keywords, &path)) {
         PyErr_SetString(PyExc_ValueError,
             "cannot load hash tree (bad argument tuple passed to PyHashTree_LoadFromMVPFile)");
-        return NULL;
+        return -1;
     }
     
-    if (!PyHashTree_PathExists(path)) {
-        Py_XDECREF(path);
-        PyErr_SetString(PyExc_ValueError,
-            "path does not exist");
-        return NULL;
-    }
+    // if (!PyHashTree_PathExists(path)) {
+    //     Py_XDECREF(path);
+    //     PyErr_SetString(PyExc_ValueError,
+    //         "path does not exist");
+    //     return -1;
+    // }
     
     /// LOAD THAT SHIT
+    int fd;
+    char *cpath = PyString_AsString(path);
     MVPError error;
-    MVPTree *tree = mvptree_read(PyString_AS_STRING(path),
-        comparator, self->branch_factor, self->path_length,
-        self->leafnode_capacity, &error);
-    
-    if (error != MVP_SUCCESS) {
+    PyFileObject *mvpfile = reinterpret_cast<PyFileObject *>(PyFile_FromString(cpath, "r+x"));
+    if (!mvpfile) {
         PyErr_Format(PyExc_ValueError,
-            "Error loading MVP file: %s",
-            mvp_errstr(error));
-        return NULL;
+            "Error opening PyFileObject %s", cpath);
+        return -1;
     }
     
+    FILE *fh = PyFile_AsFile(reinterpret_cast<PyObject *>(mvpfile));
+    PyFile_IncUseCount(mvpfile);
+    //gil_release NOGIL;
+    fd = fileno(fh);
+    MVPTree *tree = mvptree_read_fd(fd,
+        comparator, self->branch_factor, self->path_length,
+        self->leafnode_capacity, &error);
+    //NOGIL.~gil_release();
+    PyFile_DecUseCount(mvpfile);
+    fclose(fh);
+    fd = 0;
+    
+    // if (error != MVP_SUCCESS) {
+    //     PyErr_Format(PyExc_ValueError,
+    //         "Error loading MVP file %s", cpath);
+    //     return NULL;
+    // }
+    
     /// clear out the old tree
-    if (self->tree) { self->cleanup(); }
+    //if (self->tree) { self->cleanup(); }
     
     /// set up the new tree
     self->tree = tree;
-    
-    return reinterpret_cast<PyObject *>(self); /// all is well, return self
+    return 0;
+    //return reinterpret_cast<PyObject *>(self); /// all is well, return self
 }
 
 static PyObject *PyHashTree_SaveToMVPFile(PyObject *smelf, PyObject *args, PyObject *kwargs) {
     PyHashTree *self = reinterpret_cast<PyHashTree *>(smelf);
-    PyObject *path, *pyoverwrite;
+    PyObject *path, *pyoverwrite = NULL;
     MVPError error;
     bool overwrite = true;
     bool exists = false;
@@ -88,52 +108,66 @@ static PyObject *PyHashTree_SaveToMVPFile(PyObject *smelf, PyObject *args, PyObj
         return NULL;
     }
     
-    overwrite = PyObject_IsTrue(pyoverwrite);
-    exists = PyHashTree_PathExists(path);
+    if (pyoverwrite != NULL) { overwrite = PyObject_IsTrue(pyoverwrite); }
+    //exists = PyHashTree_PathExists(path);
+    const char *cpath = PyString_AsString(path);
+    Py_XDECREF(path);
     
     /// SAVE THAT SHIT
     if (exists && !overwrite) {
         /// DON'T OVERWRITE
-        Py_XDECREF(path);
         PyErr_SetString(PyExc_NameError,
             "path already exists");
         return NULL;
     }
+    
     if (exists && overwrite) {
         /// PLEASE DO OVERWRITE
-        if (remove(PyString_AS_STRING(path))) {
-            error = mvptree_write(self->tree,
-                PyString_AS_STRING(path), 00755);
+        if (remove(cpath)) {
+            //gil_release NOGIL;
+            error = mvptree_write(self->tree, cpath, 00644);
+            //NOGIL.~gil_release();
             if (error == MVP_SUCCESS) {
                 /// all is well, return self
                 return reinterpret_cast<PyObject *>(self);
             } else {
-                Py_XDECREF(path);
                 PyErr_Format(PyExc_OSError,
                     "could not save file: %s",
                     mvp_errstr(error));
                 return NULL;
             }
         } else {
-            Py_XDECREF(path);
             PyErr_SetString(PyExc_SystemError,
                 "could not overwrite existing file");
             return NULL;
         }
     }
     
-    error = mvptree_write(self->tree,
-        PyString_AS_STRING(path), 00755);
+    if (!self->tree->node) {
+        PyErr_SetString(PyExc_ValueError,
+            "Can't save tree with no 'node' attribute");
+        return NULL;
+    }
+    if (!self->tree->dist) {
+        PyErr_SetString(PyExc_ValueError,
+            "Can't save tree with no 'dist' attribute");
+        return NULL;
+    }
+    
+    //gil_release NOGIL;
+    error = mvptree_write(self->tree, cpath, 00644);
+    //NOGIL.~gil_release();
+    
     if (error == MVP_SUCCESS) {
         /// all is well, return self
         return reinterpret_cast<PyObject *>(self);
     }
     
     /// we got here, something must be wrong by now
-    Py_XDECREF(path);
     PyErr_Format(PyExc_OSError,
-        "could not save file (out of options): %s",
-        mvp_errstr(error));
+        "could not save file (%s): %s",
+        cpath, mvp_errstr(error));
+    
     return NULL;
 }
 
@@ -177,11 +211,13 @@ static int PyHashTree_init(PyHashTree *self, PyObject *args, PyObject *kwargs) {
     if (!tree) {
         /// nothing was passed in for a tree,
         /// allocate a new MVP tree and return
+        //gil_release NOGIL;
         self->tree = mvptree_alloc(NULL,
             comparator,
             self->branch_factor,
             self->path_length,
             self->leafnode_capacity);
+        //NOGIL.~gil_release();
         if (!self->tree) {
             PyErr_SetString(PyExc_SystemError,
                 "Error allocating new MVPTree");
@@ -190,22 +226,23 @@ static int PyHashTree_init(PyHashTree *self, PyObject *args, PyObject *kwargs) {
         return 0;
     }
     
-    if (PyUnicode_Check(tree)) {
-        /// Fuck, it's unicode... let's de-UTF8 it
-        tree = PyUnicode_AsUTF8String(tree);
-    }
+    // if (PyUnicode_Check(tree)) {
+    //     /// Fuck, it's unicode... let's de-UTF8 it
+    //     tree = PyUnicode_AsUTF8String(tree);
+    // }
     
     if (PyString_Check(tree)) {
         /// tree is a file path
-        PyObject *out = PyObject_CallMethodObjArgs(
+        PyObject_CallMethodObjArgs(
             reinterpret_cast<PyObject *>(self),
             PyString_FromString("load"), tree, NULL);
-        if (out == NULL) {
-            PyErr_Format(PyExc_ValueError,
-                "MVP tree failed to load from path: %s",
-                PyString_AS_STRING(tree));
-            return -1;
-        }
+        // if (out == NULL) {
+        //     PyErr_Format(PyExc_ValueError,
+        //         "MVP tree failed to load from path: %s",
+        //         PyString_AsString(tree));
+        //     return -1;
+        // }
+        // Py_DECREF(out);
         return 0;
     }
     

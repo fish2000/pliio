@@ -34,7 +34,6 @@ class StructCodeTests(BaseCase):
         imgc.structcode_parse('4f')                         # CMYK (unlabled)
         imgc.structcode_parse('xfxfxfxf')                   # CMYK (padded)
         imgc.structcode_parse('xf:C: xf:M: xf:Y: xf:K:')    # CMYK (everything)
-        #imgc.structcode_parse('')
     
     def test_memoryview_from_pycimage(self):
         for ci in self.imgc:

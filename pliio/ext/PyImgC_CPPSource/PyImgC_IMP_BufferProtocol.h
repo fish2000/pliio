@@ -12,7 +12,6 @@ using namespace cimg_library;
 using namespace std;
 
 static int PyCImage_GetBuffer(PyObject *self, Py_buffer *view, int flags) {
-    gil_release NOGIL;
     PyCImage *pyim = reinterpret_cast<PyCImage *>(self);
     if (pyim->cimage && pyim->dtype) {
 #define HANDLE(type) { \
@@ -28,8 +27,16 @@ static int PyCImage_GetBuffer(PyObject *self, Py_buffer *view, int flags) {
 }
 
 static void PyCImage_ReleaseBuffer(PyObject *self, Py_buffer *view) {
-    if (view->shape) { free(view->shape); }
-    if (view->strides) { free(view->strides); }
+    if (view->internal) {
+        const char *internal = (const char *)view->internal;
+        if (internal == IMGC_PYBUFFER_PYMEM_MALLOC) {
+            if (view->shape) { PyMem_Free(view->shape); }
+            if (view->strides) { PyMem_Free(view->strides); }
+        } else if (internal == IMGC_PYBUFFER_GLIBC_MALLOC) {
+            if (view->shape) { free(view->shape); }
+            if (view->strides) { free(view->strides); }
+        }
+    }
     if (view->obj) {
         Py_DECREF(view->obj);
         view->obj = NULL;

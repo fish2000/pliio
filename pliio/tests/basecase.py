@@ -1,7 +1,7 @@
 
 from unittest2 import TestCase
 
-import numpy, sys
+import sys
 #from pprint import pprint
 from imread import imread
 from pliio import imgc
@@ -26,7 +26,7 @@ class BaseCase(TestCase):
                     listdir(abspath(expanduser(join('~fish', 'Downloads'))))))[:10]
         self.imgc = map(
             lambda image_path: imgc.PyCImage(image_path,
-                dtype=numpy.uint8), self.image_paths)
+                dtype=imgc.uint8), self.image_paths)
         self.imread = map(
             lambda image_path: imread(image_path),
                 self.image_paths)

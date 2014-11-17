@@ -5,6 +5,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include <Python.h>
+
 struct memstream {
 	char **cp;
 	size_t *lenp;
@@ -17,7 +19,7 @@ memstream_grow(struct memstream *ms, size_t newsize)
 	char *buf;
 
 	if (newsize > *ms->lenp) {
-		buf = (char *)realloc(*ms->cp, newsize + 1);
+		buf = (char *)PyMem_Realloc(*ms->cp, newsize + 1);
 		if (buf != NULL) {
 #ifdef DEBUG
 			fprintf(stderr, "MS: %p growing from %zd to %zd\n",
@@ -102,7 +104,7 @@ static int
 memstream_close(void *cookie)
 {
 
-	free(cookie);
+	PyMem_Free(cookie);
 	return (0);
 }
 
@@ -115,7 +117,7 @@ open_memstream(char **cp, size_t *lenp)
 
 	*cp = NULL;
 	*lenp = 0;
-	ms = (struct memstream *)malloc(sizeof(*ms));
+	ms = (struct memstream *)PyMem_Malloc(sizeof(*ms));
 	ms->cp = cp;
 	ms->lenp = lenp;
 	ms->offset = 0;
@@ -123,7 +125,7 @@ open_memstream(char **cp, size_t *lenp)
 	    memstream_close);
 	if (fp == NULL) {
 		save_errno = errno;
-		free(ms);
+		PyMem_Free(ms);
 		errno = save_errno;
 	}
 	return (fp);

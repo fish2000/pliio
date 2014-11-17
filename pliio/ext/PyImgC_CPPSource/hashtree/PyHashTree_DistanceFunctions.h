@@ -2,11 +2,13 @@
 #ifndef PyHashTree_PYHASHTREE_IMP_DISTANCEFUNCTIONS_H
 #define PyHashTree_PYHASHTREE_IMP_DISTANCEFUNCTIONS_H
 
+#include "PyHashTree_GIL.h"
+
 static unsigned long long nbcalcs = 0;
 
 /// hamming distance function
 static float PyHashTree_DF_HammingDistance(MVPDP *ptA, MVPDP *ptB) {
-    if (!ptA || !ptB || ptA->datalen != ptB->datalen) { return -1.0f; }
+    if (!ptA->data || !ptB->data || ptA->datalen != ptB->datalen) { return -1.0f; }
 
     uint64_t a = *((uint64_t *)ptA->data);
     uint64_t b = *((uint64_t *)ptB->data);
@@ -23,6 +25,7 @@ static float PyHashTree_DF_HammingDistance(MVPDP *ptA, MVPDP *ptB) {
     float result = static_cast<float>((x * h01) >> 56);
     result = exp(result - 1);
     nbcalcs++;
+    
     return result;
 }
 

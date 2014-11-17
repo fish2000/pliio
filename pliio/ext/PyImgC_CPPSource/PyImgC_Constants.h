@@ -55,4 +55,11 @@
 #define PyGetNone Py_BuildValue("")
 #endif
 
+#ifndef IMGC_PYBUFFER
+#define IMGC_PYBUFFER
+#define IMGC_PYBUFFER_PYMEM_MALLOC "malloc"
+#define IMGC_PYBUFFER_GLIBC_MALLOC "PyMem_Malloc"
+#define IMGC_PYBUFFER_MALLOC (void *)IMGC_PYBUFFER_PYMEM_MALLOC
+#endif
+
 #endif

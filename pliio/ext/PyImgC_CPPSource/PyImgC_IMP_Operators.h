@@ -37,6 +37,7 @@ enum class UnaryOp : unsigned int {
 };
 
 #define UNARY_OP(self, op) \
+    gil_release NOGIL; \
     switch (op) { \
         case UnaryOp::NEGATIVE:         { return -self; } \
         case UnaryOp::POSITIVE:         { return self; } \
@@ -50,6 +51,7 @@ enum class UnaryOp : unsigned int {
     return self;
 
 #define BINARY_OP(self, another, op) \
+    gil_release NOGIL; \
     switch (op) { \
         case BinaryOp::ADD:                 { return self + another; } \
         case BinaryOp::SUBTRACT:            { return self - another; } \
@@ -132,7 +134,6 @@ selfT unary_op_LHS(PyCImage *self, UnaryOp op) {
 
 template <typename rT>
 CImg<rT> unary_op(PyCImage *self, UnaryOp op) {
-    gil_release NOGIL;
     return unary_op_LHS<CImg<rT>>(self, op);
 }
 
@@ -182,7 +183,6 @@ otherT binary_op_LHS(PyCImage *self, PyCImage *other, BinaryOp op) {
 
 template <typename rT>
 CImg<rT> binary_op(PyCImage *self, PyCImage *other, BinaryOp op) {
-    gil_release NOGIL;
     return binary_op_LHS<CImg<rT>>(self, other, op);
 }
 

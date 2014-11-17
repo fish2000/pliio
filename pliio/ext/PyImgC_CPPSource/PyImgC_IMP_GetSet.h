@@ -126,19 +126,24 @@ static PyObject     *PyCImage_GET_ndarray(PyCImage *self, void *closure) {
 
 /// pycimage.dct_phash getter
 static PyObject     *PyCImage_GET_dct_phash(PyCImage *self, void *closure) {
-    gil_release NOGIL;
-    return PyLong_FromUnsignedLongLong(
-        ph_dct_imagehash(*self->recast<uint8_t>()));
+    //gil_release NOGIL;
+    unsigned long long dct_phash = ph_dct_imagehash(*self->recast<uint8_t>());
+    //NOGIL.~gil_release();
+    return PyLong_FromUnsignedLongLong(dct_phash);
 }
 
 /// pycimage.mh_phash getter
 static PyObject     *PyCImage_GET_mh_phash(PyCImage *self, void *closure) {
-    gil_release NOGIL;
-    uint8_t *mh_hash = ph_mh_imagehash(*self->recast<uint8_t>());
+    //gil_release NOGIL;
+    uint8_t *mh_phash = ph_mh_imagehash(*self->recast<uint8_t>());
     npy_intp dims[] = { 1 };
-    return PyArray_SimpleNewFromData(1, dims,
+    //NOGIL.~gil_release();
+    PyObject *out = PyArray_SimpleNewFromData(1, dims,
         numpy::dtype_code<unsigned char>(),
-        static_cast<unsigned char *>(mh_hash));
+        static_cast<unsigned char *>(mh_phash));
+    PyMem_Free(mh_phash);
+    Py_INCREF(out);
+    return out;
 }
 
 static PyGetSetDef PyCImage_getset[] = {

@@ -77,8 +77,6 @@ typedef struct mvp_datapoint_t {
     MVPDataType type;       /* type of data (the bitwidth of each data element) */
 } MVPDP;
 
-
-
 /* call back function for mvp tree functions - to performa distance calc.'s*/
 typedef float (*CmpFunc)(MVPDP *pointA, MVPDP *pointB);
 
@@ -107,7 +105,6 @@ typedef union node_t {
     InternalNode internal;
 } Node;
 
-
 typedef struct mvptree_t {
     int branchfactor;      /* branch factor of tree, e.g. 2                           */
     int pathlength;        /* number distances stored for a datapoint's distance      */
@@ -116,7 +113,7 @@ typedef struct mvptree_t {
     int leafcap;           /* capacity of leaf nodes  (number datapoints)             */
     int fd;                /* internal use                                            */
     int k;                 /* internal use for retrieve function (knearest)           */
-    MVPDataType datatype;     /* internal use                                            */  
+    MVPDataType datatype;  /* internal use                                            */  
     off_t pos;             /* internal use for mvp_read() and mvp_write()             */
     off_t size;            /* internal use for mvp_read() and mvp_write()             */
     off_t pgsize;          /* system page size (interal use)                          */
@@ -124,7 +121,6 @@ typedef struct mvptree_t {
     Node *node;            /* reference to top of tree                                */
     CmpFunc dist;          /* distance function - e.g. L1 or L2                       */
 } MVPTree;
-
 
 /*   DP* dp_alloc
  *
@@ -289,6 +285,29 @@ MVPDP** mvptree_retrieve(MVPTree *tree, MVPDP *target, unsigned int knearest, fl
 
 
 MVPError mvptree_write(MVPTree *tree, const char *filename, int mode);
+
+/*   mvptree_read
+ *
+ *   DESCRIPTION:
+ *
+ *   read a tree from a previously written file into MVPTree struct
+ *
+ *   ARGUMENTS:
+ *
+ *   fd - file descriptor
+ *
+ *   fnc - callback function for distance function to use 
+ *
+ *   error - pointer to MVPError code enum
+ *
+ *   RETURN
+ *
+ *   MVPTree ptr, or NULL on error (and error is set to error code)
+ *
+ */
+
+MVPTree* mvptree_read_fd(int fd, CmpFunc fnc, int branchfactor, int pathlength,\
+                                                  int leafcapacity, MVPError *error);
 
 /*   mvptree_read
  *

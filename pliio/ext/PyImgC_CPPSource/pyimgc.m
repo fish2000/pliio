@@ -30,7 +30,7 @@
 #include "PyImgC_IMP_SequenceProtocol.h"
 #include "PyImgC_IMP_NumberProtocol.h"
 #include "PyImgC_IMP_BufferProtocol.h"
-#include "PyImgC_IMP_LittleCMSContext.h"
+//#include "PyImgC_IMP_LittleCMSContext.h"
 #include "PyImgC_IMP_Utils.h"
 
 using namespace cimg_library;
@@ -142,7 +142,7 @@ static PyMethodDef PyImgC_module_functions[] = {
 
 PyMODINIT_FUNC initimgc(void) {
     PyObject *module;
-    PyObject *pycmx;
+    //PyObject *pycmx;
     
     PyEval_InitThreads();
     if (PyType_Ready(&PyCImage_Type) < 0) { return; }
@@ -153,14 +153,14 @@ PyMODINIT_FUNC initimgc(void) {
     if (module == None) { return; }
     
     /// Set up cleanup handler on interpreter exit
-    Py_AtExit(PyImgC_AtExit);
+    //Py_AtExit(PyImgC_AtExit);
     
     /// Set up color manager capsule
-    pycmx = PyImgC_CMS_Startup(NULL);
-    if (pycmx != NULL) {
-        Py_INCREF(pycmx);
-        PyModule_AddObject(module, "_pycmx", pycmx);
-    }
+    // pycmx = PyImgC_CMS_Startup(NULL);
+    // if (pycmx != NULL) {
+    //     Py_INCREF(pycmx);
+    //     PyModule_AddObject(module, "_pycmx", pycmx);
+    // }
     
     /// Bring in NumPy
     import_array();

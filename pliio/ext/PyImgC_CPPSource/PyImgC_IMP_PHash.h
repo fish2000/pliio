@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #define __STDC_CONSTANT_MACROS
 #include <stdint.h>
+#include <Python.h>
+
+#include "PyImgC_IMP_Utils.h"
 using namespace std;
 
 #define SQRT_TWO 1.4142135623730950488016887242097
@@ -45,7 +48,7 @@ int ph_radon_projections(const CImg<uint8_t> &img, int N, Projections &projs) {
     int y_off = static_cast<int>(std::floor(y_center + ROUNDING_FACTOR(y_center)));
 
     projs.R = new CImg<uint8_t>(N, D, 1, 1, 0);
-    projs.nb_pix_perline = (int *)calloc(N, sizeof(int));
+    projs.nb_pix_perline = (int *)PyMem_Calloc(N, sizeof(int));
 
     if (!projs.R || !projs.nb_pix_perline) { return EXIT_FAILURE; }
 
@@ -105,7 +108,7 @@ int ph_feature_vector(const Projections &projs, Features &fv) {
     int N = projs.size;
     int D = projection_map.height();
 
-    fv.features = (double *)malloc(N * sizeof(double));
+    fv.features = (double *)PyMem_Malloc(N * sizeof(double));
     fv.size = N;
     if (!fv.features) { return EXIT_FAILURE; }
 
@@ -140,7 +143,7 @@ int ph_dct(const Features &fv, Digest &digest) {
     int N = fv.size;
     const int nb_coeffs = 40;
 
-    digest.coeffs = (uint8_t *)malloc(nb_coeffs * sizeof(uint8_t));
+    digest.coeffs = (uint8_t *)PyMem_Malloc(nb_coeffs * sizeof(uint8_t));
     if (!digest.coeffs) { return EXIT_FAILURE; }
 
     digest.size = nb_coeffs;
@@ -239,8 +242,8 @@ int ph_image_digest(const CImg<uint8_t> &img, double sigma, double gamma,
     result = EXIT_SUCCESS;
 
 cleanup:
-    free(projs.nb_pix_perline);
-    free(features.features);
+    PyMem_Free(projs.nb_pix_perline);
+    PyMem_Free(features.features);
 
     delete projs.R;
     return result;
@@ -261,8 +264,8 @@ int ph_compare_images(const CImg<uint8_t> &imA, const CImg<uint8_t> &imB,
     if (pcc > threshold) { result = 1; }
 
 cleanup:
-    free(digestA.coeffs);
-    free(digestB.coeffs);
+    PyMem_Free(digestA.coeffs);
+    PyMem_Free(digestB.coeffs);
     return result;
 }
 
@@ -348,7 +351,7 @@ CImg<float> *ph_mh_kernel(float alpha, float level) {
 
 uint8_t *ph_mh_imagehash(CImg<uint8_t> src, float alpha=2.0f, float lvl=1.0f) {
 
-    uint8_t *hash = (unsigned char *)malloc(72 * sizeof(uint8_t));
+    uint8_t *hash = (unsigned char *)PyMem_Malloc(72 * sizeof(uint8_t));
     CImg<uint8_t> img;
     
     if (src.spectrum() == 3) {

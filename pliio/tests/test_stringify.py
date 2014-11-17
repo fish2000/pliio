@@ -5,7 +5,7 @@ from basecase import BaseCase
 
 class StringifyTests(BaseCase):
     
-    def test_str(self):
+    def _test_str(self):
         for im in self.imgc:
             self.assertIsNotNone(str(im))
     

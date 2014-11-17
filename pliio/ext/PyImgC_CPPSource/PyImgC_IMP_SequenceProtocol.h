@@ -33,7 +33,7 @@ static PyObject *PyCImage_GetItem(PyCImage *pyim, register Py_ssize_t idx) {
 #define HANDLE(type) { \
         auto cim = pyim->recast<type>(); \
         op = static_cast<long>(cim->operator()(idx)); \
-        siz = (Py_ssize_t)cim->size(); \
+        siz = static_cast<Py_ssize_t>(cim->size()); \
     }
     SAFE_SWITCH_ON_TYPECODE(tc, NULL);
 #undef HANDLE

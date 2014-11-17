@@ -118,6 +118,7 @@ extensions = {
     ],
     'hashtree': [
         "pliio/ext/PyImgC_CPPSource/hashtree/hashtree.m",
+        "pliio/ext/PyImgC_CPPSource/hashtree/fmemopen/fmemopen.c",
         "pliio/ext/PyImgC_CPPSource/hashtree/fmemopen/open_memstream.c",
         "pliio/ext/PyImgC_CPPSource/hashtree/mvptree/mvptree.c",
     ],

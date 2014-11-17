@@ -103,12 +103,12 @@ void get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=t
     pybuffer->ndim = 3;                                      /// for now
     pybuffer->len = raw_buffer_size;
     
-    pybuffer->shape = (Py_ssize_t *)malloc(sizeof(Py_ssize_t) * 3);
+    pybuffer->shape = (Py_ssize_t *)PyMem_Malloc(sizeof(Py_ssize_t) * 3);
     pybuffer->shape[0] = (Py_ssize_t)height();
     pybuffer->shape[1] = (Py_ssize_t)width();
     pybuffer->shape[2] = (Py_ssize_t)spectrum();
     
-    pybuffer->strides = (Py_ssize_t *)malloc(sizeof(Py_ssize_t) * 3);
+    pybuffer->strides = (Py_ssize_t *)PyMem_Malloc(sizeof(Py_ssize_t) * 3);
     pybuffer->strides[0] = (Py_ssize_t)(width() * spectrum() * sizeof(T));
     pybuffer->strides[1] = (Py_ssize_t)(spectrum() * sizeof(T));
     pybuffer->strides[2] = (Py_ssize_t)sizeof(T);
@@ -116,7 +116,7 @@ void get_pybuffer(Py_buffer *pybuffer, const unsigned z=0, const bool readonly=t
     pybuffer->itemsize = sizeof(T);
     
     pybuffer->readonly = readonly;
-    pybuffer->internal = NULL;                               /// for now
+    pybuffer->internal = IMGC_PYBUFFER_MALLOC;
     pybuffer->suboffsets = NULL;
     pybuffer->obj = NULL;
 }
