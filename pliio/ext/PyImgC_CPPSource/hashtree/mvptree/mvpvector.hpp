@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <functional>
+#include <stdlib.h>
 #include "mvptree.h"
 using namespace std;
 
@@ -25,12 +26,22 @@ namespace MVP {
         };
         
         inline pointer allocate(size_type n, const void *hint=0) {
-            return dp_alloc(datatype);
+            return (pointer)PyMem_Malloc(sizeof(T)*n);
         }
         
         inline void deallocate(pointer ptr, size_type n) {
-            dp_free(ptr, freefunc);
+            freefunc(ptr);
         }
+        
+        inline void construct(pointer p, const T& val) {
+            p->id = val.id;
+            p->data = val.data;
+            p->datalen = val.datalen;
+            p->type = val.type;
+            p->path = val.path;
+        }
+        
+        inline void destroy(pointer p) {}
         
         DataPointAllocator():
             allocator<T>(),
@@ -69,7 +80,9 @@ namespace MVP {
         MVPFreeFunc freefunc;
     };
     
-    vector<MVPDP, DataPointAllocator<MVPDP>> mvpvector(MVPTree *tree);
+    typedef vector<MVPDP, DataPointAllocator<MVPDP>> MVPVector;
+    
+    MVPVector mvpvector(MVPTree *tree, MVPFreeFunc f=PyMem_Free, MVPDataType datatype=MVP_UINT64ARRAY);
 }
 
 #endif /// _MVPVECTOR_H

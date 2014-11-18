@@ -3,6 +3,7 @@
 #define PyHashTree_PYHASHTREE_IMP_OBJPROTOCOL_H
 
 #include <Python.h>
+#include <stdio.h>
 #include "mvptree/mvptree.h"
 #include "PyHashTree_Constants.h"
 #include "PyHashTree_GIL.h"
@@ -14,9 +15,10 @@
 
 /// path check
 static bool PyHashTree_PathExists(char *path) {
-    struct stat buffer;
-    stat(path, &buffer);
-    return S_ISREG(buffer.st_mode);
+    //struct stat buffer;
+    //stat(path, &buffer);
+    //return S_ISREG(buffer.st_mode);
+    return stat(path, NULL) == 0;
 }
 static bool PyHashTree_PathExists(const char *path) {
     return PyHashTree_PathExists(const_cast<char *>(path));
@@ -64,39 +66,39 @@ static void PyHashTree_LoadFromMVPFile(PyObject *smelf, PyObject *args, PyObject
 
 static PyObject *PyHashTree_SaveToMVPFile(PyObject *smelf, PyObject *args, PyObject *kwargs) {
     PyHashTree *self = reinterpret_cast<PyHashTree *>(smelf);
-    PyObject *path, *pyoverwrite = NULL;
+    PyObject *path;
     MVPError error;
+    int pyoverwrite = 1;
     bool overwrite = true;
     bool exists = false;
     static char *keywords[] = { "path", "overwrite", NULL };
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                "S|O", keywords,
+                "S|i", keywords,
                 &path, &pyoverwrite)) {
         PyErr_SetString(PyExc_ValueError,
             "cannot save image (bad argument tuple passed to PyHashTree_SaveToMVPFile)");
         return NULL;
     }
     
-    if (pyoverwrite != NULL) { overwrite = PyObject_IsTrue(pyoverwrite); }
+    overwrite = pyoverwrite > 0;
     exists = PyHashTree_PathExists(path);
     const char *cpath = PyString_AsString(path);
     Py_DECREF(path);
     
-    /// SAVE THAT SHIT
     if (exists && !overwrite) {
         /// DON'T OVERWRITE
-        PyErr_SetString(PyExc_NameError,
-            "path already exists");
+        PyErr_Format(PyExc_NameError,
+            "file already exists: %s", cpath);
         return NULL;
     }
     
     if (exists && overwrite) {
         /// PLEASE DO OVERWRITE
         if (remove(cpath)) {
-            gil_release NOGIL;
+            //gil_release NOGIL;
             error = mvptree_write(self->tree, cpath, 00644);
-            NOGIL.~gil_release();
+            //NOGIL.~gil_release();
             if (error == MVP_SUCCESS) {
                 /// all is well, return self
                 return reinterpret_cast<PyObject *>(self);
@@ -124,9 +126,9 @@ static PyObject *PyHashTree_SaveToMVPFile(PyObject *smelf, PyObject *args, PyObj
         return NULL;
     }
     
-    gil_release NOGIL;
+    //gil_release NOGIL;
     error = mvptree_write(self->tree, cpath, 00644);
-    NOGIL.~gil_release();
+    //NOGIL.~gil_release();
     
     if (error == MVP_SUCCESS) {
         /// all is well, return self

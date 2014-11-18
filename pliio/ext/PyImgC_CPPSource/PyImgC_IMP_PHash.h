@@ -282,7 +282,7 @@ CImg<float> *ph_dct_matrix(const int N) {
 
 unsigned long long ph_dct_imagehash(CImg<uint8_t> src) {
 
-    CImg<float> meanfilter(7, 7, 1, 1, 1);
+    static const CImg<float> meanfilter(7, 7, 1, 1, 1);
     CImg<float> img;
     if (src.spectrum() == 3) {
         img = src.get_RGBtoYCbCr()

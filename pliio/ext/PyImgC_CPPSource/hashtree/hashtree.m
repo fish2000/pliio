@@ -7,6 +7,7 @@
 #include "PyHashTree_PyHashTree.h"
 #include "DataPoint_Type.h"
 #include "PyHashTree_ObjProtocol.h"
+#include "PyHashTree_SequenceProtocol.h"
 #include "PyHashTree_PrintFunctions.h"
 #include "PyHashTree_GetSet.h"
 
@@ -39,7 +40,7 @@ static PyTypeObject PyHashTree_Type = {
     0,                                                          /* tp_compare */
     (reprfunc)PyHashTree_Repr,                                  /* tp_repr */
     0,                                                          /* tp_as_number */
-    0,                                                          /* tp_as_sequence */
+    &PyHashTree_SequenceMethods,                                /* tp_as_sequence */
     0,                                                          /* tp_as_mapping */
     0,                                                          /* tp_hash */
     0,                                                          /* tp_call */

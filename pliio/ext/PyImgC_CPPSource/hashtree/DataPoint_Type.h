@@ -40,30 +40,30 @@ struct DataPoint {
     MVPDP *dp;
     
     uint64_t data() {
+        if (!dp) { return 0ULL; }
+        if (!dp->data) { return 0ULL; }
         return *static_cast<uint64_t *>(dp->data);
     }
     
     MVPDataType datatype() {
-        if (!dp) {
-            return MVP_NOTHING;
-        }
+        if (!dp) { return MVP_NOTHING; }
+        if (!dp->type) { return MVP_NOTHING; }
         return dp->type;
     }
     
     const char *datatypestring() {
-        if (!dp) {
-            return datatype::names.at(MVP_NOTHING).c_str();
-        }
+        if (!dp) { return datatype::names.at(MVP_NOTHING).c_str(); }
+        if (!dp->type) { return datatype::names.at(MVP_NOTHING).c_str(); }
         return datatype::names.at(dp->type).c_str();
     }
     
     const char *name() {
-        if (!dp) {
-            return NULL;
+        if (!dp) { return "NULL"; }
+        if (!dp->id && dp->data) { 
+            return to_string(
+                *static_cast<uint64_t *>(dp->data)).c_str();
         }
-        return to_string(
-            *static_cast<uint64_t *>(
-                dp->data)).c_str();
+        return (const char *)dp->id;
     }
     
     void cleanup() {}
@@ -99,11 +99,11 @@ static int DataPoint_AddToTree(DataPoint *self, PyHashTree *tree) {
         return -1;
     }
     
-    gil_release NOGIL;
+    //gil_release NOGIL;
     MVPDP **points = (MVPDP**)PyMem_Malloc(sizeof(MVPDP*));
     points[0] = self->dp;
     MVPError error = mvptree_add(tree->tree, points, 1);
-    NOGIL.~gil_release();
+    //NOGIL.~gil_release();
     
     if (error != MVP_SUCCESS) {
         PyErr_Format(PyExc_SystemError,
@@ -124,7 +124,7 @@ static int DataPoint_init(DataPoint *self, PyObject *args, PyObject *kwargs) {
     MVPDP *dp;
     
     static char *keywords[] = { "data", "datatype", "tree", "name", None };
-
+    
     if (!PyArg_ParseTupleAndKeywords(
         args, kwargs, "K|IOs:dp_alloc",
         keywords,
@@ -162,8 +162,9 @@ static PyObject *DataPoint_Repr(DataPoint *dp) {
         return PyString_FromFormat("<DataPoint[%s] (%s:%llu) @ %p>",
             dp->datatypestring(), dp->name(), dp->data(), dp);
     }
-    return PyString_FromFormat("<DataPoint[%s] (%s:%llu)->(<PyHashTree @ %p>) @ %p>",
-        dp->datatypestring(), dp->name(), dp->data(), dp->tree, dp);
+    return PyString_FromFormat("<DataPoint[%s] (%s:%llu)->(<tree[%u]>) @ %p>",
+        dp->datatypestring(), dp->name(), dp->data(),
+        reinterpret_cast<PyHashTree *>(dp->tree)->length(), dp);
 }
 
 static const char *DataPoint_ReprCString(DataPoint *dp) {
@@ -282,9 +283,9 @@ static PyObject *DataPoint_Nearest(PyObject *smelf, PyObject *args, PyObject *kw
         return NULL;
     }
     
-    gil_release NOGIL;
+    //gil_release NOGIL;
     results = mvptree_retrieve(tree->tree, self->dp, nearest, radius, &nbresults, &error);
-    NOGIL.~gil_release();
+    //NOGIL.~gil_release();
     
     Py_DECREF(tree);
     tree = NULL;
@@ -344,7 +345,7 @@ static PyTypeObject DataPoint_Type = {
     0,                                                          /* tp_as_number */
     0,                                                          /* tp_as_sequence */
     0,                                                          /* tp_as_mapping */
-    (hashfunc)DataPoint_Hash,                                   /* tp_hash */
+    0, /*(hashfunc)DataPoint_Hash,*/                            /* tp_hash */
     0,                                                          /* tp_call */
     0,                                                          /* tp_str */
     (getattrofunc)PyObject_GenericGetAttr,                      /* tp_getattro */

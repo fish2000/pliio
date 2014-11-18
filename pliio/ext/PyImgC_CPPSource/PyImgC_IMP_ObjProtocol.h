@@ -180,7 +180,7 @@ static PyObject *PyCImage_new(PyTypeObject *type, PyObject *args, PyObject *kwar
 
 /// __repr__ implementations
 static PyObject *PyCImage_Repr(PyCImage *pyim) {
-    if (!pyim->cimage) { return PyString_FromString("<PyCImage (empty backing store)>"); }
+    if (!pyim->cimage) { return PyString_InternFromString("<PyCImage (empty backing store)>"); }
     int tc = static_cast<int>(pyim->typecode());
     if (pyim->dtype) {
         tc = static_cast<int>(pyim->dtype->type_num);
@@ -192,9 +192,9 @@ static PyObject *PyCImage_Repr(PyCImage *pyim) {
         cim.width(), cim.height(), cim.spectrum(), sizeof(type), \
         pyim); \
     }
-    SAFE_SWITCH_ON_TYPECODE(tc, PyString_FromString("<PyCImage (bad backing store)>"));
+    SAFE_SWITCH_ON_TYPECODE(tc, PyString_InternFromString("<PyCImage (bad backing store)>"));
 #undef HANDLE
-    return PyString_FromString("<PyCImage (unmatched typecode)>");
+    return PyString_InternFromString("<PyCImage (unmatched typecode)>");
 }
 static const char *PyCImage_ReprCString(PyCImage *pyim) {
     return PyString_AS_STRING(PyCImage_Repr(pyim));
@@ -292,7 +292,7 @@ static int PyCImage_init(PyCImage *self, PyObject *args, PyObject *kwargs) {
         /// it's a path string, load (with CImg.h) -- DISPATCH!!!!
         PyObject *out = PyObject_CallMethodObjArgs(
             reinterpret_cast<PyObject *>(self),
-            PyString_FromString("load"),
+            PyString_InternFromString("load"),
             buffer, self->dtype, NULL);
         if (out == NULL) {
             if (raise_errors) {

@@ -13,7 +13,7 @@ dtypes = (
     imgc.float64)
 
 class ConstructorTests(FilePathCase):
-    
+    '''
     def test_empty_constructor(self):
         self.assertIsNotNone(imgc.PyCImage())
     
@@ -33,7 +33,7 @@ class ConstructorTests(FilePathCase):
                 im = imgc.PyCImage(dtype=dtype)
                 im.load(pth)
                 self.assertIsNotNone(im)
-    
+    '''
     def test_constructor_file_path(self):
         for pth in self.image_paths:
             im = imgc.PyCImage(pth)
@@ -43,7 +43,7 @@ class ConstructorTests(FilePathCase):
                 prefix='pliio-imgc-test-')
             im.save(tf)
             os.unlink(tf)
-    
+    '''
     def test_constructor_file_path_dtype_uint8(self):
         for pth in self.image_paths:
             self.assertIsNotNone(
@@ -68,5 +68,5 @@ class ConstructorTests(FilePathCase):
         for pth in self.image_paths:
             self.assertIsNotNone(
                 imgc.PyCImage(pth, dtype=imgc.float64))
-    
+    '''
 

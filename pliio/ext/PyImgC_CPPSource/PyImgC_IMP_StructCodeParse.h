@@ -27,7 +27,8 @@ static PyObject *structcode_to_dtype_code(const char *code) {
     }
 
     /// get special values
-    for (size_t idx = 0; idx < pairvec.size(); idx++) {
+    size_t mmax = pairvec.size();
+    for (size_t idx = 0; idx < mmax; idx++) {
         if (pairvec[idx].first == "__byteorder__") {
             byteorder = string(pairvec[idx].second);
             pairvec.erase(pairvec.begin()+idx);
@@ -35,15 +36,15 @@ static PyObject *structcode_to_dtype_code(const char *code) {
     }
 
     /// Make python list of tuples
-    PyObject *list = PyList_New(static_cast<Py_ssize_t>(0));
-    for (size_t idx = 0; idx < pairvec.size(); idx++) {
-        PyList_Append(list,
-            PyTuple_Pack(static_cast<Py_ssize_t>(2),
-                PyString_FromString(string(pairvec[idx].first).c_str()),
-                PyString_FromString(string(byteorder + pairvec[idx].second).c_str())));
+    Py_ssize_t imax = static_cast<Py_ssize_t>(pairvec.size());
+    PyObject *tuple = PyTuple_New(imax);
+    for (Py_ssize_t idx = 0; idx < imax; idx++) {
+        PyTuple_SET_ITEM(tuple, idx, PyTuple_Pack(2,
+            PyString_FromString(string(pairvec[idx].first).c_str()),
+            PyString_FromString(string(byteorder + pairvec[idx].second).c_str())));
     }
     
-    return list;
+    return tuple;
 }
 
 static string structcode_atom_to_dtype_atom(const char *code) {
@@ -62,6 +63,7 @@ static string structcode_atom_to_dtype_atom(const char *code) {
         if (pairvec[idx].first == "__byteorder__") {
             byteorder = string(pairvec[idx].second);
             pairvec.erase(pairvec.begin()+idx);
+            break;
         }
     }
 
@@ -74,7 +76,7 @@ static PyObject *PyImgC_ParseStructCode(PyObject *self, PyObject *args) {
 
     if (!PyArg_ParseTuple(args, "s", &code)) {
         PyErr_SetString(PyExc_ValueError,
-            "cannot get structcode string (bad argument)");
+            "cannot get structcode string");
         return NULL;
     }
 

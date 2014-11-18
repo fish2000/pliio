@@ -3,6 +3,7 @@
 #define PyImgC_IMP_UTILS_H
 
 #include <Python.h>
+#include <string>
 using namespace std;
 
 void *PyMem_Calloc(size_t num, size_t size) {
@@ -12,19 +13,19 @@ void *PyMem_Calloc(size_t num, size_t size) {
     return ptr;
 }
 
+static bool PyImgC_PathExists(char *path) {
+    struct stat buffer;
+    stat(path, &buffer);
+    return S_ISREG(buffer.st_mode);
+}
+static bool PyImgC_PathExists(const char *path) {
+    return PyImgC_PathExists(const_cast<char *>(path));
+}
 static bool PyImgC_PathExists(PyObject *path) {
-    PyStringObject *putative = reinterpret_cast<PyStringObject *>(path);
-    if (!PyString_Check(putative)) {
-        PyErr_SetString(PyExc_ValueError, "Bad path string");
-        return false;
-     }
-     PyObject *ospath = PyImport_ImportModuleNoBlock("os.path");
-     PyObject *exists = PyObject_GetAttrString(ospath, "exists");
-     bool out = (bool)PyObject_IsTrue(
-         PyObject_CallFunctionObjArgs(exists, putative, NULL));
-     Py_DECREF(exists);
-     Py_DECREF(ospath);
-     return out;
+    return PyImgC_PathExists(PyString_AS_STRING(path));
+}
+static bool PyImgC_PathExists(string path) {
+    return PyImgC_PathExists(path.c_str());
 }
 
 static PyObject *PyImgC_TemporaryPath(PyObject *self, PyObject *args) {

@@ -1,7 +1,8 @@
 
 from __future__ import print_function
 
-import tempfile, random, sys
+import tempfile, sys
+from os.path import basename, exists
 from basecase import FilePathCase
 from pliio import imgc, hashtree
 
@@ -16,11 +17,11 @@ err = lambda *thing: print(*thing, file=sys.stderr)
 
 class HashTreeTests(FilePathCase):
     
-    def test_hashtree_make_datapoints(self):
+    def _test_hashtree_make_datapoints(self):
         for pth in self.image_paths:
             im = imgc.PyCImage(pth)
             dp = hashtree.DataPoint(
-                data=im.dct_phash, name=pth)
+                data=im.dct_phash, name=basename(pth))
             self.assertIsNotNone(dp)
             err(dp)
     
@@ -38,27 +39,32 @@ class HashTreeTests(FilePathCase):
             im = imgc.PyCImage(pth)
             dp = hashtree.DataPoint(
                 data=im.dct_phash,
-                name=pth, tree=tree)
+                name=basename(pth), tree=tree)
             self.assertIsNotNone(dp)
-            err(dp)
-        #err(tree)
+            #err(dp)
         
-        tree.save(path="/Users/fish/Desktop/hash-tree.mvp")
-        #newtree = hashtree.PyHashTree()
-        #newtree.load("/Users/fish/Desktop/hash-tree.mvp")
-        #err(str(newtree))
+        err(len(tree))
+        tree.save("/Users/fish/Desktop/hash-tree.mvp")
+        
+        for dp in tree:
+            err(dp)
     
     def test_hashtree_read_tree(self):
-        newtree = hashtree.PyHashTree()
-        #newtree = hashtree.PyHashTree(tree="/Users/fish/Desktop/hash-tree.mvp")
-        newtree.load("/Users/fish/Desktop/hash-tree.mvp")
-        #newtree.load()
-        err(newtree)
-        self.assertIsNotNone(repr(newtree))
+        pth = "/Users/fish/Desktop/hash-tree.mvp"
+        if exists(pth):
+            newtree = hashtree.PyHashTree()
+            newtree.load(pth)
     
     def test_hashtree_nearest(self):
-        newtree = hashtree.PyHashTree()
-        newtree.load("/Users/fish/Desktop/hash-tree.mvp")
+        tree = hashtree.PyHashTree()
+        for pth in self.image_paths:
+            im = imgc.PyCImage(pth)
+            dp = hashtree.DataPoint(
+                data=im.dct_phash,
+                name=basename(pth), tree=tree)
         
-        newtree.nearest()
+        tree.save("/Users/fish/Desktop/hash-tree-nearest.mvp")
+        err("TREE LENGTH: %s" % len(tree))
+        for dp in tree:
+            err(dp.nearest(100))
 

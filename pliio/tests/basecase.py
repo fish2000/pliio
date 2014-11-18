@@ -27,9 +27,9 @@ class BaseCase(TestCase):
         self.imgc = map(
             lambda image_path: imgc.PyCImage(image_path,
                 dtype=imgc.uint8), self.image_paths)
-        self.imread = map(
-            lambda image_path: imread(image_path),
-                self.image_paths)
+        # self.imread = map(
+        #     lambda image_path: imread(image_path),
+        #         self.image_paths)
 
 def main():
     import nose

@@ -122,7 +122,7 @@ namespace structcode {
             return false;
         }
         string operator()() {
-            char str[255];
+            char str[5];
             while (true) {
                 sprintf(str, "f%i", next());
                 string dummy_name = string(str);

@@ -17,13 +17,13 @@
 #define IMGC_DEFAULT_T unsigned char /// same as above
 
 //////////////// TYPEDEFS
-#ifndef RAWBUFFER_T_
-#define RAWBUFFER_T_ 
-typedef struct {
-    Py_ssize_t len;
-    void *buf;
-} rawbuffer_t;
-#endif
+// #ifndef RAWBUFFER_T_
+// #define RAWBUFFER_T_
+// typedef struct {
+//     Py_ssize_t len;
+//     void *buf;
+// } rawbuffer_t;
+// #endif
 
 //////////////// MACROS
 #ifndef IMGC_IO_MACROS

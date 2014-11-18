@@ -83,7 +83,7 @@ const char* mvp_errstr(MVPError err){
 }
 
 MVPDP* dp_alloc(MVPDataType type){
-    MVPDP *newdp = (MVPDP*)PyMem_Malloc(sizeof(MVPDP)); 
+    MVPDP *newdp = (MVPDP*)PyMem_Malloc(sizeof(MVPDP));
     newdp->id = NULL;
     newdp->data = NULL;
     newdp->datalen = 0;
@@ -99,7 +99,7 @@ void dp_free(MVPDP *dp, MVPFreeFunc free_func){
         if (dp->id) free_func(dp->id);
         if (dp->data) free_func(dp->data);
     }
-    PyMem_Free(dp);
+    //PyMem_Free(dp);
     }
 }
 

@@ -73,7 +73,7 @@ static PySequenceMethods PyCImage_SequenceMethods = {
     0,                                          /* sq_slice */
     0,                                          /* sq_ass_item HAHAHAHA */
     0,                                          /* sq_ass_slice HEHEHE ASS <snort> HA */
-    0                                           /* sq_contains*/
+    0                                           /* sq_contains */
 };
 
 #endif /// PyImgC_PYIMGC_IMP_SEQUENCEPROTOCOL_H

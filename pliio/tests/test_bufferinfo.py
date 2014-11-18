@@ -11,7 +11,7 @@ class BufferInfoTests(BaseCase):
         for im in self.imgc:
             im.buffer_info()
     
-    def test_bufferinfo_modulefunc_imread(self):
+    def _test_bufferinfo_modulefunc_imread(self):
         for im in self.imread:
             imgc.buffer_info(im)
 
