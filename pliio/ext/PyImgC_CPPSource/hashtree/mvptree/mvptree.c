@@ -32,15 +32,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "mvptree.h"
-
-#include <Python.h>
-
-void *PyMem_Calloc(size_t num, size_t size) {
-    void *ptr; size_t total = num * size;
-    ptr = PyMem_Malloc(total);
-    if (ptr != NULL) { memset(ptr, 0, total); }
-    return ptr;
-}
+#include "mvpmalloc.h"
 
 #define HEADER_SIZE 32
 
@@ -83,7 +75,7 @@ const char* mvp_errstr(MVPError err){
 }
 
 MVPDP* dp_alloc(MVPDataType type){
-    MVPDP *newdp = (MVPDP*)PyMem_Malloc(sizeof(MVPDP));
+    MVPDP *newdp = (MVPDP*)MVP_MALLOC(sizeof(MVPDP));
     newdp->id = NULL;
     newdp->data = NULL;
     newdp->datalen = 0;
@@ -94,12 +86,12 @@ MVPDP* dp_alloc(MVPDataType type){
 
 void dp_free(MVPDP *dp, MVPFreeFunc free_func){
     if (dp){
-    if (dp->path) PyMem_Free(dp->path);
+    if (dp->path) MVP_FREE(dp->path);
     if (free_func){
         if (dp->id) free_func(dp->id);
         if (dp->data) free_func(dp->data);
     }
-    //PyMem_Free(dp);
+    //MVP_FREE(dp);
     }
 }
 
@@ -111,7 +103,7 @@ MVPTree* mvptree_alloc(MVPTree *tree, CmpFunc distance,unsigned int bf,unsigned 
     
     MVPTree *retTree;
     if (tree == NULL){
-    retTree = (MVPTree*)PyMem_Malloc(sizeof(MVPTree));
+    retTree = (MVPTree*)MVP_MALLOC(sizeof(MVPTree));
     if (retTree  == NULL) return NULL;
     } else {
     retTree = tree;
@@ -140,12 +132,12 @@ static int is_nan(float x){
 }
 
 static Node* create_leaf(unsigned int leafcap){
-    Node *node = (Node*)PyMem_Malloc(sizeof(Node));
+    Node *node = (Node*)MVP_MALLOC(sizeof(Node));
     node->leaf.sv1 = NULL;
     node->leaf.sv2 = NULL;
-    node->leaf.points = (MVPDP**)PyMem_Calloc(leafcap,sizeof(MVPDP*));
-    node->leaf.d1 = (float*)PyMem_Calloc(leafcap,sizeof(float));
-    node->leaf.d2 = (float*)PyMem_Calloc(leafcap,sizeof(float));
+    node->leaf.points = (MVPDP**)MVP_CALLOC(leafcap,sizeof(MVPDP*));
+    node->leaf.d1 = (float*)MVP_CALLOC(leafcap,sizeof(float));
+    node->leaf.d2 = (float*)MVP_CALLOC(leafcap,sizeof(float));
     node->leaf.nbpoints = 0;
     node->leaf.type = LEAF_NODE;
 
@@ -153,12 +145,12 @@ static Node* create_leaf(unsigned int leafcap){
 }
 
 static Node* create_internal(unsigned int bf){
-    Node *node = (Node*)PyMem_Malloc(sizeof(Node));
+    Node *node = (Node*)MVP_MALLOC(sizeof(Node));
     node->internal.sv1 = NULL;
     node->internal.sv2 = NULL;
-    node->internal.M1 = (float*)PyMem_Calloc((bf-1),sizeof(float));
-    node->internal.M2 = (float*)PyMem_Calloc(bf,sizeof(float));
-    node->internal.child_nodes = (void **)PyMem_Calloc(bf*bf,sizeof(Node*));
+    node->internal.M1 = (float*)MVP_CALLOC((bf-1),sizeof(float));
+    node->internal.M2 = (float*)MVP_CALLOC(bf,sizeof(float));
+    node->internal.child_nodes = (void **)MVP_CALLOC(bf*bf,sizeof(Node*));
     node->internal.type = INTERNAL_NODE;
 
     return node;
@@ -168,15 +160,15 @@ static Node* create_internal(unsigned int bf){
 static void free_node(Node *node){
     if (node) { 
     if (node->leaf.type == LEAF_NODE){
-        PyMem_Free(node->leaf.points);
-        PyMem_Free(node->leaf.d1);
-        PyMem_Free(node->leaf.d2);
+        MVP_FREE(node->leaf.points);
+        MVP_FREE(node->leaf.d1);
+        MVP_FREE(node->leaf.d2);
     } else if (node->internal.type == INTERNAL_NODE){
-        PyMem_Free(node->internal.M1);
-        PyMem_Free(node->internal.M2);
-        PyMem_Free(node->internal.child_nodes);
+        MVP_FREE(node->internal.M1);
+        MVP_FREE(node->internal.M2);
+        MVP_FREE(node->internal.child_nodes);
     }
-    PyMem_Free(node);
+    MVP_FREE(node);
     }
 }
 
@@ -243,13 +235,13 @@ static int find_splits(MVPDP **points,unsigned int nb,MVPDP *vp,MVPTree *tree,\
     if (!points || nb == 0 || !M || lengthM == 0) return -1;
 
     CmpFunc distfunc = tree->dist;
-    float *dist = (float*)PyMem_Malloc(nb*sizeof(float));
+    float *dist = (float*)MVP_MALLOC(nb*sizeof(float));
 
     int i, j;
     for (i = 0;i < nb; i++){
     dist[i] = distfunc(points[i], vp);
     if (is_nan(dist[i]) || dist[i] < 0.0f){
-        PyMem_Free(dist);
+        MVP_FREE(dist);
         return -2;
     }
     }
@@ -276,7 +268,7 @@ static int find_splits(MVPDP **points,unsigned int nb,MVPDP *vp,MVPTree *tree,\
     M[i] = dist[index];
     }
 
-    PyMem_Free(dist);
+    MVP_FREE(dist);
     return 0;
 }
 /* Sort points into bins by distance(points[i], dp) for each i in list, skipping */
@@ -292,18 +284,18 @@ static MVPDP*** sort_points(MVPDP **points, unsigned int nbpoints, int sv1_pos, 
     int bf = tree->branchfactor;
     int lengthM1 = bf-1;
     
-    MVPDP*** bins = (MVPDP***)PyMem_Malloc(bf*sizeof(MVPDP**));
+    MVPDP*** bins = (MVPDP***)MVP_MALLOC(bf*sizeof(MVPDP**));
     if (!bins) return NULL;
 
-    *counts = (int*)PyMem_Calloc(bf,sizeof(int));
+    *counts = (int*)MVP_CALLOC(bf,sizeof(int));
     if (!counts) {
-    PyMem_Free(bins);
+    MVP_FREE(bins);
     return NULL;
     }
 
     int i,k;
     for (i=0;i<bf;i++){
-    bins[i] = (MVPDP**)PyMem_Malloc(nbpoints*sizeof(MVPDP*));
+    bins[i] = (MVPDP**)MVP_MALLOC(nbpoints*sizeof(MVPDP*));
     if (!bins[i]) return NULL;
     }
 
@@ -311,8 +303,8 @@ static MVPDP*** sort_points(MVPDP **points, unsigned int nbpoints, int sv1_pos, 
     if (i == sv1_pos || i == sv2_pos) continue;
     float d = distfunc(vp, points[i]);
     if (is_nan(d) || d < 0.0f){
-        PyMem_Free(counts);
-        PyMem_Free(bins);
+        MVP_FREE(counts);
+        MVP_FREE(bins);
         return NULL;
     }
     for (k = 0;k < lengthM1;k++){
@@ -453,8 +445,8 @@ static Node* _mvptree_add(MVPTree *tree, Node *node, MVPDP **points, unsigned in
                            tree, lvl+1) < 0){
             *error = MVP_NOSV2RANGE;
             free_node(new_node);
-            for (j=0;j<tree->branchfactor;j++){PyMem_Free(bins[j]);}
-            PyMem_Free(bins);
+            for (j=0;j<tree->branchfactor;j++){MVP_FREE(bins[j]);}
+            MVP_FREE(bins);
             return NULL;
         }
 
@@ -462,8 +454,8 @@ static Node* _mvptree_add(MVPTree *tree, Node *node, MVPDP **points, unsigned in
                 new_node->internal.M2 + i*lengthM1,lengthM1) < 0){
             *error = MVP_NOSPLITS;
             free_node(new_node);
-            for (j=0;j<tree->branchfactor;j++){PyMem_Free(bins[j]);}
-            PyMem_Free(bins);
+            for (j=0;j<tree->branchfactor;j++){MVP_FREE(bins[j]);}
+            MVP_FREE(bins);
             return NULL;
         }
 
@@ -473,8 +465,8 @@ static Node* _mvptree_add(MVPTree *tree, Node *node, MVPDP **points, unsigned in
 
         if (!bins2){
             *error = MVP_NOSORT;
-            for (j=0;j<tree->branchfactor;j++){PyMem_Free(bins[j]);}
-            PyMem_Free(bins);
+            for (j=0;j<tree->branchfactor;j++){MVP_FREE(bins[j]);}
+            MVP_FREE(bins);
             free_node(new_node);
             return NULL;
         }
@@ -486,13 +478,13 @@ static Node* _mvptree_add(MVPTree *tree, Node *node, MVPDP **points, unsigned in
             Node *child = _mvptree_add(tree,NULL,bins2[j],bin2lengths[j],error, lvl+2);
             new_node->internal.child_nodes[i*tree->branchfactor+j] = child;
         }
-        PyMem_Free(bin2lengths);
-        for (j = 0; j < tree->branchfactor;j++){ PyMem_Free(bins2[j]); }
-        PyMem_Free(bins2);
+        MVP_FREE(bin2lengths);
+        for (j = 0; j < tree->branchfactor;j++){ MVP_FREE(bins2[j]); }
+        MVP_FREE(bins2);
         }
-        PyMem_Free(binlengths);
-        for (i=0;i<tree->branchfactor;i++){PyMem_Free(bins[i]); };
-        PyMem_Free(bins);
+        MVP_FREE(binlengths);
+        for (i=0;i<tree->branchfactor;i++){MVP_FREE(bins[i]); };
+        MVP_FREE(bins);
     }
     
     } else { /* node already exists */
@@ -528,7 +520,7 @@ static Node* _mvptree_add(MVPTree *tree, Node *node, MVPDP **points, unsigned in
         if (new_node->leaf.sv1) new_nb++;
         if (new_node->leaf.sv2) new_nb++;
 
-        MVPDP **tmp_pts = (MVPDP**)PyMem_Malloc(new_nb*sizeof(MVPDP*));
+        MVPDP **tmp_pts = (MVPDP**)MVP_MALLOC(new_nb*sizeof(MVPDP*));
         if (!tmp_pts){
             *error = MVP_MEMALLOC;
             return new_node;
@@ -546,7 +538,7 @@ static Node* _mvptree_add(MVPTree *tree, Node *node, MVPDP **points, unsigned in
         free_node(old_node);
         new_node = _mvptree_add(tree, NULL, tmp_pts, new_nb, error, lvl);
 
-        PyMem_Free(tmp_pts);
+        MVP_FREE(tmp_pts);
         }
     } else { /* node is internal - must recurse on subnodes */
         
@@ -573,8 +565,8 @@ static Node* _mvptree_add(MVPTree *tree, Node *node, MVPDP **points, unsigned in
         if (find_distance_range_for_vp(bins[i], binlengths[i],\
                                         new_node->internal.sv2, tree, lvl+1) < 0){
             *error = MVP_NOSV2RANGE;
-            for (j=0;j<tree->branchfactor;j++){PyMem_Free(bins[j]);}
-            PyMem_Free(bins);
+            for (j=0;j<tree->branchfactor;j++){MVP_FREE(bins[j]);}
+            MVP_FREE(bins);
             return new_node;
         }
 
@@ -584,8 +576,8 @@ static Node* _mvptree_add(MVPTree *tree, Node *node, MVPDP **points, unsigned in
 
         if (!bins2){
             *error = MVP_NOSORT;
-            for (j=0;j<tree->branchfactor;j++){PyMem_Free(bins[j]);}
-            PyMem_Free(bins);
+            for (j=0;j<tree->branchfactor;j++){MVP_FREE(bins[j]);}
+            MVP_FREE(bins);
             return new_node;
         }
         for (j=0;j<tree->branchfactor;j++){
@@ -598,13 +590,13 @@ static Node* _mvptree_add(MVPTree *tree, Node *node, MVPDP **points, unsigned in
             new_node->internal.child_nodes[i*tree->branchfactor+j] = child;
             if (*error != MVP_SUCCESS) break;
         }
-        PyMem_Free(bin2lengths);
-        for (j=0;j<tree->branchfactor;j++){PyMem_Free(bins2[j]);}
-        PyMem_Free(bins2);
+        MVP_FREE(bin2lengths);
+        for (j=0;j<tree->branchfactor;j++){MVP_FREE(bins2[j]);}
+        MVP_FREE(bins2);
         }
-        PyMem_Free(binlengths);
-        for (i=0;i<tree->branchfactor;i++){PyMem_Free(bins[i]);}
-        PyMem_Free(bins);
+        MVP_FREE(binlengths);
+        for (i=0;i<tree->branchfactor;i++){MVP_FREE(bins[i]);}
+        MVP_FREE(bins);
     }
     }
     return new_node;
@@ -623,7 +615,7 @@ MVPError mvptree_add(MVPTree *tree, MVPDP **points, unsigned int nbpoints) {
 
     unsigned int i;
     for (i=0;i<nbpoints;i++){
-        points[i]->path = (float*)PyMem_Malloc(tree->pathlength*sizeof(float));
+        points[i]->path = (float*)MVP_MALLOC(tree->pathlength*sizeof(float));
         if (points[i]->path == NULL){
         return MVP_PATHALLOC;
         }
@@ -807,23 +799,23 @@ MVPDP** mvptree_retrieve(MVPTree *tree, MVPDP *target, unsigned int knearest, fl
     return NULL;
     }
 
-    MVPDP **results = (MVPDP**)PyMem_Malloc(knearest*sizeof(MVPDP*));
+    MVPDP **results = (MVPDP**)MVP_MALLOC(knearest*sizeof(MVPDP*));
     if (!results) {
     *error = MVP_MEMALLOC;
     return NULL;
     }
 
-    target->path = (float*)PyMem_Malloc(tree->pathlength*sizeof(float));
+    target->path = (float*)MVP_MALLOC(tree->pathlength*sizeof(float));
     if (target->path == NULL){
     *error = MVP_MEMALLOC;
-    PyMem_Free(results);
+    MVP_FREE(results);
     return NULL;
     }
     tree->k = knearest;
 
     *error = _mvptree_retrieve(tree, tree->node, target, radius, results, nbresults, 0);
 
-    PyMem_Free(target->path);
+    MVP_FREE(target->path);
     target->path = NULL;
 
     return results;
@@ -1042,12 +1034,12 @@ static MVPDP* read_datapoint(MVPTree *tree){
     MVPDP *dp = dp_alloc(tree->datatype);
     if (!dp) return NULL;
     
-    dp->path = (float*)PyMem_Malloc(tree->pathlength*sizeof(float));
+    dp->path = (float*)MVP_MALLOC(tree->pathlength*sizeof(float));
     if (!dp->path) return NULL;
     
     memcpy(&idlen, &tree->buf[tree->pos], sizeof(uint8_t));
     tree->pos += sizeof(uint8_t);
-    dp->id = (char *)PyMem_Malloc(idlen+1);
+    dp->id = (char *)MVP_MALLOC(idlen+1);
     memcpy(dp->id, &tree->buf[tree->pos], idlen);
     tree->pos += idlen;
     dp->id[idlen] = '\0';
@@ -1055,7 +1047,7 @@ static MVPDP* read_datapoint(MVPTree *tree){
     tree->pos += sizeof(uint32_t);
 
     dp->datalen = datalength;
-    dp->data = PyMem_Malloc(datalength*tree->datatype);
+    dp->data = MVP_MALLOC(datalength*tree->datatype);
     memcpy(dp->data, &tree->buf[tree->pos], datalength*tree->datatype);
     tree->pos += datalength*tree->datatype;
     memcpy(dp->path, &tree->buf[tree->pos], tree->pathlength*sizeof(float));

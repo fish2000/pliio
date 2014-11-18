@@ -6,6 +6,7 @@
 #include <functional>
 #include <stdlib.h>
 #include "mvptree.h"
+#include "mvpmalloc.h"
 using namespace std;
 
 namespace MVP {
@@ -26,7 +27,7 @@ namespace MVP {
         };
         
         inline pointer allocate(size_type n, const void *hint=0) {
-            return (pointer)PyMem_Malloc(sizeof(T)*n);
+            return (pointer)MVP_MALLOC(sizeof(T)*n);
         }
         
         inline void deallocate(pointer ptr, size_type n) {
@@ -46,7 +47,7 @@ namespace MVP {
         DataPointAllocator():
             allocator<T>(),
             datatype(MVP_UINT64ARRAY),
-            freefunc((MVPFreeFunc)free)
+            freefunc((MVPFreeFunc)MVP_FREE)
                 { }
         
         DataPointAllocator(MVPFreeFunc f):
@@ -64,7 +65,7 @@ namespace MVP {
         DataPointAllocator(const allocator<T> &a):
             allocator<T>(a),
             datatype(MVP_UINT64ARRAY),
-            freefunc((MVPFreeFunc)free)
+            freefunc((MVPFreeFunc)MVP_FREE)
                 { }
         
         DataPointAllocator(const DataPointAllocator<T> &a):
@@ -82,7 +83,7 @@ namespace MVP {
     
     typedef vector<MVPDP, DataPointAllocator<MVPDP>> MVPVector;
     
-    MVPVector mvpvector(MVPTree *tree, MVPFreeFunc f=PyMem_Free, MVPDataType datatype=MVP_UINT64ARRAY);
+    MVPVector mvpvector(MVPTree *tree, MVPFreeFunc f=MVP_FREE, MVPDataType datatype=MVP_UINT64ARRAY);
 }
 
 #endif /// _MVPVECTOR_H

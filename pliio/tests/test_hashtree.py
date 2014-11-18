@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 import tempfile, sys
-from os.path import basename, exists
+from os.path import join, basename, exists
 from basecase import FilePathCase
 from pliio import imgc, hashtree
 
@@ -37,13 +37,13 @@ class HashTreeTests(FilePathCase):
             #err(dp)
         
         err(len(tree))
-        tree.save("/Users/fish/Desktop/hash-tree.mvp")
+        tree.save(join(self.trees, "hash-tree.mvp"))
         
         for dp in tree:
             err(dp)
     
     def test_hashtree_read_tree(self):
-        pth = "/Users/fish/Desktop/hash-tree.mvp"
+        pth = join(self.trees, "hash-tree.mvp")
         if exists(pth):
             newtree = hashtree.PyHashTree()
             newtree.load(pth)
@@ -56,8 +56,8 @@ class HashTreeTests(FilePathCase):
                 data=im.dct_phash,
                 name=basename(pth), tree=tree)
         
-        tree.save("/Users/fish/Desktop/hash-tree-nearest.mvp")
+        tree.save(join(self.trees, "hash-tree-nearest.mvp"))
         err("TREE LENGTH: %s" % len(tree))
         for dp in tree:
-            err(dp.nearest(100))
+            err(dp.nearest(5, radius=95.0))
 

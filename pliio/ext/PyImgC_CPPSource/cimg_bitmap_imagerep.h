@@ -180,16 +180,16 @@ const CImg& save_quartz(const char *filename, NSBitmapImageFileType filetype=NSJ
     return *this;
 }
 
-#ifndef cimg_load_plugin4
-#define cimg_load_plugin4(filename) \
-    if (bitmap_can_load(filename)) { return load_quartz(filename); }
-#endif
-    
-#ifndef cimg_save_plugin4
-#define cimg_save_plugin4(filename) \
-    NSBitmapImageFileType filetype = bitmap_can_save(filename); \
-    if (filetype != IMGC_NSBITMAP_NOSAVE) { return save_quartz(filename, filetype); }
-#endif
+// #ifndef cimg_load_plugin4
+// #define cimg_load_plugin4(filename) \
+//     if (bitmap_can_load(filename)) { return load_quartz(filename); }
+// #endif
+//
+// #ifndef cimg_save_plugin4
+// #define cimg_save_plugin4(filename) \
+//     NSBitmapImageFileType filetype = bitmap_can_save(filename); \
+//     if (filetype != IMGC_NSBITMAP_NOSAVE) { return save_quartz(filename, filetype); }
+// #endif
 
 #endif /// PyImgC_CIMG_NSBITMAPIMAGEREP_PLUGIN_H
 #endif /// __OBJC__

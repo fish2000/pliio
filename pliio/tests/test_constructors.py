@@ -41,8 +41,8 @@ class ConstructorTests(FilePathCase):
             tf = tempfile.mktemp(
                 suffix='.jpg',
                 prefix='pliio-imgc-test-')
-            im.save(tf)
-            os.unlink(tf)
+            #im.save(tf)
+            #os.unlink(tf)
     '''
     def test_constructor_file_path_dtype_uint8(self):
         for pth in self.image_paths:

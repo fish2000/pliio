@@ -2,10 +2,10 @@
 #ifndef PyHashTree_TYPESTRUCT_DataPoint_H
 #define PyHashTree_TYPESTRUCT_DataPoint_H
 
-
 #include <Python.h>
 #include <structmember.h>
 #include "mvptree/mvptree.h"
+#include "mvptree/mvpmalloc.h"
 #include "PyHashTree_GIL.h"
 
 #include <string>
@@ -100,7 +100,7 @@ static int DataPoint_AddToTree(DataPoint *self, PyHashTree *tree) {
     }
     
     //gil_release NOGIL;
-    MVPDP **points = (MVPDP**)PyMem_Malloc(sizeof(MVPDP*));
+    MVPDP **points = (MVPDP**)MVP_MALLOC(sizeof(MVPDP*));
     points[0] = self->dp;
     MVPError error = mvptree_add(tree->tree, points, 1);
     //NOGIL.~gil_release();
@@ -139,7 +139,7 @@ static int DataPoint_init(DataPoint *self, PyObject *args, PyObject *kwargs) {
     
     dp = dp_alloc(datatype);
     dp->id = name;
-    dp->data = PyMem_Malloc(datalen*datatype);
+    dp->data = MVP_MALLOC(datalen*datatype);
     dp->datalen = datalen;
     memcpy(dp->data, &data, datalen*datatype);
     
@@ -159,11 +159,15 @@ static PyObject *DataPoint_Repr(DataPoint *dp) {
         return PyString_FromFormat("<DataPoint (NULL) @ %p>", dp);
     }
     if (!dp->tree) {
-        return PyString_FromFormat("<DataPoint[%s] (%s:%llu) @ %p>",
-            dp->datatypestring(), dp->name(), dp->data(), dp);
+        return PyString_FromFormat("<DataPoint[%s] (%llu) @ %p>",
+            dp->datatypestring(),
+            //dp->name(),
+            dp->data(), dp);
     }
-    return PyString_FromFormat("<DataPoint[%s] (%s:%llu)->(<tree[%u]>) @ %p>",
-        dp->datatypestring(), dp->name(), dp->data(),
+    return PyString_FromFormat("<DataPoint[%s] (%llu)->(<tree[%u]>) @ %p>",
+        dp->datatypestring(),
+        //dp->name(),
+        dp->data(),
         reinterpret_cast<PyHashTree *>(dp->tree)->length(), dp);
 }
 
@@ -299,7 +303,7 @@ static PyObject *DataPoint_Nearest(PyObject *smelf, PyObject *args, PyObject *kw
         PyErr_Format(PyExc_SystemError,
             "MVP error when getting results: %s",
             mvp_errstr(error));
-        PyMem_Free(results);
+        MVP_FREE(results);
         return NULL;
     }
     
@@ -309,13 +313,13 @@ static PyObject *DataPoint_Nearest(PyObject *smelf, PyObject *args, PyObject *kw
         if (!result) {
             PyErr_SetString(PyExc_ValueError,
                 "DataPoint_FromDatum() returned NULL");
-            PyMem_Free(results);
+            MVP_FREE(results);
             return NULL;
         }
         PyTuple_SetItem(out, idx, result);
     }
     
-    PyMem_Free(results);
+    MVP_FREE(results);
     return out;
 }
     

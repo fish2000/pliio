@@ -3,7 +3,6 @@
 #define PyHashTree_PYHASHTREE_IMP_OBJPROTOCOL_H
 
 #include <Python.h>
-//#include <stdio.h>
 #include <unistd.h>
 #include "mvptree/mvptree.h"
 #include "PyHashTree_Constants.h"

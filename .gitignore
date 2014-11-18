@@ -12,6 +12,7 @@ Icon*
 *.jar
 a.out
 
+pliio/tests/testdata/
 plotdevice_image_io.egg-info/
 build/
 dist/

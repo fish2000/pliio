@@ -6,6 +6,7 @@
 #include <structmember.h>
 #include <iostream>
 #include "mvptree/mvptree.h"
+#include "mvptree/mvpmalloc.h"
 #include "mvptree/mvpvector.hpp"
 using namespace std;
 
@@ -55,8 +56,8 @@ struct PyHashTree {
     }
     
     void cleanup() {
-        mvptree_clear(tree, PyMem_Free);
-        PyMem_Free(tree);
+        mvptree_clear(tree, MVP_FREE);
+        MVP_FREE(tree);
     }
     
     ~PyHashTree() {
