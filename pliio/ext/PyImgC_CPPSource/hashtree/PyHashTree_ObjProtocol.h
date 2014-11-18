@@ -4,6 +4,7 @@
 
 #include <Python.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "mvptree/mvptree.h"
 #include "PyHashTree_Constants.h"
 #include "PyHashTree_GIL.h"
@@ -15,10 +16,7 @@
 
 /// path check
 static bool PyHashTree_PathExists(char *path) {
-    //struct stat buffer;
-    //stat(path, &buffer);
-    //return S_ISREG(buffer.st_mode);
-    return stat(path, NULL) == 0;
+    return (access(path, R_OK) != -1);
 }
 static bool PyHashTree_PathExists(const char *path) {
     return PyHashTree_PathExists(const_cast<char *>(path));
@@ -95,25 +93,26 @@ static PyObject *PyHashTree_SaveToMVPFile(PyObject *smelf, PyObject *args, PyObj
     
     if (exists && overwrite) {
         /// PLEASE DO OVERWRITE
-        if (remove(cpath)) {
-            //gil_release NOGIL;
-            error = mvptree_write(self->tree, cpath, 00644);
-            //NOGIL.~gil_release();
-            if (error == MVP_SUCCESS) {
-                /// all is well, return self
-                return reinterpret_cast<PyObject *>(self);
-            } else {
-                PyErr_Format(PyExc_OSError,
-                    "could not save file: %s",
-                    mvp_errstr(error));
-                return NULL;
-            }
-        } else {
-            PyErr_SetString(PyExc_SystemError,
-                "could not overwrite existing file");
-            return NULL;
-        }
+        remove(cpath);
     }
+        // gil_release NOGIL;
+        // error = mvptree_write(self->tree, cpath, 00644);
+        // NOGIL.~gil_release();
+        // if (error == MVP_SUCCESS) {
+        //     /// all is well, return self
+        //     return reinterpret_cast<PyObject *>(self);
+        // } else {
+        //     PyErr_Format(PyExc_OSError,
+        //         "could not save file: %s",
+        //         mvp_errstr(error));
+        //     return NULL;
+        // }
+        // } else {
+        //     PyErr_SetString(PyExc_SystemError,
+        //         "could not overwrite existing file");
+        //     return NULL;
+        // }
+        // }
     
     if (!self->tree->node) {
         PyErr_SetString(PyExc_ValueError,
@@ -126,9 +125,9 @@ static PyObject *PyHashTree_SaveToMVPFile(PyObject *smelf, PyObject *args, PyObj
         return NULL;
     }
     
-    //gil_release NOGIL;
+    gil_release NOGIL;
     error = mvptree_write(self->tree, cpath, 00644);
-    //NOGIL.~gil_release();
+    NOGIL.~gil_release();
     
     if (error == MVP_SUCCESS) {
         /// all is well, return self
@@ -199,7 +198,7 @@ static int PyHashTree_init(PyHashTree *self, PyObject *args, PyObject *kwargs) {
         /// tree is a file path
         PyObject_CallMethodObjArgs(
             reinterpret_cast<PyObject *>(self),
-            PyString_FromString("load"), tree, NULL);
+            PyString_InternFromString("load"), tree, NULL);
         return 0;
     }
     

@@ -8,8 +8,8 @@ from pliio import imgc
 class StructCodeTests(BaseCase):
     
     def test_cimage_test_method(self):
-        for im in self.imread:
-            imgc.cimage_test(im, dtype=imgc.uint8)
+        for im in self.imgc:
+            imgc.cimage_test(im)
     
     def test_simple_structcodes(self):
         imgc.structcode_parse('B')
