@@ -21,8 +21,7 @@ static PyObject *structcode_to_dtype_code(const char *code) {
 
     if (!pairvec.size()) {
         PyErr_Format(PyExc_ValueError,
-            "Struct typecode string %.200s parsed to zero-length pair vector",
-            code);
+            "Structcode %.200s parsed to zero-length", code);
         return NULL;
     }
 
