@@ -127,16 +127,6 @@ static PyMethodDef PyImgC_module_functions[] = {
             (PyCFunction)PyImgC_ParseStructCode,
             METH_VARARGS,
             "Parse struct code into list of dtype-string tuples" },
-    // {
-    //     "structcode_parse_one",
-    //         (PyCFunction)PyImgC_ParseSingleStructAtom,
-    //         METH_VARARGS,
-    //         "Parse unary struct code into a singular dtype string" },
-    // {
-    //     "structcode_to_numpy_typenum",
-    //         (PyCFunction)PyImgC_NumpyCodeFromStructAtom,
-    //         METH_VARARGS,
-    //         "Parse unary struct code into a NumPy typenum" },
     SENTINEL
 };
 

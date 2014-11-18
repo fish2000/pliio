@@ -3,6 +3,7 @@
 #define PyImgC_IMP_UTILS_H
 
 #include <Python.h>
+#include <unistd.h>
 #include <string>
 using namespace std;
 
@@ -13,10 +14,9 @@ void *PyMem_Calloc(size_t num, size_t size) {
     return ptr;
 }
 
+/// path check
 static bool PyImgC_PathExists(char *path) {
-    struct stat buffer;
-    stat(path, &buffer);
-    return S_ISREG(buffer.st_mode);
+    return (access(path, R_OK) != -1);
 }
 static bool PyImgC_PathExists(const char *path) {
     return PyImgC_PathExists(const_cast<char *>(path));

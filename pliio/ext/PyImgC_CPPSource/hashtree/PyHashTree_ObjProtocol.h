@@ -3,7 +3,7 @@
 #define PyHashTree_PYHASHTREE_IMP_OBJPROTOCOL_H
 
 #include <Python.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <unistd.h>
 #include "mvptree/mvptree.h"
 #include "PyHashTree_Constants.h"
@@ -13,6 +13,9 @@
 #define DEFAULT_BRANCH_FACTOR       2
 #define DEFAULT_PATH_LENGTH         5 
 #define DEFAULT_LEAFNODE_CAPACITY   25
+
+/// type check (forward declaration)
+static bool PyHashTree_Check(PyObject *putative);
 
 /// path check
 static bool PyHashTree_PathExists(char *path) {
@@ -95,24 +98,6 @@ static PyObject *PyHashTree_SaveToMVPFile(PyObject *smelf, PyObject *args, PyObj
         /// PLEASE DO OVERWRITE
         remove(cpath);
     }
-        // gil_release NOGIL;
-        // error = mvptree_write(self->tree, cpath, 00644);
-        // NOGIL.~gil_release();
-        // if (error == MVP_SUCCESS) {
-        //     /// all is well, return self
-        //     return reinterpret_cast<PyObject *>(self);
-        // } else {
-        //     PyErr_Format(PyExc_OSError,
-        //         "could not save file: %s",
-        //         mvp_errstr(error));
-        //     return NULL;
-        // }
-        // } else {
-        //     PyErr_SetString(PyExc_SystemError,
-        //         "could not overwrite existing file");
-        //     return NULL;
-        // }
-        // }
     
     if (!self->tree->node) {
         PyErr_SetString(PyExc_ValueError,
@@ -202,23 +187,21 @@ static int PyHashTree_init(PyHashTree *self, PyObject *args, PyObject *kwargs) {
         return 0;
     }
     
-    return 0;
-    
-    //if (PyHashTree_Check(tree)) {
-    // if (true) {
-    //     /// tree is a PyHashTree instance
-    //     PyHashTree *pyhashtree = reinterpret_cast<PyHashTree *>(tree);
-    //     if (!pyhashtree->tree) {
-    //         PyErr_SetString(PyExc_ValueError,
-    //             "Invalid PyHashTree: can't construct new instance");
-    //         return -1;
-    //     }
-    //     self->tree = pyhashtree->tree;
-    //     self->branch_factor = pyhashtree->branch_factor;
-    //     self->path_length = pyhashtree->path_length;
-    //     self->leafnode_capacity = pyhashtree->leafnode_capacity;
-    //     return 0;
-    // }
+    if (PyHashTree_Check(tree)) {
+        /// tree is a PyHashTree instance
+        PyHashTree *pyhashtree = reinterpret_cast<PyHashTree *>(tree);
+        if (!pyhashtree->tree) {
+            PyErr_SetString(PyExc_ValueError,
+                "Invalid PyHashTree: can't construct new instance");
+            return -1;
+        }
+        self->tree = pyhashtree->tree;
+        self->branch_factor = pyhashtree->branch_factor;
+        self->path_length = pyhashtree->path_length;
+        self->leafnode_capacity = pyhashtree->leafnode_capacity;
+        self->treevector = pyhashtree->treevector;
+        return 0;
+    }
     
     /// I DONT KNOW WHAT THE FUCK MAN
     PyErr_SetString(PyExc_ValueError,

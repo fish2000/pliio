@@ -25,13 +25,6 @@ class HashTreeTests(FilePathCase):
             self.assertIsNotNone(dp)
             err(dp)
     
-    def _test_hashtree_make_hashtree(self):
-        tf = tempfile.mktemp(
-            suffix='.mvp',
-            prefix='pliio-hashtree-test-')
-        tree = hashtree.PyHashTree()
-        tree.save(tf)
-    
     def test_hashtree_build_tree(self):
         tree = hashtree.PyHashTree()
         

@@ -69,6 +69,10 @@ static PyTypeObject PyHashTree_Type = {
     PyHashTree_new,                                             /* tp_new */
 };
 
+static bool PyHashTree_Check(PyObject *putative) {
+    return PyObject_TypeCheck(putative, &PyHashTree_Type);
+}
+
 static PyMethodDef PyHashTree_module_functions[] = {
     { NULL, NULL }
 };
