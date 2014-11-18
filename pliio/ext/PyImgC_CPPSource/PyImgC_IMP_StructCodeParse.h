@@ -52,7 +52,7 @@ static string structcode_atom_to_dtype_atom(const char *code) {
 
     if (!pairvec.size()) {
         PyErr_Format(PyExc_ValueError,
-            "Structcode string %.200s parsed to zero-length pair vector",
+            "Structcode %.200s parsed to zero-length",
             code);
         return NULL;
     }
