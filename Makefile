@@ -41,12 +41,6 @@ checkext:
 	# Checking structcode parser
 	py 'pliio.imgc.structcode_parse(">BBBB")'
 	
-	# Checking _PyImgC
-	bpython -c "$(shell echo "'';\
-		from imread import imread; \
-		from pliio import imgc; \
-		print imgc.cimage_test(imread('$(IMG)'))" | gsed -e "s/[\\s]+/ /g")"
-	
 	# Checking type constructor and PyCImage.__repr__
 	bpython -c "$(shell echo "'';\
 		from imread import imread; \

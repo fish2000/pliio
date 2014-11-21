@@ -7,7 +7,7 @@ from pliio import imgc
 
 class StructCodeTests(BaseCase):
     
-    def test_cimage_test_method(self):
+    def _test_cimage_test_method(self):
         for im in self.imgc:
             imgc.cimage_test(im)
     

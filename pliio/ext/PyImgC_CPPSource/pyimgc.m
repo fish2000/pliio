@@ -23,7 +23,6 @@
 #include "PyImgC_PyCImage.h"
 #include "PyImgC_IMP_StructCodeParse.h"
 #include "PyImgC_IMP_PyBufferDict.h"
-#include "PyImgC_IMP_CImageTest.h"
 #include "PyImgC_IMP_ObjProtocol.h"
 #include "PyImgC_IMP_GetSet.h"
 #include "PyImgC_IMP_Imaging.h"
@@ -140,11 +139,6 @@ static PyMethodDef PyImgC_module_functions[] = {
             (PyCFunction)PyImgC_GuessType,
             METH_VARARGS,
             "Guess the file type based on header data" },
-    {
-        "cimage_test",
-            (PyCFunction)PyImgC_CImageTest,
-            METH_VARARGS | METH_KEYWORDS,
-            "<<<<< TEST CIMG CALLS >>>>>" },
     {
         "structcode_parse",
             (PyCFunction)PyImgC_ParseStructCode,
