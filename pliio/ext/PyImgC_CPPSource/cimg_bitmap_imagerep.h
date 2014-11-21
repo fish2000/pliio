@@ -111,7 +111,7 @@ NSBitmapImageRep *get_bitmap(const unsigned z=0) const {
                    "get_bitmap() : NSImage don't really support >4 channels -- higher-order dimensions will be ignored.");
     }
     
-    // NSInteger bps = 8 * sizeof(T);
+    //NSInteger bps = 8 * sizeof(T);
     NSInteger format = 0;
     format |= std::is_floating_point<T>::value ? NSFloatingPointSamplesBitmapFormat : 0;
     
@@ -184,12 +184,12 @@ const CImg& save_quartz(const char *filename, NSBitmapImageFileType filetype=NSJ
 #define cimg_load_plugin4(filename) \
     if (bitmap_can_load(filename)) { return load_quartz(filename); }
 #endif
-    
-#ifndef cimg_save_plugin4
-#define cimg_save_plugin4(filename) \
-    NSBitmapImageFileType filetype = bitmap_can_save(filename); \
-    if (filetype != IMGC_NSBITMAP_NOSAVE) { return save_quartz(filename, filetype); }
-#endif
+
+// #ifndef cimg_save_plugin4
+// #define cimg_save_plugin4(filename) \
+//     NSBitmapImageFileType filetype = bitmap_can_save(filename); \
+//     if (filetype != IMGC_NSBITMAP_NOSAVE) { return save_quartz(filename, filetype); }
+// #endif
 
 #endif /// PyImgC_CIMG_NSBITMAPIMAGEREP_PLUGIN_H
 #endif /// __OBJC__
