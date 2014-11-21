@@ -1,5 +1,4 @@
 
-
 #ifndef PyHashTree_PYHASHTREE_IMP_GIL_H
 #define PyHashTree_PYHASHTREE_IMP_GIL_H
 
