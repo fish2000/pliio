@@ -99,7 +99,30 @@ static PyTypeObject PyCImage_Type = {
     PyCImage_new,                                               /* tp_new */
 };
 
-#define PyCImage_Check(op) PyObject_TypeCheck(op, &PyCImage_Type)
+static bool PyCImage_Check(PyObject *putative) {
+    return PyObject_TypeCheck(putative, &PyCImage_Type);
+}
+
+static PyObject *PyCImage_DCTMatrix(PyObject *m, PyObject *args, PyObject *kwargs) {
+    int N = 32;
+    static char *kwlist[] = { "N", NULL };
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
+                "|i", kwlist, &N)) {
+            PyErr_SetString(PyExc_ValueError,
+                "bad arguments to PyCImage_DCTMatrix()");
+        return NULL;
+    }
+    
+    PyCImage *self = reinterpret_cast<PyCImage *>(PyCImage_Type.tp_alloc(&PyCImage_Type, 0));
+    if (self == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+            "Couldn't allocate new PyCImage");
+        return NULL;
+    }
+    self->assign<float>(*ph_dct_matrix(N));
+    return reinterpret_cast<PyObject *>(self); /// all is well, return self
+}
 
 static PyMethodDef PyImgC_module_functions[] = {
     {
@@ -127,6 +150,11 @@ static PyMethodDef PyImgC_module_functions[] = {
             (PyCFunction)PyImgC_ParseStructCode,
             METH_VARARGS,
             "Parse struct code into list of dtype-string tuples" },
+    {
+        "dct_matrix",
+            (PyCFunction)PyCImage_DCTMatrix,
+            METH_VARARGS | METH_KEYWORDS,
+            "Get a DCT matrix of size N (default N = 32)" },
     SENTINEL
 };
 

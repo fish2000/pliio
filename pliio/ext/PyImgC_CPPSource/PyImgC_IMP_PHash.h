@@ -2,6 +2,8 @@
 #ifndef PyImgC_IMP_PHASH_H
 #define PyImgC_IMP_PHASH_H
 
+#include <iostream>
+#include <string>
 #include <limits.h>
 #include <math.h>
 #include <sys/types.h>
@@ -305,7 +307,7 @@ unsigned long long ph_dct_imagehash(CImg<uint8_t> src) {
     CImg<float> Ctransp = C->get_transpose();
     CImg<float> dctImage = (*C) * img * Ctransp;
     CImg<float> subsec = dctImage.crop(1, 1, 8, 8).unroll('x');
-
+    
     float median = subsec.median();
     unsigned long long one = 0x0000000000000001;
     unsigned long long hash = 0x0000000000000000;
