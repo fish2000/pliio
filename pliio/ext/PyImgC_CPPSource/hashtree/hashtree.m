@@ -73,22 +73,40 @@ static bool PyHashTree_Check(PyObject *putative) {
     return PyObject_TypeCheck(putative, &PyHashTree_Type);
 }
 
+#define PYHASHTREE_MODULE 1
+#include "PyHashTree_API.h"
+
 static PyMethodDef PyHashTree_module_functions[] = {
     { NULL, NULL }
 };
 
 PyMODINIT_FUNC inithashtree(void) {
-    PyObject *module;
+    PyObject *module, *api;
+    static void *PyHashTree_API[PyHashTree_API_pointers];
     
+    /// Initialize threads
     PyEval_InitThreads();
+    
+    /// Initialize PyHashTree module types
     if (PyType_Ready(&PyHashTree_Type) < 0) { return; }
     if (PyType_Ready(&DataPoint_Type) < 0) { return; }
-
+    
+    /// Initialize module object
     module = Py_InitModule3(
         "pliio.hashtree", PyHashTree_module_functions,
         "PyHashTree interface module");
-    if (module == None) { return; }
-
+    if (module == NULL) { return; }
+    
+    /// Set up PyHashTree module C-API function table
+    PyHashTree_API[PyHashTree_DF_HammingDistance_NUM] =     (void *)PyHashTree_DF_HammingDistance;
+    PyHashTree_API[PyHashTree_Check_NUM] =                  (void *)PyHashTree_Check;
+    PyHashTree_API[DataPoint_AddToTree_NUM] =               (void *)DataPoint_AddToTree;
+    PyHashTree_API[DataPoint_FromDatum_NUM] =               (void *)DataPoint_FromDatum;
+    
+    /// Set up C-API module reference
+    api = PyCapsule_New((void *)PyHashTree_API, "hashtree._API", NULL);
+    if (api != NULL) { PyModule_AddObject(module, "_API", api); }
+    
     /// Set up PyHashTree type
     Py_INCREF(&PyHashTree_Type);
     PyModule_AddObject(module,

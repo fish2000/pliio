@@ -69,8 +69,6 @@ struct gil_ensure {
     }
 };
 
-
-
 // This encapsulates the arguments to PyErr_SetString
 // The reason that it doesn't call PyErr_SetString directly is that we wish
 // that this be throw-able in an environment where the thread might not own the
@@ -87,8 +85,6 @@ struct PythonException {
     PyObject *const type_;
     const char *const message_;
 };
-
-
 
 // DECLARE_MODULE is slightly ugly, but it encapsulates the differences in
 // initializing a module between Python 2.x & Python 3.x
@@ -121,6 +117,5 @@ PyInit_##name () { \
     return PyModule_Create(&moduledef); \
 }
 #endif
-
 
 #endif /// PyImgC_NUMPYPP_UTILS_H

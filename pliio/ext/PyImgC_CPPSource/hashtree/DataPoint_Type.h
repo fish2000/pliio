@@ -2,7 +2,6 @@
 #ifndef PyHashTree_TYPESTRUCT_DataPoint_H
 #define PyHashTree_TYPESTRUCT_DataPoint_H
 
-
 #include <Python.h>
 #include <structmember.h>
 #include "mvptree/mvptree.h"
@@ -13,7 +12,6 @@
 #include <vector>
 #include <map>
 using namespace std;
-
 
 struct datatype {
     
@@ -40,6 +38,7 @@ struct DataPoint {
     MVPDP *dp;
     
     uint64_t data() {
+        /// '0ULL' is not a typo, it's an unsigned long long literal
         if (!dp) { return 0ULL; }
         if (!dp->data) { return 0ULL; }
         return *static_cast<uint64_t *>(dp->data);
@@ -70,6 +69,7 @@ struct DataPoint {
     
     ~DataPoint() {
         if (dp) { cleanup(); }
+        Py_XDECREF(tree);
     }
 };
 
@@ -156,14 +156,14 @@ static int DataPoint_init(DataPoint *self, PyObject *args, PyObject *kwargs) {
 /// __repr__ implementations
 static PyObject *DataPoint_Repr(DataPoint *dp) {
     if (!dp->dp) {
-        return PyString_FromFormat("<DataPoint (NULL) @ %p>", dp);
+        return PyString_FromFormat("<DataPoint[NULL] @ %p>", dp);
     }
     if (!dp->tree) {
-        return PyString_FromFormat("<DataPoint[%s] (%s:%llu) @ %p>",
-            dp->datatypestring(), dp->name(), dp->data(), dp);
+        return PyString_FromFormat("<DataPoint[%s] (%llu) @ %p>",
+            dp->datatypestring(), dp->data(), dp);
     }
-    return PyString_FromFormat("<DataPoint[%s] (%s:%llu)->(<tree[%u]>) @ %p>",
-        dp->datatypestring(), dp->name(), dp->data(),
+    return PyString_FromFormat("<DataPoint[%s] (%llu)->(<tree[%u]>) @ %p>",
+        dp->datatypestring(), dp->data(),
         reinterpret_cast<PyHashTree *>(dp->tree)->length(), dp);
 }
 
@@ -280,6 +280,7 @@ static PyObject *DataPoint_Nearest(PyObject *smelf, PyObject *args, PyObject *kw
     if (!tree->tree) {
         PyErr_SetString(PyExc_ValueError,
             "DataPoint belongs to an uninitialized PyHashTree");
+        Py_XDECREF(self->tree);
         return NULL;
     }
     
@@ -287,7 +288,7 @@ static PyObject *DataPoint_Nearest(PyObject *smelf, PyObject *args, PyObject *kw
     results = mvptree_retrieve(tree->tree, self->dp, nearest, radius, &nbresults, &error);
     //NOGIL.~gil_release();
     
-    Py_DECREF(tree);
+    Py_DECREF(self->tree);
     tree = NULL;
     
     if (!results) {

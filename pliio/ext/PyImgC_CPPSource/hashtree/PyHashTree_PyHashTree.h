@@ -52,6 +52,7 @@ struct PyHashTree {
         } catch (out_of_range& exc) {
             return NULL;
         }
+        return NULL;
     }
     
     void cleanup() {

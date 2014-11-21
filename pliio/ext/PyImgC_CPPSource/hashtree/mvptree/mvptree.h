@@ -72,8 +72,8 @@ typedef enum mvp_error_t {
 typedef struct mvp_datapoint_t {
     char *id;               /* null-terminated id string */
     void *data;             /* data for this data point */
-    float *path;            /* path of distances of data point from all vantage points down tree*/
-    unsigned int datalen;   /* length of data in the type designated */    
+    float *path;            /* path of distances of data point from all vantage points down tree */
+    unsigned int datalen;   /* length of data in the type designated */
     MVPDataType type;       /* type of data (the bitwidth of each data element) */
 } MVPDP;
 
@@ -121,6 +121,25 @@ typedef struct mvptree_t {
     Node *node;            /* reference to top of tree                                */
     CmpFunc dist;          /* distance function - e.g. L1 or L2                       */
 } MVPTree;
+
+/*   void *PyMem_Calloc
+ *
+ *   DESCRIPTION:
+ *
+ *   convenience function to return human readable string of error code
+ *
+ *   ARGUMENTS:
+ *
+ *   err - MVPError code
+ *
+ *   RETURN:
+ *
+ *   string value for error
+ *
+ */
+
+void* PyMem_Calloc(size_t num, size_t size);
+
 
 /*   DP* dp_alloc
  *

@@ -24,4 +24,23 @@ struct gil_release {
     }
 };
 
+struct gil_ensure {
+    PyGILState_STATE gil_state;
+    bool gil_ensured;
+    
+    gil_ensure() {
+        gil_state = PyGILState_Ensure();
+        gil_ensured = true;
+    }
+    
+    ~gil_ensure() {
+        if (gil_ensured) { restore(); }
+    }
+    
+    void restore() {
+        PyGILState_Release(gil_state);
+        gil_ensured = false;
+    }
+};
+
 #endif /// PyHashTree_PYHASHTREE_IMP_GIL_H

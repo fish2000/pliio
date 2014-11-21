@@ -3,7 +3,6 @@
 #define PyHashTree_PYHASHTREE_IMP_OBJPROTOCOL_H
 
 #include <Python.h>
-//#include <stdio.h>
 #include <unistd.h>
 #include "mvptree/mvptree.h"
 #include "PyHashTree_Constants.h"
@@ -11,7 +10,7 @@
 #include "PyHashTree_DistanceFunctions.h"
 
 #define DEFAULT_BRANCH_FACTOR       2
-#define DEFAULT_PATH_LENGTH         5 
+#define DEFAULT_PATH_LENGTH         5
 #define DEFAULT_LEAFNODE_CAPACITY   25
 
 /// type check (forward declaration)
@@ -36,11 +35,12 @@ static void PyHashTree_LoadFromMVPFile(PyObject *smelf, PyObject *args, PyObject
     PyHashTree *self = reinterpret_cast<PyHashTree *>(smelf);
     CmpFunc comparator = PyHashTree_DF_HammingDistance;
     static char *keywords[] = { "path", NULL };
+    MVPError error;
     char *cpath;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s", keywords, &cpath)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s", keywords, &cpath)) {
         PyErr_SetString(PyExc_ValueError,
-            "cannot load hash tree");
+            "cannot load hash tree (bad arguments to PyHashTree_LoadFromMVPFile)");
         return;
     }
     
@@ -50,10 +50,11 @@ static void PyHashTree_LoadFromMVPFile(PyObject *smelf, PyObject *args, PyObject
         return;
     }
     
-    MVPError error;
+    //gil_ensure GIL;
     MVPTree *tree = mvptree_read(cpath,
         comparator, self->branch_factor, self->path_length,
         self->leafnode_capacity, &error);
+    //GIL.~gil_ensure();
     
     if (error != MVP_SUCCESS) {
         PyErr_Format(PyExc_ValueError,
@@ -67,25 +68,23 @@ static void PyHashTree_LoadFromMVPFile(PyObject *smelf, PyObject *args, PyObject
 
 static PyObject *PyHashTree_SaveToMVPFile(PyObject *smelf, PyObject *args, PyObject *kwargs) {
     PyHashTree *self = reinterpret_cast<PyHashTree *>(smelf);
-    PyObject *path;
     MVPError error;
+    const char *cpath;
     int pyoverwrite = 1;
     bool overwrite = true;
     bool exists = false;
     static char *keywords[] = { "path", "overwrite", NULL };
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                "S|i", keywords,
-                &path, &pyoverwrite)) {
+                "s|i", keywords,
+                &cpath, &pyoverwrite)) {
         PyErr_SetString(PyExc_ValueError,
-            "cannot save image (bad argument tuple passed to PyHashTree_SaveToMVPFile)");
+            "cannot save hash tree (bad arguments to PyHashTree_SaveToMVPFile)");
         return NULL;
     }
     
     overwrite = pyoverwrite > 0;
-    exists = PyHashTree_PathExists(path);
-    const char *cpath = PyString_AsString(path);
-    Py_DECREF(path);
+    exists = PyHashTree_PathExists(cpath);
     
     if (exists && !overwrite) {
         /// DON'T OVERWRITE
@@ -110,9 +109,9 @@ static PyObject *PyHashTree_SaveToMVPFile(PyObject *smelf, PyObject *args, PyObj
         return NULL;
     }
     
-    gil_release NOGIL;
+    //gil_ensure GIL;
     error = mvptree_write(self->tree, cpath, 00644);
-    NOGIL.~gil_release();
+    //GIL.~gil_ensure();
     
     if (error == MVP_SUCCESS) {
         /// all is well, return self
@@ -166,11 +165,13 @@ static int PyHashTree_init(PyHashTree *self, PyObject *args, PyObject *kwargs) {
     if (!tree) {
         /// nothing was passed in for a tree,
         /// allocate a new MVP tree and return
+        //gil_ensure GIL;
         self->tree = mvptree_alloc(NULL,
             comparator,
             self->branch_factor,
             self->path_length,
             self->leafnode_capacity);
+        //GIL.~gil_ensure();
         if (!self->tree) {
             PyErr_SetString(PyExc_SystemError,
                 "Error allocating new MVPTree");

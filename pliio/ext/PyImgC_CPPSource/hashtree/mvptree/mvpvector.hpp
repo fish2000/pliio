@@ -2,6 +2,7 @@
 #ifndef _MVPVECTOR_H
 #define _MVPVECTOR_H
 
+#include <cstring>
 #include <vector>
 #include <functional>
 #include <stdlib.h>
@@ -26,7 +27,8 @@ namespace MVP {
         };
         
         inline pointer allocate(size_type n, const void *hint=0) {
-            return (pointer)PyMem_Malloc(sizeof(T)*n);
+            pointer ptr = (pointer)PyMem_Calloc(n, sizeof(T));
+            return ptr;
         }
         
         inline void deallocate(pointer ptr, size_type n) {
@@ -34,19 +36,24 @@ namespace MVP {
         }
         
         inline void construct(pointer p, const T& val) {
-            p->id = val.id;
-            p->data = val.data;
+            p->id = (char *)PyMem_Calloc(strlen(val.id), sizeof(char));
+            strcpy(p->id, val.id);
+            p->data = (void *)PyMem_Calloc(val.datalen, sizeof(uint64_t));
+            memcpy(&p->data, &val.data, val.datalen*datatype);
             p->datalen = val.datalen;
-            p->type = val.type;
+            p->type = datatype;
             p->path = val.path;
         }
         
-        inline void destroy(pointer p) {}
+        inline void destroy(pointer p) {
+            //if (p->id) { freefunc(p->id); }
+            //if (p->data) { freefunc(p->data); }
+        }
         
         DataPointAllocator():
             allocator<T>(),
             datatype(MVP_UINT64ARRAY),
-            freefunc((MVPFreeFunc)free)
+            freefunc((MVPFreeFunc)PyMem_Free)
                 { }
         
         DataPointAllocator(MVPFreeFunc f):
@@ -64,7 +71,7 @@ namespace MVP {
         DataPointAllocator(const allocator<T> &a):
             allocator<T>(a),
             datatype(MVP_UINT64ARRAY),
-            freefunc((MVPFreeFunc)free)
+            freefunc((MVPFreeFunc)PyMem_Free)
                 { }
         
         DataPointAllocator(const DataPointAllocator<T> &a):
