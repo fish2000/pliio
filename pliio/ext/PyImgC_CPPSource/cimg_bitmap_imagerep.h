@@ -111,7 +111,7 @@ NSBitmapImageRep *get_bitmap(const unsigned z=0) const {
                    "get_bitmap() : NSImage don't really support >4 channels -- higher-order dimensions will be ignored.");
     }
     
-    //NSInteger bps = 8 * sizeof(T);
+    NSInteger bps = 8 * sizeof(T);
     NSInteger format = 0;
     format |= std::is_floating_point<T>::value ? NSFloatingPointSamplesBitmapFormat : 0;
     
@@ -125,10 +125,10 @@ NSBitmapImageRep *get_bitmap(const unsigned z=0) const {
         initWithBitmapDataPlanes:(unsigned char **)&_data
         pixelsWide:(NSInteger)_width
         pixelsHigh:(NSInteger)_height
-        bitsPerSample:sizeof(T)
+        bitsPerSample:bps
         samplesPerPixel:(NSInteger)_spectrum
         hasAlpha:NO
-        isPlanar:NO
+        isPlanar:YES
         colorSpaceName:NSDeviceRGBColorSpace
         bitmapFormat:format
         bytesPerRow:0 //(NSInteger)(_width * _spectrum * sizeof(T))
