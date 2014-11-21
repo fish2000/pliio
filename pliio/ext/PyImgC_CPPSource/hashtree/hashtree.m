@@ -22,6 +22,11 @@ static PyMethodDef PyHashTree_methods[] = {
             (PyCFunction)PyHashTree_SaveToMVPFile,
             METH_VARARGS | METH_KEYWORDS,
             "Save hash tree to MVP file" },
+    {
+        "add",
+            (PyCFunction)PyHashTree_AddPoint,
+            METH_VARARGS | METH_KEYWORDS,
+            "Add data point to hash tree" },
     SENTINEL
 };
 

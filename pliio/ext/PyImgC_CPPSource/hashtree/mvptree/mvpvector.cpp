@@ -6,7 +6,7 @@ using namespace std;
 
 namespace MVP {
     
-    MVPError _mvpvector(vector<MVPDP, DataPointAllocator<MVPDP>> &treevec, MVPTree *tree, Node *node, int lvl) {
+    MVPError _mvpvector(MVPVector &treevec, MVPTree *tree, Node *node, int lvl) {
         MVPError error = MVP_SUCCESS;
         Node *next_node = node;
         int bf = tree->branchfactor,

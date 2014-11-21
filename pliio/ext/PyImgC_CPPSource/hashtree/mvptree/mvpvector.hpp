@@ -38,11 +38,12 @@ namespace MVP {
         inline void construct(pointer p, const T& val) {
             p->id = (char *)PyMem_Calloc(strlen(val.id), sizeof(char));
             strcpy(p->id, val.id);
-            p->data = (void *)PyMem_Calloc(val.datalen, sizeof(uint64_t));
+            p->data = (void *)PyMem_Calloc(val.datalen, datatype);
             memcpy(&p->data, &val.data, val.datalen*datatype);
             p->datalen = val.datalen;
             p->type = datatype;
-            p->path = val.path;
+            p->path = (float *)PyMem_Malloc(sizeof(float));
+            memcpy(&p->path, &val.path, sizeof(float));
         }
         
         inline void destroy(pointer p) {

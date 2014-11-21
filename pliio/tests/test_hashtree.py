@@ -5,6 +5,7 @@ import tempfile, sys
 from os.path import basename, exists
 from basecase import FilePathCase
 from pliio import imgc, hashtree
+from pprint import pformat
 
 dtypes = (
     imgc.uint8,
@@ -13,7 +14,7 @@ dtypes = (
     imgc.float32,
     imgc.float64)
 
-err = lambda *thing: print(*thing, file=sys.stderr)
+err = lambda *thing: print(pformat(*thing), file=sys.stderr)
 
 class HashTreeTests(FilePathCase):
     
@@ -59,5 +60,5 @@ class HashTreeTests(FilePathCase):
         tree.save("/Users/fish/Desktop/hash-tree-nearest.mvp")
         err("TREE LENGTH: %s" % len(tree))
         for dp in tree:
-            err(dp.nearest(100))
+            err(dp.nearest(10, radius=100.0))
 

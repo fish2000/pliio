@@ -65,6 +65,12 @@ struct DataPoint {
         return (const char *)dp->id;
     }
     
+    float path() {
+        if (!dp) { return 0.0; }
+        if (!dp->path) { return 0.0; }
+        return *dp->path;
+    }
+    
     void cleanup() {}
     
     ~DataPoint() {
@@ -123,7 +129,7 @@ static int DataPoint_init(DataPoint *self, PyObject *args, PyObject *kwargs) {
     char *name = NULL;
     MVPDP *dp;
     
-    static char *keywords[] = { "data", "datatype", "tree", "name", None };
+    static char *keywords[] = { "data", "datatype", "tree", "name", NULL };
     
     if (!PyArg_ParseTupleAndKeywords(
         args, kwargs, "K|IOs:dp_alloc",
@@ -159,11 +165,17 @@ static PyObject *DataPoint_Repr(DataPoint *dp) {
         return PyString_FromFormat("<DataPoint[NULL] @ %p>", dp);
     }
     if (!dp->tree) {
-        return PyString_FromFormat("<DataPoint[%s] (%llu) @ %p>",
-            dp->datatypestring(), dp->data(), dp);
+        float pth = dp->path();
+        char printbuf[100];
+        sprintf(printbuf, "%f", pth);
+        return PyString_FromFormat("<DataPoint[%s] (%llu:%s) @ %p>",
+            dp->datatypestring(), dp->data(), printbuf, dp);
     }
-    return PyString_FromFormat("<DataPoint[%s] (%llu)->(<tree[%u]>) @ %p>",
-        dp->datatypestring(), dp->data(),
+    float pth = dp->path();
+    char printbuf[100];
+    sprintf(printbuf, "%f", pth);
+    return PyString_FromFormat("<DataPoint[%s] (%llu:%s)->(<tree[%u]>) @ %p>",
+        dp->datatypestring(), dp->data(), printbuf,
         reinterpret_cast<PyHashTree *>(dp->tree)->length(), dp);
 }
 
@@ -257,7 +269,7 @@ static PyObject *DataPoint_Nearest(PyObject *smelf, PyObject *args, PyObject *kw
     unsigned int nbresults;
     unsigned int nearest = 5;
     float radius = 21.0f;
-    static char *keywords[] = { "nearest", "radius", None };
+    static char *keywords[] = { "nearest", "radius", NULL };
 
     if (!PyArg_ParseTupleAndKeywords(
         args, kwargs, "|If",

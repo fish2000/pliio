@@ -30,6 +30,22 @@ static bool PyHashTree_PathExists(string path) {
     return PyHashTree_PathExists(path.c_str());
 }
 
+static int PyHashTree_AddPoint(PyObject *smelf, PyObject *args, PyObject *kwargs) {
+    PyHashTree *self = reinterpret_cast<PyHashTree *>(smelf);
+    PyObject *dp;
+    static char *keywords[] = { "dp", NULL };
+    
+    if (!PyArg_ParseTupleAndKeywords(
+        args, kwargs, "O:add_point",
+        keywords, &dp)) {
+            PyErr_SetString(PyExc_ValueError,
+                "bad arguments to PyHashTree_AddPoint");
+            return -1;
+    }
+    
+    return DataPoint_AddToTree(reinterpret_cast<DataPoint *>(dp), self);
+}
+
 /// SMELF ALERT!!!
 static void PyHashTree_LoadFromMVPFile(PyObject *smelf, PyObject *args, PyObject *kwargs) {
     PyHashTree *self = reinterpret_cast<PyHashTree *>(smelf);
