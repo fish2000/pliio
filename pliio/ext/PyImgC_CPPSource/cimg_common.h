@@ -127,31 +127,17 @@ CGColorSpaceRef &cgColorSpace() const {
     return &_colorspace;
 }
 
-inline NSSize nsSize() const {
-    return NSMakeSize(width(), height());
-}
-inline NSRect nsRect() const {
-    return NSMakeRect({0, 0}, nsSize());
-}
-inline NSInteger nsWidth() const {
-    return static_cast<NSInteger>(width());
-}
-inline NSInteger nsHeight() const {
-    return static_cast<NSInteger>(height());
-}
+inline NSSize nsSize() const { return NSMakeSize(width(), height()); }
+inline NSRect nsRect() const { return NSMakeRect({0, 0}, nsSize()); }
+inline NSInteger nsWidth() const { return static_cast<NSInteger>(width()); }
+inline NSInteger nsHeight() const { return static_cast<NSInteger>(height()); }
+inline NSInteger nsSpectrum() const { return static_cast<NSInteger>(spectrum()); }
 
-inline CGSize cgSize() const {
-    return CGSizeMake(width(), height());
-}
-inline CGRect cgRect() const {
-    return CGRectMake({0, 0}, cgSize());
-}
-inline CGFloat cgWidth() const {
-    return static_cast<CGFloat>(width());
-}
-inline CGFloat cgHeight() const {
-    return static_cast<CGFloat>(height());
-}
+inline CGSize cgSize() const { return CGSizeMake(width(), height()); }
+inline CGRect cgRect() const { return CGRectMake({0, 0}, cgSize()); }
+inline CGFloat cgWidth() const { return static_cast<CGFloat>(width()); }
+inline CGFloat cgHeight() const { return static_cast<CGFloat>(height()); }
+inline CGFloat cgSpectrum() const { return static_cast<CGFloat>(spectrum()); }
 
 CGContextRef &cgContext() const {
     if (_context == NULL) {

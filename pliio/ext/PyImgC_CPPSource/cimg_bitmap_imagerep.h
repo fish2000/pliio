@@ -123,10 +123,10 @@ NSBitmapImageRep *get_bitmap(const unsigned z=0) const {
     
     NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc]
         initWithBitmapDataPlanes:(unsigned char **)&_data
-        pixelsWide:(NSInteger)_width
-        pixelsHigh:(NSInteger)_height
-        bitsPerSample:bps
-        samplesPerPixel:(NSInteger)_spectrum
+        pixelsWide:nsWidth()
+        pixelsHigh:nsHeight()
+        bitsPerSample:itemsize()
+        samplesPerPixel:nsSpectrum()
         hasAlpha:NO
         isPlanar:YES
         colorSpaceName:NSDeviceRGBColorSpace
