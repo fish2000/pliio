@@ -132,7 +132,9 @@ public:
     }
     
     inline unsigned int typecode() {
-        if (checkdtype()) { return (unsigned int)dtype->type_num; }
+        if (checkdtype()) {
+            return static_cast<unsigned int>(dtype->type_num);
+        }
         return 0;
     }
     inline char typechar() {
