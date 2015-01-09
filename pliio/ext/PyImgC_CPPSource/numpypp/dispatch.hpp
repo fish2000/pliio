@@ -92,6 +92,11 @@ typedef unsigned short ushort;
     } \
     CATCH_PYTHON_EXCEPTIONS(error_value)
 
+#define VOID_SWITCH_ON_DTYPE(dtype) \
+    switch(dtype->type_num) { \
+        HANDLE_TYPES(); \
+    }
+
 #define SAFE_SWITCH_ON_DTYPE_FOR_BINARY_OP(dtype, error_value, opname) \
     try { \
         switch(dtype->type_num) { \

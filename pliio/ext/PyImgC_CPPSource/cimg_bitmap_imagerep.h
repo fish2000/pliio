@@ -98,22 +98,22 @@ CImg<T> &assign(const NSBitmapImageRep *bitmap) {
 NSBitmapImageRep *get_bitmap(const unsigned z=0) const {
     if (is_empty()) {
         throw CImgArgumentException(_cimg_instance
-                                    "get_bitmap() : Empty CImg instance.");
+                                    "get_bitmap() : Empty CImg instance");
     }
     
     if (z >= _depth) {
         throw CImgInstanceException(_cimg_instance
-                                    "get_bitmap() : Instance has not Z-dimension %u.",
+                                    "get_bitmap() : Instance has z-depth >= %u",
                                     z);
     }
     if (_spectrum > 4) {
         cimg::warn(_cimg_instance
-                   "get_bitmap() : NSImage don't really support >4 channels -- higher-order dimensions will be ignored.");
+                   "get_bitmap() : NSImages don't really support >4 channels -- higher-order dimensions will be ignored");
     }
     
     NSInteger bps = 8 * sizeof(T);
     NSInteger format = 0;
-    format |= std::is_floating_point<T>::value ? NSFloatingPointSamplesBitmapFormat : 0;
+    format |= isFloat() ? NSFloatingPointSamplesBitmapFormat : 0;
     
     // NSLog(@"Width: %i", _width);
     // NSLog(@"Height: %i", _height);

@@ -117,14 +117,24 @@ bool isFloat() const {
 
 #ifdef __OBJC__
 
-CGColorSpaceRef _colorspace = nil;
-CGContextRef _context = nil;
+CGColorSpaceRef _colorspace = NULL;
+CGContextRef _context = NULL;
 
 CGColorSpaceRef &cgColorSpace() const {
-    if (_colorspace == nil) {
+    if (_colorspace == NULL) {
         _colorspace = CGColorSpaceCreateDeviceRGB();
     }
     return &_colorspace;
+}
+
+NSSize nsSize() const {
+    return NSMakeSize(width(), height());
+}
+NSInteger nsWidth() const {
+    return static_cast<NSInteger>(width());
+}
+NSInteger nsHeight() const {
+    return static_cast<NSInteger>(height());
 }
 
 CGSize cgSize() const {
@@ -138,7 +148,7 @@ CGFloat cgHeight() const {
 }
 
 CGContextRef &cgContext() const {
-    if (_context == nil) {
+    if (_context == NULL) {
         CGBitmapInfo bitmapInfo = isFloat() ? kCGBitmapFloatComponents : kCGBitmapByteOrderDefault;
         _context = CGBitmapContextCreate(_data,
             cgWidth(), cgHeight(),
@@ -146,6 +156,7 @@ CGContextRef &cgContext() const {
             cgColorSpace(),
             kCGImageAlphaNone | bitmapInfo);
     }
+    CGContextRetain(_context);
     return &_context;
 }
 

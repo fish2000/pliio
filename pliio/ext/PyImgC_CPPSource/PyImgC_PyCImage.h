@@ -74,6 +74,11 @@ public:
         dtype = recast<T>()->typestruct();
     }
     
+    ~PyCImage() {
+        cleanup();
+        Py_XDECREF(dtype);
+    }
+    
     bool save(const char *path) {
         if (!path) { return false; }
 #define HANDLE(type) { \
@@ -85,8 +90,24 @@ public:
         return false;
     }
     
+    void cgRelease() {
+        if (checkcontext()) {
+#define HANDLE(type) { \
+            CGContextRef ctx = recast<type>()->_context; \
+            CFIndex count = CFGetRetainCount(ctx); \
+            for (CFIndex idx = 0; idx < count; ++idx) { \
+                CGContextRelease(ctx); \
+            } \
+            ctx = NULL; \
+        }
+        VOID_SWITCH_ON_DTYPE(dtype);
+#undef HANDLE
+        }
+    }
+    
     void cleanup() {
         if (checkptr()) { cimage.reset(); }
+        cgRelease();
     }
     
     inline bool is_empty() {
@@ -98,6 +119,18 @@ public:
     
     inline bool checkptr() { return cimage.get() != nullptr; }
     inline bool checkdtype() { return dtype != NULL && PyArray_DescrCheck(dtype); }
+    inline bool checkcontext() {
+        if (!checkptr()) { return false; }
+#ifdef __OBJC__
+#define HANDLE(type) return recast<type>()->_context != NULL;
+        SAFE_SWITCH_ON_DTYPE(dtype, false);
+        return false;
+#undef HANDLE
+#else
+        return false;
+#endif
+    }
+    
     inline unsigned int typecode() {
         if (checkdtype()) { return (unsigned int)dtype->type_num; }
         return 0;
