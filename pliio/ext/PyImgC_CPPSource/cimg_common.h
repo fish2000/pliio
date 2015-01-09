@@ -11,7 +11,7 @@ const CImg<T>& save(NSString *filename,
                     const unsigned int digits=6) const {
                         return save([filename UTF8String], number, digits);
                     }
-#endif
+#endif /// __OBJC__
 */
 
 #define TYPECODE_NOT(typecode) \
@@ -87,31 +87,31 @@ PyArray_Descr *typestruct() const {
     return numpy::dtype_struct<T>();
 }
 
-int itemsize() const {
+inline int itemsize() const {
     return sizeof(T) * 8;
 }
 
-int bytesperpixel() const {
+inline int bytesperpixel() const {
     return sizeof(T) * spectrum();
 }
 
-int bytesperrow() const {
+inline int bytesperrow() const {
     return (width() * itemsize() * bytesperpixel() + 7) / 8;
 }
 
-int datasize() const {
+inline int datasize() const {
     return bytesperrow() * height();
 }
 
-int buffersize() const {
+inline int buffersize() const {
     return static_cast<int>(size()) * itemsize();
 }
 
-int rowbytes() const {
+inline int rowbytes() const {
     return static_cast<int>(width() * spectrum()) * sizeof(T);
 }
 
-bool isFloat() const {
+inline bool isFloat() const {
     return std::is_floating_point<T>::value;
 }
 
@@ -127,23 +127,29 @@ CGColorSpaceRef &cgColorSpace() const {
     return &_colorspace;
 }
 
-NSSize nsSize() const {
+inline NSSize nsSize() const {
     return NSMakeSize(width(), height());
 }
-NSInteger nsWidth() const {
+inline NSRect nsRect() const {
+    return NSMakeRect({0, 0}, nsSize());
+}
+inline NSInteger nsWidth() const {
     return static_cast<NSInteger>(width());
 }
-NSInteger nsHeight() const {
+inline NSInteger nsHeight() const {
     return static_cast<NSInteger>(height());
 }
 
-CGSize cgSize() const {
+inline CGSize cgSize() const {
     return CGSizeMake(width(), height());
 }
-CGFloat cgWidth() const {
+inline CGRect cgRect() const {
+    return CGRectMake({0, 0}, cgSize());
+}
+inline CGFloat cgWidth() const {
     return static_cast<CGFloat>(width());
 }
-CGFloat cgHeight() const {
+inline CGFloat cgHeight() const {
     return static_cast<CGFloat>(height());
 }
 
@@ -179,22 +185,22 @@ CFURLRef pathToURLRef(NSString *pth) {
     return (CFURLRef)pathToURL(pth);
 }
 
-#endif
+#endif /// __OBJC__
 
 std::array<long, 3> shape() const {
     return {{
-        (long)height(),
-        (long)width(),
-        (long)spectrum()
+        static_cast<long>(height()),
+        static_cast<long>(width()),
+        static_cast<long>(spectrum())
     }};
 }
 
 std::array<long, 4> shape3D() const {
     return {{
-        (long)height(),
-        (long)width(),
-        (long)depth(),
-        (long)spectrum()
+        static_cast<long>(height()),
+        static_cast<long>(width()),
+        static_cast<long>(depth()),
+        static_cast<long>(spectrum())
     }};
 }
 
@@ -243,7 +249,7 @@ unsigned int structcode_to_typecode(const char *structcode) {
                                     cimg_instance);
     }
 
-    npy_type_num = (unsigned int)descr->type_num;
+    npy_type_num = static_cast<unsigned int>(descr->type_num);
     Py_XDECREF(descr);
 
     return npy_type_num;

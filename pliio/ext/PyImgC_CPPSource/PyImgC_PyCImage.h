@@ -128,7 +128,7 @@ public:
 #undef HANDLE
 #else
         return false;
-#endif
+#endif /// __OBJC__
     }
     
     inline unsigned int typecode() {
