@@ -74,10 +74,10 @@ static PyTypeObject PyCImage_Type = {
     0,                                                          /* tp_hash */
     0,                                                          /* tp_call */
     (reprfunc)PyCImage_Str,                                     /* tp_str */
-    0,                                                          /* tp_getattro */
-    0,                                                          /* tp_setattro */
+    (getattrofunc)PyObject_GenericGetAttr,                      /* tp_getattro */
+    (setattrofunc)PyObject_GenericSetAttr,                      /* tp_setattro */
     &PyCImage_Buffer3000Methods,                                /* tp_as_buffer */
-    PyCImage_TypeFlags,                                         /* tp_flags*/
+    PyCImage_TypeFlags,                                         /* tp_flags */
     "PyImgC object wrapper for CImg instances",                 /* tp_doc */
     0,                                                          /* tp_traverse */
     0,                                                          /* tp_clear */
