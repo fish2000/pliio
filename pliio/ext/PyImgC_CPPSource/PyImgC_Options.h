@@ -20,21 +20,25 @@
 //#define cimg_use_openexr 1            /// OpenEXR (via setup.py)
 //#define cimg_use_lapack 1             /// LAPACK
 
-#ifdef __OBJC__
-#import "UTI/UTI.h"
-#import "ICC/Profile.h"
-#endif
-
 #define cimg_plugin1 "../cimg_common.h"
 #define cimg_plugin2 "../cimg_numpy.h"
 #define cimg_plugin3 "../cimg_pybuffer.h"
-#define cimg_plugin4 "../cimg_bitmap_imagerep.h"
+
+#ifdef __OBJC__
+#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
+#import <CoreFoundation/CoreFoundation.h>
+#import "UTI/UTI.h"
+#import "ICC/Profile.h"
+#define cimg_plugin4 "../cimg_objc.h"
+#define cimg_plugin5 "../cimg_bitmap_imagerep.h"
+#endif /// __OBJC__
+
 
 //#define cimg_plugin5 "plugins/cimg_ipl.h"
-
 //#define cimg_plugin6 "plugins/chlpca.h"
 //#define cimg_plugin7 "plugins/nlmeans.h"
-//#define cimg_plugin7 "plugins/patchmatch.h"
+//#define cimg_plugin8 "plugins/patchmatch.h"
 
 
 #endif /// PyImgC_OPTIONS_H

@@ -1,8 +1,4 @@
 
-#ifdef __OBJC__
-#import <Cocoa/Cocoa.h>
-#import <Foundation/Foundation.h>
-#import <CoreFoundation/CoreFoundation.h>
 #ifndef PyImgC_CIMG_NSBITMAPIMAGEREP_PLUGIN_H
 #define PyImgC_CIMG_NSBITMAPIMAGEREP_PLUGIN_H
 
@@ -15,10 +11,9 @@
 #define SUFFIXED(filename, suffix) !cimg::strncasecmp(cimg::split_filename(filename), suffix, strlen(suffix))
 
 inline bool bitmap_can_load(const char *filename) const {
-    const char *suffix = cimg::split_filename(filename);
     @autoreleasepool {
-        NSString *nssuffix = [NSString stringWithUTF8String:suffix];
-        UTI *uti = [UTI UTIWithFileExtension:nssuffix];
+        NSString *suffix = [NSString stringWithUTF8String:cimg::split_filename(filename)];
+        UTI *uti = [UTI UTIWithFileExtension:suffix];
         return static_cast<bool>(
             [[UTI imageContentTypes] containsObject:uti]);
     }
@@ -41,10 +36,10 @@ inline NSBitmapImageFileType bitmap_can_save(const char *filename) const {
     if (SUFFIXED(filename, "jpg") || SUFFIXED(filename, "jpeg")) { return NSJPEGFileType; }
     if (SUFFIXED(filename, "png"))                               { return NSPNGFileType; }
     if (SUFFIXED(filename, "tif") || SUFFIXED(filename, "tiff")) { return NSTIFFFileType; }
-    if (SUFFIXED(filename, "jpe") || SUFFIXED(filename, "jpgg")) { return NSJPEGFileType; }
     if (SUFFIXED(filename, "bmp"))                               { return NSBMPFileType; }
-    if (SUFFIXED(filename, "jpe2"))                              { return NSJPEG2000FileType; }
+    if (SUFFIXED(filename, "jpe") || SUFFIXED(filename, "jpgg")) { return NSJPEGFileType; }
     if (SUFFIXED(filename, "jp2") || SUFFIXED(filename, "jpg2")) { return NSJPEG2000FileType; }
+    if (SUFFIXED(filename, "jpe2"))                              { return NSJPEG2000FileType; }
     return IMGC_NSBITMAP_NOSAVE;
 }
 inline NSBitmapImageFileType bitmap_can_save(NSString *filenameMixedCase) const {
@@ -54,10 +49,10 @@ inline NSBitmapImageFileType bitmap_can_save(NSString *filenameMixedCase) const 
         if ([filename hasSuffix:@"jpg"] || [filename hasSuffix:@"jpeg"]) { return NSJPEGFileType; }
         if ([filename hasSuffix:@"png"])                                 { return NSPNGFileType; }
         if ([filename hasSuffix:@"tif"] || [filename hasSuffix:@"tiff"]) { return NSTIFFFileType; }
-        if ([filename hasSuffix:@"jpe"] || [filename hasSuffix:@"jpgg"]) { return NSJPEGFileType; }
         if ([filename hasSuffix:@"bmp"])                                 { return NSBMPFileType; }
-        if ([filename hasSuffix:@"jpe2"])                                { return NSJPEG2000FileType; }
+        if ([filename hasSuffix:@"jpe"] || [filename hasSuffix:@"jpgg"]) { return NSJPEGFileType; }
         if ([filename hasSuffix:@"jp2"] || [filename hasSuffix:@"jpg2"]) { return NSJPEG2000FileType; }
+        if ([filename hasSuffix:@"jpe2"])                                { return NSJPEG2000FileType; }
     }
     return IMGC_NSBITMAP_NOSAVE;
 }
@@ -111,7 +106,7 @@ NSBitmapImageRep *get_bitmap(const unsigned z=0) const {
                    "get_bitmap() : NSImages don't really support >4 channels -- higher-order dimensions will be ignored");
     }
     
-    NSInteger bps = 8 * sizeof(T);
+    //NSInteger bps = 8 * sizeof(T);
     NSInteger format = 0;
     format |= isFloat() ? NSFloatingPointSamplesBitmapFormat : 0;
     
@@ -172,11 +167,39 @@ CImg& load_quartz(NSString *filename) {
 }
 
 const CImg& save_quartz(const char *filename, NSBitmapImageFileType filetype=NSJPEGFileType) const {
+    /// THIS DOES NOT WORK
+    /// (unless by 'work' you mean 'BUS ERROR 10')
     NSBitmapImageRep *bitmap = (NSBitmapImageRep *)get_bitmap();
     NSData *out = [bitmap representationUsingType:filetype properties:nil];
     [out writeToFile:[NSString stringWithUTF8String:filename] atomically:NO];
     [bitmap autorelease];
     [out autorelease];
+    return *this;
+}
+
+const CImg& save_coregraphics(CFURLRef url) const {
+    /// kUTTypeJPEG
+    CGImageRef imgref = cgImageRef(cgContext(CGColorSpaceCreateDeviceRGB()));
+    CGImageDestinationRef destref = CGImageDestinationCreateWithURL(url,
+        CFSTR("public.jpeg"), 1, NULL);
+    if (destref) {
+        CGImageDestinationAddImage(destref, imgref, NULL);
+        CGImageDestinationFinalize(destref);
+        CFRelease(destref);
+    }
+    CGImageRelease(imgref);
+    return *this;
+}
+const CImg& save_coregraphics(CFStringRef filename) const {
+    CFURLRef url = CFURLCreateWithFileSystemPath(NULL, filename, kCFURLPOSIXPathStyle, 0);
+    save_coregraphics(url);
+    CFRelease(url);
+    return *this;
+}
+const CImg& save_coregraphics(const char *filename) const {
+    CFStringRef pth = CFStringCreateWithCString(NULL, filename, kCFStringEncodingUTF8);
+    save_coregraphics(pth);
+    CFRelease(pth);
     return *this;
 }
 
@@ -188,8 +211,13 @@ const CImg& save_quartz(const char *filename, NSBitmapImageFileType filetype=NSJ
 // #ifndef cimg_save_plugin4
 // #define cimg_save_plugin4(filename) \
 //     NSBitmapImageFileType filetype = bitmap_can_save(filename); \
+//     if (filetype != IMGC_NSBITMAP_NOSAVE) { return save_coregraphics(filename); }
+// #endif
+
+// #ifndef cimg_save_plugin4
+// #define cimg_save_plugin4(filename) \
+//     NSBitmapImageFileType filetype = bitmap_can_save(filename); \
 //     if (filetype != IMGC_NSBITMAP_NOSAVE) { return save_quartz(filename, filetype); }
 // #endif
 
 #endif /// PyImgC_CIMG_NSBITMAPIMAGEREP_PLUGIN_H
-#endif /// __OBJC__

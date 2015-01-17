@@ -2,18 +2,6 @@
 #ifndef PyImgC_CIMG_COMMON_PLUGIN_H
 #define PyImgC_CIMG_COMMON_PLUGIN_H
 
-/*
-#ifdef __OBJC__
-CImg<T>& load(NSString *filename) { return load([filename UTF8String]); }
-static CImg<T> get_load(NSString *filename) { return get_load([filename UTF8String]); }
-const CImg<T>& save(NSString *filename,
-                    const int number=-1,
-                    const unsigned int digits=6) const {
-                        return save([filename UTF8String], number, digits);
-                    }
-#endif /// __OBJC__
-*/
-
 #define TYPECODE_NOT(typecode) \
        ((typecode == NPY_BOOL         && typeid(T) != typeid(bool)) || \
         (typecode == NPY_BYTE         && typeid(T) != typeid(char)) || \
@@ -92,11 +80,12 @@ inline int itemsize() const {
 }
 
 inline int bytesperpixel() const {
-    return sizeof(T) * spectrum();
+    return spectrum() * 8;
 }
 
 inline int bytesperrow() const {
-    return (width() * itemsize() * bytesperpixel() + 7) / 8;
+    //return (width() * itemsize() * bytesperpixel() + 7) / 8;
+    return (width() * bytesperpixel() + 7) / 8;
 }
 
 inline int datasize() const {
@@ -108,70 +97,13 @@ inline int buffersize() const {
 }
 
 inline int rowbytes() const {
-    return static_cast<int>(width() * spectrum()) * sizeof(T);
+    //return static_cast<int>(width() * spectrum()) * sizeof(T);
+    return static_cast<int>(width() * 3) * sizeof(T);
 }
 
 inline bool isFloat() const {
     return std::is_floating_point<T>::value;
 }
-
-#ifdef __OBJC__
-
-CGColorSpaceRef _colorspace = NULL;
-CGContextRef _context = NULL;
-
-CGColorSpaceRef &cgColorSpace() const {
-    if (_colorspace == NULL) {
-        _colorspace = CGColorSpaceCreateDeviceRGB();
-    }
-    return &_colorspace;
-}
-
-inline NSSize nsSize() const { return NSMakeSize(width(), height()); }
-inline NSRect nsRect() const { return NSMakeRect({0, 0}, nsSize()); }
-inline NSInteger nsWidth() const { return static_cast<NSInteger>(width()); }
-inline NSInteger nsHeight() const { return static_cast<NSInteger>(height()); }
-inline NSInteger nsSpectrum() const { return static_cast<NSInteger>(spectrum()); }
-
-inline CGSize cgSize() const { return CGSizeMake(width(), height()); }
-inline CGRect cgRect() const { return CGRectMake({0, 0}, cgSize()); }
-inline CGFloat cgWidth() const { return static_cast<CGFloat>(width()); }
-inline CGFloat cgHeight() const { return static_cast<CGFloat>(height()); }
-inline CGFloat cgSpectrum() const { return static_cast<CGFloat>(spectrum()); }
-
-CGContextRef &cgContext() const {
-    if (_context == NULL) {
-        CGBitmapInfo bitmapInfo = isFloat() ? kCGBitmapFloatComponents : kCGBitmapByteOrderDefault;
-        _context = CGBitmapContextCreate(_data,
-            cgWidth(), cgHeight(),
-            itemsize(), bytesperrow(),
-            cgColorSpace(),
-            kCGImageAlphaNone | bitmapInfo);
-    }
-    CGContextRetain(_context);
-    return &_context;
-}
-
-CGImageRef cgImageRef() const {
-    return CGBitmapContextCreateImage(cgContext());
-}
-
-NSURL *pathToURL(const char *path) {
-    NSString *pth = [[NSString stringWithUTF8String:path] autorelease];
-    return [[NSURL alloc] initFileURLWithPath:pth];
-}
-NSURL *pathToURL(NSString *pth) {
-    return [[NSURL alloc] initFileURLWithPath:pth];
-}
-
-CFURLRef pathToURLRef(const char *path) {
-    return (CFURLRef)pathToURL(path);
-}
-CFURLRef pathToURLRef(NSString *pth) {
-    return (CFURLRef)pathToURL(pth);
-}
-
-#endif /// __OBJC__
 
 std::array<long, 3> shape() const {
     return {{
@@ -194,7 +126,7 @@ std::array<long, 4> shape3D() const {
 
 /// structcode parser invocation (from pyimgc.cpp)
 const char *structcode_to_dtype(const char *structcode, bool include_byteorder=true) {
-    std::vector<pair<std::string, std::string>> pairvec = structcode::parse(std::string(structcode));
+    std::vector<std::pair<std::string, std::string>> pairvec = structcode::parse(std::string(structcode));
     std::string byteorder = "=";
 
     if (!pairvec.size()) {
@@ -207,7 +139,7 @@ const char *structcode_to_dtype(const char *structcode, bool include_byteorder=t
     for (size_t idx = 0; idx < pairvec.size(); idx++) {
         if (pairvec[idx].first == "__byteorder__") {
             byteorder = std::string(pairvec[idx].second);
-            pairvec.erase(pairvec.begin()+idx);
+            pairvec.erase(pairvec.begin() + idx);
         }
     }
 
@@ -219,9 +151,9 @@ const char *structcode_to_dtype(const char *structcode, bool include_byteorder=t
 }
 
 unsigned int structcode_to_typecode(const char *structcode) {
-    const char *dtypecode = structcode_to_dtype(structcode);
     PyArray_Descr *descr;
     int npy_type_num = 0;
+    const char *dtypecode = structcode_to_dtype(structcode);
 
     if (!dtypecode) {
         throw CImgInstanceException(_cimg_instance
@@ -236,7 +168,7 @@ unsigned int structcode_to_typecode(const char *structcode) {
     }
 
     npy_type_num = static_cast<unsigned int>(descr->type_num);
-    Py_XDECREF(descr);
+    Py_DECREF(descr);
 
     return npy_type_num;
 }

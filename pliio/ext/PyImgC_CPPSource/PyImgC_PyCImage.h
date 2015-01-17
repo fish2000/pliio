@@ -2,6 +2,12 @@
 #ifndef PyImgC_TYPESTRUCT_PYCIMAGE_H
 #define PyImgC_TYPESTRUCT_PYCIMAGE_H
 
+#ifdef __OBJC__
+#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
+#import <CoreFoundation/CoreFoundation.h>
+#endif /// __OBJC__
+
 #include <map>
 #include <array>
 #include <cmath>
@@ -91,18 +97,23 @@ public:
     }
     
     void cgRelease() {
+#ifdef __OBJC__
+        CFIndex count, idx;
         if (checkcontext()) {
-#define HANDLE(type) { \
-            CGContextRef ctx = recast<type>()->_context; \
-            CFIndex count = CFGetRetainCount(ctx); \
-            for (CFIndex idx = 0; idx < count; ++idx) { \
-                CGContextRelease(ctx); \
-            } \
-            ctx = NULL; \
+            count = CFGetRetainCount(_context);
+            for (idx = 0; idx < count; ++idx) {
+                CGContextRelease(_context);
+            }
+            _context = NULL;
         }
-        VOID_SWITCH_ON_DTYPE(dtype);
-#undef HANDLE
+        if (checkcolorspace()) {
+            count = CFGetRetainCount(_colorspace);
+            for (idx = 0; idx < count; ++idx) {
+                CGColorSpaceRelease(_colorspace);
+            }
+            _colorspace = NULL;
         }
+#endif /// __OBJC__
     }
     
     void cleanup() {
@@ -120,12 +131,15 @@ public:
     inline bool checkptr() { return cimage.get() != nullptr; }
     inline bool checkdtype() { return dtype != NULL && PyArray_DescrCheck(dtype); }
     inline bool checkcontext() {
-        if (!checkptr()) { return false; }
 #ifdef __OBJC__
-#define HANDLE(type) return recast<type>()->_context != NULL;
-        SAFE_SWITCH_ON_DTYPE(dtype, false);
+        return _context != NULL;
+#else
         return false;
-#undef HANDLE
+#endif /// __OBJC__
+    }
+    inline bool checkcolorspace() {
+#ifdef __OBJC__
+        return _colorspace != NULL;
 #else
         return false;
 #endif /// __OBJC__
@@ -195,6 +209,36 @@ public:
         return 0;
     }
     
+#ifdef __OBJC__
+    
+    CGColorSpaceRef &cgColorSpace() {
+        if (!checkcolorspace()) {
+            _colorspace = CGColorSpaceCreateDeviceRGB();
+        }
+        CGColorSpaceRetain(_colorspace);
+        return _colorspace;
+    }
+    
+    CGContextRef &cgContext() {
+        if (!checkcontext()) {
+#define HANDLE(type) _context = recast<type>()->cgContext(cgColorSpace());
+        VOID_SWITCH_ON_DTYPE(dtype);
+#undef HANDLE
+        }
+        CGContextRetain(_context);
+        return _context;
+    }
+    
+    CGImageRef cgImageRef() {
+        return CGBitmapContextCreateImage(cgContext());
+    }
+    
+private:
+    CGColorSpaceRef _colorspace = NULL;
+    CGContextRef _context = NULL;
+    
+#endif /// __OBJC__
+
 };
 
 #endif /// PyImgC_TYPESTRUCT_PYCIMAGE_H
