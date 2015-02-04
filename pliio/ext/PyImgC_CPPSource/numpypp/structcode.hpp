@@ -1,24 +1,6 @@
 #ifndef PyImgC_STRUCTCODE_H
 #define PyImgC_STRUCTCODE_H
 
-#ifndef NPY_NO_DEPRECATED_API
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#endif
-
-#include "../PyImgC_Constants.h"
-
-#ifndef IMGC_DEBUG
-#define IMGC_DEBUG 0
-#endif
-
-#if IMGC_DEBUG > 0
-    #define IMGC_COUT(x) cout << x << "\n"
-    #define IMGC_CERR(x) cerr << x << "\n"
-#else
-    #define IMGC_COUT(x)
-    #define IMGC_CERR(x)
-#endif
-
 #include <cstdio>
 #include <iostream>
 #include <sstream>
@@ -151,14 +133,12 @@ namespace structcode {
         vector<string> tokens;
         vector<pair<string, string>> fields;
         field_namer field_names;
-    
+        
         string byteorder = "@";
         size_t itemsize = 1;
         vector<int> shape = {0};
         const vector<int> noshape = shape;
-    
-        //IMGC_CERR("Structcode string: " << structcode);
-    
+        
         while (true) {
             if (structcode.size() == 0) { break; }
             switch (structcode[0]) {
@@ -192,7 +172,6 @@ namespace structcode {
                     string shapestr = structcode.substr(0, siz-1);
                     shape = parse_shape(shapestr);
                     structcode.erase(0, siz);
-                    //IMGC_CERR("Typecode after shape erasure: " << structcode);
                 }
                 break;
                 case '*':
@@ -254,7 +233,6 @@ namespace structcode {
                     if (!isdigit(numstr.back())) {
                         structcode = string(&numstr.back()) + structcode;
                     }
-                    //IMGC_CERR("Typecode after number erasure: " << structcode);
                 }
                 break;
                 default:
@@ -262,15 +240,15 @@ namespace structcode {
                 string code = "";
                 string name = "";
                 string dtypechar = "";
-            
+                
                 if (structcode.substr(0, codelen) == "Z") {
                     /// add next character
                     codelen++;
                 }
-            
+                
                 code += string(structcode.substr(0, codelen));
                 structcode.erase(0, codelen);
-            
+                
                 /// field name
                 if (structcode.substr(0, 1) == ":") {
                     structcode.erase(0, 1);
@@ -315,7 +293,7 @@ namespace structcode {
                         break;
                     }
                 }
-            
+                
                 const char last = dtypechar.back();
                 if (last == 'U' || last == 'S' || last == 'V') {
                     if (itemsize > 1) {
@@ -325,7 +303,7 @@ namespace structcode {
                     }
                     itemsize = 1;
                 }
-            
+                
                 if (shape != noshape) {
                     ostringstream outstream;
                     outstream << "(";
@@ -340,10 +318,10 @@ namespace structcode {
                 } else if (itemsize > 1) {
                     dtypechar = to_string(itemsize) + dtypechar;
                 }
-            
+                
                 fields.push_back(make_pair(name, dtypechar));
                 tokens.push_back(dtypechar);
-            
+                
                 //byteorder = "@";
                 itemsize = 1;
                 shape = noshape;
@@ -351,16 +329,6 @@ namespace structcode {
                 break;
             }
         }
-        
-        /*
-        if (toplevel) {
-            IMGC_COUT(      "> BYTE ORDER: "    << byteorder);
-            for (size_t idx = 0; idx < fields.size(); idx++) {
-                IMGC_COUT(  "> FIELD: "         << fields[idx].first
-                        <<  " -> "              << fields[idx].second);
-            }
-        }
-        */
         
         return fields;
     }

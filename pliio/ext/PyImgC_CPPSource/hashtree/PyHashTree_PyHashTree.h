@@ -20,7 +20,6 @@ struct PyHashTree {
     inline bool checkptr() { return treevector.get() != nullptr; }
     inline bool checktree() { return (tree != nullptr); }
     inline void update() {
-        //cerr << "PyHashTree::update()" << "\n";
         if (!checktree()) { return; }
         if (checkptr()) { treevector.reset(); }
         MVP::MVPVector tv = MVP::mvpvector(tree);
@@ -28,24 +27,20 @@ struct PyHashTree {
     }
     
     inline MVP::MVPVector *vector() {
-        //cerr << "PyHashTree::vector()" << "\n";
         if (!checkptr()) { update(); }
         return treevector.get();
     }
     
     inline size_t size() {
-        //cerr << "PyHashTree::size()" << "\n";
         if (!checktree()) { return 0; }
         return vector()->size();
     }
     
     inline unsigned int length() {
-        //cerr << "PyHashTree::length()" << "\n";
         return static_cast<unsigned int>(size());
     }
     
     inline MVPDP *datapoint(size_t idx) {
-        //cerr << "PyHashTree::datapoint()" << "\n";
         if (!checkptr() || !checktree()) { return NULL; }
         try {
             return &(vector()->at(idx));
@@ -53,6 +48,10 @@ struct PyHashTree {
             return NULL;
         }
         return NULL;
+    }
+    
+    inline MVPDP *operator[](size_t idx) {
+        return datapoint(idx);
     }
     
     void cleanup() {
