@@ -11,6 +11,7 @@
 #define SUFFIXED(filename, suffix) !cimg::strncasecmp(cimg::split_filename(filename), suffix, strlen(suffix))
 
 inline bool bitmap_can_load(const char *filename) const {
+    return false;
     @autoreleasepool {
         NSString *suffix = [NSString stringWithUTF8String:cimg::split_filename(filename)];
         UTI *uti = [UTI UTIWithFileExtension:suffix];
@@ -20,6 +21,7 @@ inline bool bitmap_can_load(const char *filename) const {
     return false;
 }
 inline bool bitmap_can_load(NSString *filename) const {
+    return false;
     @autoreleasepool {
         NSString *suffix = [filename pathExtension];
         UTI *uti = [UTI UTIWithFileExtension:suffix];

@@ -19,21 +19,146 @@
 #include "numpypp/utils.hpp"
 
 #include "PyImgC_Constants.h"
-#include "PyImgC_SharedDefs.h"
 #include "PyImgC_PyCImage.h"
 #include "PyImgC_IMP_StructCodeParse.h"
 #include "PyImgC_IMP_PyBufferDict.h"
 #include "PyImgC_IMP_ObjProtocol.h"
 #include "PyImgC_IMP_GetSet.h"
-#include "PyImgC_IMP_Imaging.h"
 #include "PyImgC_IMP_SequenceProtocol.h"
 #include "PyImgC_IMP_NumberProtocol.h"
 #include "PyImgC_IMP_BufferProtocol.h"
-//#include "PyImgC_IMP_LittleCMSContext.h"
 #include "PyImgC_IMP_Utils.h"
 
 using namespace cimg_library;
 using namespace std;
+
+static PyBufferProcs PyCImage_Buffer3000Methods = {
+    0, /* (readbufferproc) */
+    0, /* (writebufferproc) */
+    0, /* (segcountproc) */
+    0, /* (charbufferproc) */
+    (getbufferproc)PyCImage_GetBuffer,
+    (releasebufferproc)PyCImage_ReleaseBuffer,
+};
+
+static PySequenceMethods PyCImage_SequenceMethods = {
+    (lenfunc)PyCImage_Len,                      /* sq_length */
+    0,                                          /* sq_concat */
+    0,                                          /* sq_repeat */
+    (ssizeargfunc)PyCImage_GetItem,             /* sq_item */
+    0,                                          /* sq_slice */
+    0,                                          /* sq_ass_item HAHAHAHA */
+    0,                                          /* sq_ass_slice HEHEHE ASS <snort> HA */
+    0                                           /* sq_contains */
+};
+
+static PyGetSetDef PyCImage_getset[] = {
+    {
+        "dtype",
+            (getter)PyCImage_GET_dtype,
+            (setter)PyCImage_SET_dtype,
+            "Data Type (numpy.dtype)", None },
+    {
+        "height",
+            (getter)PyCImage_GET_height,
+            None,
+            "Image Height", None },
+    {
+        "width",
+            (getter)PyCImage_GET_width,
+            None,
+            "Image Width", None },
+    {
+        "spectrum",
+            (getter)PyCImage_GET_spectrum,
+            None,
+            "Image Spectrum (Color Depth)", None },
+    {
+        "size",
+            (getter)PyCImage_GET_size,
+            None,
+            "Image Size (PIL-style size tuple)", None },
+    {
+        "shape",
+            (getter)PyCImage_GET_shape,
+            None,
+            "Image Shape (NumPy-style shape tuple)", None },
+    {
+        "itemsize",
+            (getter)PyCImage_GET_itemsize,
+            None,
+            "Item Size", None },
+    {
+        "strides",
+            (getter)PyCImage_GET_strides,
+            None,
+            "Image Stride Offsets (NumPy-style strides tuple)", None },
+    {
+        "ndarray",
+            (getter)PyCImage_GET_ndarray,
+            None,
+            "Numpy Array Object", None },
+    {
+        "dct_phash",
+            (getter)PyCImage_GET_dct_phash,
+            None,
+            "Perceptual Image DCT Hash", None },
+    {
+        "mh_phash",
+            (getter)PyCImage_GET_mh_phash,
+            None,
+            "Perceptual Image Mexican-Hat Hash", None },
+    SENTINEL
+};
+
+static PyNumberMethods PyCImage_NumberMethods = {
+    (binaryfunc)PyCImage_ADD,                   /* nb_add */
+    (binaryfunc)PyCImage_SUBTRACT,              /* nb_subtract */
+    (binaryfunc)PyCImage_MULTIPLY,              /* nb_multiply */
+    (binaryfunc)PyCImage_DIVIDE,                /* nb_divide */
+    (binaryfunc)PyCImage_REMAINDER,             /* nb_remainder */
+    0,                                          /* nb_divmod */
+    0, /*(ternaryfunc)PyCImage_POWER,*/         /* nb_power */
+    (unaryfunc)PyCImage_NEGATIVE,               /* nb_negative */
+    (unaryfunc)PyCImage_POSITIVE,               /* nb_positive */
+    (unaryfunc)PyCImage_ABSOLUTE,               /* nb_absolute */
+    
+    (inquiry)PyCImage_NonZero,                  /* nb_nonzero */
+    
+    (unaryfunc)PyCImage_INVERT,                 /* nb_invert */
+    (binaryfunc)PyCImage_LSHIFT,                /* nb_lshift */
+    (binaryfunc)PyCImage_RSHIFT,                /* nb_rshift */
+    (binaryfunc)PyCImage_AND,                   /* nb_and */
+    (binaryfunc)PyCImage_XOR,                   /* nb_xor */
+    (binaryfunc)PyCImage_OR,                    /* nb_or */
+    
+    0, /*(coercion)PyCImage_COERCE,*/           /* nb_coerce */
+    
+    (unaryfunc)PyCImage_INT,                    /* nb_int */
+    (unaryfunc)PyCImage_LONG,                   /* nb_long */
+    (unaryfunc)PyCImage_FLOAT,                  /* nb_float */
+    0,                                          /* nb_oct */
+    0,                                          /* nb_hex */
+    
+    (binaryfunc)PyCImage_INPLACE_ADD,           /* nb_inplace_add */
+    (binaryfunc)PyCImage_INPLACE_SUBTRACT,      /* nb_inplace_subtract */
+    (binaryfunc)PyCImage_INPLACE_MULTIPLY,      /* nb_inplace_multiply */
+    (binaryfunc)PyCImage_INPLACE_DIVIDE,        /* nb_inplace_divide */
+    (binaryfunc)PyCImage_INPLACE_REMAINDER,     /* nb_inplace_remainder */
+    0, /*(ternaryfunc)PyCImage_INPLACE_POWER,*/ /* nb_inplace_power */
+    (binaryfunc)PyCImage_INPLACE_LSHIFT,        /* nb_inplace_lshift */
+    (binaryfunc)PyCImage_INPLACE_RSHIFT,        /* nb_inplace_rshift */
+    (binaryfunc)PyCImage_INPLACE_AND,           /* nb_inplace_and */
+    (binaryfunc)PyCImage_INPLACE_XOR,           /* nb_inplace_xor */
+    (binaryfunc)PyCImage_INPLACE_OR,            /* nb_inplace_or */
+    
+    (binaryfunc)PyCImage_FLOOR_DIVIDE,          /* nb_floor_divide */
+    (binaryfunc)PyCImage_TRUE_DIVIDE,           /* nb_true_divide */
+    (binaryfunc)PyCImage_INPLACE_FLOOR_DIVIDE,  /* nb_inplace_floor_divide */
+    (binaryfunc)PyCImage_INPLACE_TRUE_DIVIDE,   /* nb_inplace_true_divide */
+
+    0,                                          /* nb_index */
+};
 
 static PyMethodDef PyCImage_methods[] = {
     {

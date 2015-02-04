@@ -3,11 +3,11 @@
 #define PyImgC_IMP_OPERATORS_H
 
 #include <string>
+#include "numpypp/dispatch.hpp"
 #include "numpypp/utils.hpp"
-using namespace std;
+#include "PyImgC_IMP_ObjProtocol.h" /// for PyCImage_ReprString()
 
-/// forward declaration
-static string PyCImage_ReprString(PyCImage *pyim);
+using namespace std;
 
 #define OP(nm) nm
 
@@ -193,7 +193,7 @@ CImg<rT> binary_op(PyCImage *self, PyCImage *other, BinaryOp op) {
     }
 
 #define PyCImage_UNARY_OP(opname) \
-static PyObject *PyCImage_##opname(PyObject *smelf) { \
+PyObject *PyCImage_##opname(PyObject *smelf) { \
     if (!smelf) { \
         PyErr_SetString(PyExc_ValueError, \
             "Bad argument to unary operation '##opname##'"); \
@@ -205,6 +205,9 @@ static PyObject *PyCImage_##opname(PyObject *smelf) { \
     return NULL; \
 }
 
+#define DECLARE_UNARY_OP(opname) \
+PyObject *PyCImage_##opname(PyObject *smelf);
+
 #define HANDLE_BINARY_OP(type, opname) { \
         auto out_img = binary_op<type>(self, other, BinaryOp::opname); \
         self->assign(out_img); \
@@ -212,7 +215,7 @@ static PyObject *PyCImage_##opname(PyObject *smelf) { \
     }
 
 #define PyCImage_BINARY_OP(opname) \
-static PyObject *PyCImage_##opname(PyObject *smelf, PyObject *smother) { \
+PyObject *PyCImage_##opname(PyObject *smelf, PyObject *smother) { \
     if (!smelf || !smother) { \
         PyErr_SetString(PyExc_ValueError, \
             "Bad arguments to binary operation '##opname##'"); \
@@ -225,5 +228,8 @@ static PyObject *PyCImage_##opname(PyObject *smelf, PyObject *smother) { \
     SAFE_SWITCH_ON_DTYPE_FOR_BINARY_OP(self->dtype, NULL, opname); \
     return NULL; \
 }
+
+#define DECLARE_BINARY_OP(opname) \
+PyObject *PyCImage_##opname(PyObject *smelf, PyObject *smother);
 
 #endif /// PyImgC_IMP_OPERATORS_H

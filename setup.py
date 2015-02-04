@@ -56,7 +56,7 @@ USE_TIFF = os.environ.get('USE_TIFF', '1')
 USE_MAGICKPP = os.environ.get('USE_MAGICKPP', '0')
 USE_FFTW3 = os.environ.get('USE_FFTW3', '1')
 USE_OPENEXR = os.environ.get('USE_OPENEXR', '0')
-USE_LCMS2 = os.environ.get('USE_LCMS2', '1')
+USE_LCMS2 = os.environ.get('USE_LCMS2', '0')
 
 # LIBS: disabled
 USE_OPENCV = os.environ.get('USE_OPENCV', '0') # libtbb won't link
@@ -113,6 +113,17 @@ for pth in (
 extensions = {
     'imgc': [
         "pliio/ext/PyImgC_CPPSource/pyimgc.m",
+        "pliio/ext/PyImgC_CPPSource/PyImgC_IMP_ObjProtocol.m",
+        "pliio/ext/PyImgC_CPPSource/PyImgC_IMP_NumberProtocol.m",
+        "pliio/ext/PyImgC_CPPSource/PyImgC_IMP_BufferProtocol.m",
+        "pliio/ext/PyImgC_CPPSource/PyImgC_IMP_SequenceProtocol.m",
+        "pliio/ext/PyImgC_CPPSource/PyImgC_IMP_StructCodeParse.m",
+        "pliio/ext/PyImgC_CPPSource/PyImgC_IMP_PyBufferDict.m",
+        "pliio/ext/PyImgC_CPPSource/PyImgC_IMP_GetSet.m",
+        "pliio/ext/PyImgC_CPPSource/PyImgC_IMP_PHash.m",
+        "pliio/ext/PyImgC_CPPSource/PyImgC_IMP_Utils.m",
+        "pliio/ext/PyImgC_CPPSource/numpypp/structcode.cpp",
+        "pliio/ext/PyImgC_CPPSource/numpypp/typecode.cpp",
         "pliio/ext/PyImgC_CPPSource/UTI/UTI.m",
         "pliio/ext/PyImgC_CPPSource/ICC/Profile.m",
     ],

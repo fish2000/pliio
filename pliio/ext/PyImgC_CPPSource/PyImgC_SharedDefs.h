@@ -1,4 +1,6 @@
 
+#if 0
+
 #include <iostream>
 
 #ifndef PY_ARRAY_UNIQUE_SYMBOL
@@ -43,6 +45,8 @@ void IMGC_OUT(FILE *stream, const char *format, ...) {
     #define IMGC_TRACE(format, ...) IMGC_OUT(stderr, format, ##__VA_ARGS__)
 #else
     #define IMGC_TRACE(format, ...) ((void)0)
+#endif
+
 #endif
 
 #endif

@@ -2,9 +2,9 @@
 #ifndef PyImgC_CONSTANTS_H
 #define PyImgC_CONSTANTS_H
 
-#ifndef PY_ARRAY_UNIQUE_SYMBOL
-#define PY_ARRAY_UNIQUE_SYMBOL PyImgC_PyArray_API_Symbol
-#endif
+//#ifndef PY_ARRAY_UNIQUE_SYMBOL
+//#define PY_ARRAY_UNIQUE_SYMBOL PyImgC_PyArray_API_Symbol
+//#endif
 #ifndef NPY_NO_DEPRECATED_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #endif
@@ -62,4 +62,4 @@
 #define IMGC_PYBUFFER_MALLOC (void *)IMGC_PYBUFFER_PYMEM_MALLOC
 #endif
 
-#endif
+#endif /// PyImgC_CONSTANTS_H

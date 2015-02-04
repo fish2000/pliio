@@ -2,12 +2,6 @@
 #ifndef PyImgC_TYPESTRUCT_PYCIMAGE_H
 #define PyImgC_TYPESTRUCT_PYCIMAGE_H
 
-#ifdef __OBJC__
-#import <Cocoa/Cocoa.h>
-#import <Foundation/Foundation.h>
-#import <CoreFoundation/CoreFoundation.h>
-#endif /// __OBJC__
-
 #include <map>
 #include <array>
 #include <cmath>
@@ -16,19 +10,19 @@
 #include <memory>
 #include <cstdlib>
 #include <type_traits>
+using namespace std;
 
-#include "PyImgC_Options.h"
-#include "PyImgC_SharedDefs.h"
 #include <Python.h>
 #include <structmember.h>
 #include <numpy/ndarrayobject.h>
 #include <numpy/ndarraytypes.h>
 #include "numpypp/numpy.hpp"
+#include "numpypp/structcode.hpp"
 #include "numpypp/typecode.hpp"
 #include "numpypp/dispatch.hpp"
 #include "numpypp/utils.hpp"
-using namespace std;
 
+#include "PyImgC_Options.h"
 #include "cimg/CImg.h"
 using namespace cimg_library;
 
@@ -61,7 +55,7 @@ public:
     template <typename T>
     PyCImage &operator=(shared_ptr<CImg<T>> const &ptr) {
         if (checkptr()) { cimage.reset(); }
-        if (checkdtype()) { delete dtype; }
+        if (checkdtype()) { dtype = NULL; }
         cimage = ptr;
         dtype = recast<T>()->typestruct();
     }
@@ -96,29 +90,8 @@ public:
         return false;
     }
     
-    void cgRelease() {
-#ifdef __OBJC__
-        CFIndex count, idx;
-        if (checkcontext()) {
-            count = CFGetRetainCount(_context);
-            for (idx = 0; idx < count; ++idx) {
-                CGContextRelease(_context);
-            }
-            _context = NULL;
-        }
-        if (checkcolorspace()) {
-            count = CFGetRetainCount(_colorspace);
-            for (idx = 0; idx < count; ++idx) {
-                CGColorSpaceRelease(_colorspace);
-            }
-            _colorspace = NULL;
-        }
-#endif /// __OBJC__
-    }
-    
     void cleanup() {
         if (checkptr()) { cimage.reset(); }
-        cgRelease();
     }
     
     inline bool is_empty() {
@@ -129,22 +102,7 @@ public:
     }
     
     inline bool checkptr() { return cimage.get() != nullptr; }
-    inline bool checkdtype() { return dtype != NULL && PyArray_DescrCheck(dtype); }
-    inline bool checkcontext() {
-#ifdef __OBJC__
-        return _context != NULL;
-#else
-        return false;
-#endif /// __OBJC__
-    }
-    inline bool checkcolorspace() {
-#ifdef __OBJC__
-        return _colorspace != NULL;
-#else
-        return false;
-#endif /// __OBJC__
-    }
-    
+    inline bool checkdtype() { return dtype != NULL && PyArray_DescrCheck(dtype); }    
     inline unsigned int typecode() {
         if (checkdtype()) {
             return static_cast<unsigned int>(dtype->type_num);
@@ -208,37 +166,6 @@ public:
         if (checkdtype()) { Py_INCREF(dtype); return dtype; }
         return 0;
     }
-    
-#ifdef __OBJC__
-    
-    CGColorSpaceRef &cgColorSpace() {
-        if (!checkcolorspace()) {
-            _colorspace = CGColorSpaceCreateDeviceRGB();
-        }
-        CGColorSpaceRetain(_colorspace);
-        return _colorspace;
-    }
-    
-    CGContextRef &cgContext() {
-        if (!checkcontext()) {
-#define HANDLE(type) _context = recast<type>()->cgContext(cgColorSpace());
-        VOID_SWITCH_ON_DTYPE(dtype);
-#undef HANDLE
-        }
-        CGContextRetain(_context);
-        return _context;
-    }
-    
-    CGImageRef cgImageRef() {
-        return CGBitmapContextCreateImage(cgContext());
-    }
-    
-private:
-    CGColorSpaceRef _colorspace = NULL;
-    CGContextRef _context = NULL;
-    
-#endif /// __OBJC__
-
 };
 
 #endif /// PyImgC_TYPESTRUCT_PYCIMAGE_H
