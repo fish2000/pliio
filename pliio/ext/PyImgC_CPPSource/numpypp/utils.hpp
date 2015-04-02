@@ -13,13 +13,15 @@
 // holdref is a RAII object for decreasing a reference at scope exit
 struct holdref {
     holdref(PyObject *obj, bool incref=true)
-        :obj(obj) {
-        if (incref) { Py_XINCREF(obj); }
-    }
+        :obj(obj)
+        {
+            if (incref) { Py_XINCREF(obj); }
+        }
     holdref(PyArrayObject *obj, bool incref=true)
-        :obj(reinterpret_cast<PyObject *>(obj)) {
-        if (incref) { Py_XINCREF(obj); }
-    }
+        :obj(reinterpret_cast<PyObject *>(obj))
+        {
+            if (incref) { Py_XINCREF(obj); }
+        }
     ~holdref() { Py_XDECREF(obj); }
 
 private:
@@ -75,8 +77,7 @@ struct gil_ensure {
 // GIL as long as it is caught when the GIL is held.
 struct PythonException {
     PythonException(PyObject *type, const char *message)
-        :type_(type)
-        ,message_(message)
+        :type_(type), message_(message)
         { }
 
     PyObject *type() const { return type_; }
